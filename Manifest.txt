@@ -1,0 +1,2 @@
+Main-Class: ProcessingTest
+Class-Path: core.jar controlP5.jar
