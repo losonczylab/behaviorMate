@@ -1,0 +1,56 @@
+{"default":
+{ 
+  "position_controller":
+    { "ip": "127.0.0.1",
+      "send_port": 5020,
+      "receive_port": 5025
+    },
+  "behavior_controller":
+    { "ip": "127.0.0.1",
+      "send_port": 5010,
+      "receive_port": 5015
+    },
+  "reward": 
+    { "locations": [
+        500,
+        1500,
+        2500
+      ],
+      "radius": 60,
+      "max_duration": 5,
+      "type": "fixed",
+      "number": 3,
+      "drop_size": 60,
+      "pin": 7,
+      "operant_rate": 2,
+      "initial_open": 0
+    },
+  "sensors": [
+    { "pin": 2,
+      "report_pin": 20,
+      "type": "lickport"
+    },
+    { "pin": 22,
+      "type": "rfid_reader"
+    }],
+  "laser": {
+      "radius": 100,
+      "pin": 10,
+      "reward_centered": false,
+      "locations": [
+        750,
+        2500
+      ]
+   },
+  "sync_pin": 12,
+  "trial_length": 300,
+  "tone_duration": 0,
+  "position_scale": 1.0,
+  "track_length": 3000,
+  "lap_reset_tag": "",
+  "lap_tolerance": 0.05,
+},
+"_system": {
+    "data_directory":"/Users/jbowler/Desktop/pMateData"
+}
+}
