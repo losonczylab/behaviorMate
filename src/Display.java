@@ -10,12 +10,6 @@ import processing.core.PFont;
  * the track
  */
 public class Display extends PApplet {
-    //private ControlP5 cp5;
-    //private Textfield mouse_box;
-    //private Textfield testpin_box;
-    //public Bang start_button;
-    //public Bang refresh_button;
-
     private float lickRate;
     private float lapRate;
     private float positionRate;
@@ -31,6 +25,9 @@ public class Display extends PApplet {
     private float reward_radius;
     private int[] laser_locations;
     private float laser_radius;
+    private int text_offset;
+    private int map_offset;
+    private int tag_offset;
 
     public Display(float track_length) {
         lickRate = 0;
@@ -40,18 +37,19 @@ public class Display extends PApplet {
         lapCount = 0;
         rewardCount = 0;
         lastLap = 0;
+        text_offset = 420;
+        map_offset = 150;
+        tag_offset = 240;
         currentTag = "";
         mouseName = "";
         displayScale = 300.0f/track_length;
         this.reward_locations = new int[0];
         this.laser_locations = new int[0];
         this.laser_radius = 0;
-
-        displayForm();
     }
 
-    void setTestPin(int pin) {
-        //testpin_box.setText(""+pin); 
+    void setMouseName(String mouseName) {
+        this.mouseName = mouseName;
     }
 
     void addLick() {
@@ -95,57 +93,6 @@ public class Display extends PApplet {
         this.laser_radius = radius * this.displayScale;
     }
 
-    void displayForm() {
-        //PFont font = createFont("arial",20f);
-        //PFont smallFont = createFont("arial",12);
-        //int nextField = 95;
-        //int fieldOffset = 65;
- /* 
-        mouse_box = cp5.addTextfield("Mouse Name")
-            .setPosition(20,20)
-            .setSize(200,40)
-            .setFont(font)
-            .setFocus(true)
-            .setColor(color(255,0,0));
-
-        testpin_box = cp5.addTextfield("Test Pin")
-            .setPosition(20,150)
-            .setSize(200,40)
-            .setFont(font)
-            .setFocus(false)
-            .setColor(color(255,0,0));
-
-        cp5.addTextfield("Duration")
-            .setPosition(20,220)
-            .setSize(200,40)
-            .setFont(font)
-            .setFocus(false)
-            .setText("500")
-            .setColor(color(255,0,0));
-
-        cp5.addBang("TestValve")
-            .setPosition(20,290)
-            .setSize(100,40)
-            .getCaptionLabel().align(ControlP5.CENTER, ControlP5.CENTER);    
-
-        addStart();
-        addRefresh();*/
-    }
-
-    void addStart() {
-        //start_button = cp5.addBang("Start")
-        //    .setPosition(20,500)
-        //    .setSize(80,40);
-        //start_button.getCaptionLabel().align(ControlP5.CENTER, ControlP5.CENTER);
-    }
-
-    void addRefresh() {
-        //refresh_button = cp5.addBang("RefreshSettings")
-        //    .setPosition(120,500)
-        //    .setSize(160,40);
-        //refresh_button.getCaptionLabel().align(ControlP5.CENTER, ControlP5.CENTER);
-    }
-
     void update(PApplet app, float dy, float position, float time, boolean context, boolean lasering) {
         app.textSize(18);
 
@@ -168,68 +115,56 @@ public class Display extends PApplet {
         }
 
         app.text(this.mouseName, 20, 40);
-        if (time > 0) {
-            app.text("press 'q' to quit trial", 20, 500);
-        }
-        app.text("Position: " + position, 600, 20);
-        app.text("Lick Count: " + lickCount, 600, 40);
-        app.text("Reward Count: " + rewardCount, 600, 60);
+        app.text("Position: " + position, text_offset, 20);
+        app.text("Lick Count: " + lickCount, text_offset, 40);
+        app.text("Reward Count: " + rewardCount, text_offset, 60);
         app.textSize(14);
-        app.text("Last Tag: " + currentTag, 600, 80);
+        app.text("Last Tag: " + currentTag, text_offset, 80);
         app.textSize(18);
-        app.text("Time: " + time, 600, 100);
-        app.text("Lap Count: " + lapCount, 600, 120);
+        app.text("Time: " + time, text_offset, 100);
+        app.text("Lap Count: " + lapCount, text_offset, 120);
         if (context) {
-            app.text("Context: On", 600, 140);
+            app.text("Context: On", text_offset, 140);
         } else {
-            app.text("Context: Off", 600, 140);
+            app.text("Context: Off", text_offset, 140);
         }
         if (lasering) {
-            app.text("Laser: On", 600, 180);
+            app.text("Laser: On", text_offset, 160);
         } else {
-            app.text("Laser: Off", 600, 180);
+            app.text("Laser: Off", text_offset, 160);
         }
 
         app.fill(color(204,204,0));
-        app.rect(450, 200, 300, 10);
+        app.rect(map_offset, 200, 300, 10);
 
         app.fill(color(0,204,204));
         for (int i=0; i < this.laser_locations.length; i++) {
-            app.rect(450+laser_locations[i]*displayScale-this.laser_radius, 200, 2*this.laser_radius, 10);
+            app.rect(map_offset+laser_locations[i]*displayScale-this.laser_radius, 200, 2*this.laser_radius, 10);
         }
 
         app.fill(color(0,204,0));
         for (int i=0; i < this.reward_locations.length; i++) {
-            app.rect(450+reward_locations[i]*displayScale-reward_radius, 200, 2*reward_radius, 10);
+            app.rect(map_offset+reward_locations[i]*displayScale-reward_radius, 200, 2*reward_radius, 10);
         }
 
         app.fill(color(204,0,0));
-        app.rect(450+position*displayScale-5, 200, 10, 10);
+        app.rect(map_offset+position*displayScale-5, 200, 10, 10);
 
         app.textSize(10);
         app.fill(color(255, 0, 0));
-        app.rect(500,500,10,-positionRate);
-        app.text("velocity", 487, 510);
+        app.rect(tag_offset,500,10,-positionRate);
+        app.text("velocity", tag_offset-13, 510);
 
         app.fill(color(0,255,0));
-        app.rect(540,500,10,-lickRate);
-        app.text("licking", 530, 510);
+        app.rect(tag_offset+40,500,10,-lickRate);
+        app.text("licking", tag_offset+30, 510);
 
         app.fill(color(0,0,255));
-        app.rect(580,500,10,-rewardRate);
-        app.text("reward", 570, 510);
+        app.rect(tag_offset+80,500,10,-rewardRate);
+        app.text("reward", tag_offset+70, 510);
 
         app.fill(color(255,255,255));
-        app.rect(620,500,10,-lapRate);
-        app.text("lap", 615, 510);
-    }
-
-    boolean validateForm() {
-        //this.mouseName = mouse_box.getText();
-        //if (this.mouseName == "") {
-        //    return false;
-        //}
-
-        return true;
+        app.rect(tag_offset+120,500,10,-lapRate);
+        app.text("lap", tag_offset+115, 510);
     }
 }

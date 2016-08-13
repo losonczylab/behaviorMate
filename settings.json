@@ -18,7 +18,7 @@
       ],
       "radius": 60,
       "max_duration": 5,
-      "type": "fixed",
+      "type": "moving",
       "number": 3,
       "drop_size": 60,
       "pin": 7,
@@ -43,7 +43,7 @@
       ]
    },
   "sync_pin": 12,
-  "trial_length": 300,
+  "trial_length": 10,
   "tone_duration": 0,
   "position_scale": 1.0,
   "track_length": 3000,

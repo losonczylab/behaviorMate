@@ -1,2 +1,2 @@
-Main-Class: ProcessingTest
-Class-Path: core.jar controlP5.jar
+Main-Class: BehaviorMate
+Class-Path: lib/core.jar bin/
