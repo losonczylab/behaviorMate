@@ -183,10 +183,14 @@ public class TreadmillController extends PApplet {
         return true;
     }
 
-    public void RefreshSettings() {
+    public void RefreshSettings(String filename, String tag) {
         behavior_comm.closeSocket();
         position_comm.closeSocket();
-        reload_settings();
+        reload_settings(filename, tag);
+    }
+
+    public void RefreshSettings() {
+        RefreshSettings("settings.json", "default");
     }
 
     /**
@@ -429,9 +433,9 @@ public class TreadmillController extends PApplet {
     }
 
 
-    void reload_settings() {
+    void reload_settings(String filename, String tag) {
         try {
-          settings_json = loadJSONObject("settings.json").getJSONObject("default");
+          settings_json = loadJSONObject(filename).getJSONObject(tag);
         } catch (Exception e) {
            println(e.toString());
            background(0);
@@ -489,6 +493,10 @@ public class TreadmillController extends PApplet {
         configure_laser();
     }
 
+    void reload_settings() {
+        reload_settings("settings.json", "default");
+    }
+
     public PSurface getPSurface() {
         return this.initSurface();
     }
@@ -519,7 +527,6 @@ public class TreadmillController extends PApplet {
         timer = new ExperimentTimer();
 
         vr_comm = new UdpClient(8025, 8050);
-        //cp5 = new ControlP5(this);
         reload_settings();
         prepareExitHandler();
     }
@@ -646,7 +653,7 @@ public class TreadmillController extends PApplet {
             if (!behavior_json.isNull("lick")) {
                 if (behavior_json.getJSONObject("lick")
                         .getString("action", "stop").equals("start")) {
-                    display.addLick();
+                    display.addLick(started);
                 }
             }
 

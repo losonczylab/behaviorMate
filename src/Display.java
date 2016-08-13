@@ -52,9 +52,11 @@ public class Display extends PApplet {
         this.mouseName = mouseName;
     }
 
-    void addLick() {
+    void addLick(boolean count) {
         lickRate = max(200, lickRate+50);
-        lickCount++;
+        if (count) {
+            lickCount++;
+        }
     }
 
     void setLapCount(int count) {

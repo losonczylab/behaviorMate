@@ -119,9 +119,12 @@ class ControlPanel extends JPanel implements ActionListener {
     private JButton refreshButton;
     private JButton startButton;
     private TreadmillController treadmillController;
+    private SettingsLoader settingsLoader;
 
     public ControlPanel(TreadmillController treadmillController) {
         this.treadmillController = treadmillController;
+        settingsLoader = new SettingsLoader(this);
+        settingsLoader.addActionListener(this);
 
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         mouseNameBox = new LabeledTextField("Mouse Name", 14);
@@ -169,7 +172,11 @@ class ControlPanel extends JPanel implements ActionListener {
                 setEnabled(true);
             }
         } else if (e.getSource() == refreshButton) {
-            treadmillController.RefreshSettings();
+            settingsLoader.show();
+        } else if (e.getSource() == settingsLoader) {
+            treadmillController.RefreshSettings(
+                settingsLoader.getSelectedFile(),
+                settingsLoader.getSelectedTag());
         }
     }
 }
@@ -201,6 +208,7 @@ public class BehaviorMate {
 
         frame.pack();
         frame.setSize(800, 630);
+        frame.setLocationRelativeTo(null);
         frame.setVisible(true);
 
         ps.startThread();
