@@ -139,8 +139,9 @@ public class TreadmillController extends PApplet {
      * in the settings), starts the timer, and triggers the sync pin to start
      * imaging.
      */
-    public boolean Start(String mouse_name) {
-        if ((position == -1) || (mouse_name.equals(""))) {
+    public boolean Start(String mouse_name, String experiment_group) {
+        if ((position == -1) || mouse_name.equals("") ||
+            (experiment_group.equals(""))) {
             return false;
         }
         
@@ -156,6 +157,7 @@ public class TreadmillController extends PApplet {
         
         JSONObject start_log = new JSONObject();
         start_log.setString("mouse", mouse_name);
+        start_log.setString("experiment_group", experiment_group);
         start_log.setString("start", dateFormat.format(startDate));
 
         JSONObject position_log = new JSONObject();

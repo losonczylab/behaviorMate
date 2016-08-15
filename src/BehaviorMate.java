@@ -116,6 +116,7 @@ class EndListener {
 
 class ControlPanel extends JPanel implements ActionListener {
     private LabeledTextField mouseNameBox;
+    private LabeledTextField experimentGroupBox;
     private ValveTestForm valveTestForm;
     private JButton refreshButton;
     private JButton startButton;
@@ -128,6 +129,8 @@ class ControlPanel extends JPanel implements ActionListener {
         settingsLoader.addActionListener(this);
 
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        experimentGroupBox = new LabeledTextField("Experiment Group", 14);
+        add(experimentGroupBox);
         mouseNameBox = new LabeledTextField("Mouse Name", 14);
         add(mouseNameBox);
 
@@ -152,12 +155,14 @@ class ControlPanel extends JPanel implements ActionListener {
     public void setEnabled(boolean enabled) {
         if (!enabled) {
             mouseNameBox.setEnabled(false);
+            experimentGroupBox.setEnabled(false);
             valveTestForm.setEnabled(false);
             refreshButton.setEnabled(false);
             startButton.setText("Stop");
         } else {
             startButton.setText("Start");
             mouseNameBox.setEnabled(true);
+            experimentGroupBox.setEnabled(true);
             valveTestForm.setEnabled(true);
             refreshButton.setEnabled(true);
         }
@@ -166,7 +171,8 @@ class ControlPanel extends JPanel implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == startButton) {
             if (startButton.getText().equals("Start") &&
-                    (treadmillController.Start(mouseNameBox.getText()))) {
+                    (treadmillController.Start(mouseNameBox.getText(),
+                                               experimentGroupBox.getText()))) {
                 setEnabled(false);
             } else {
                 treadmillController.endExperiment();
@@ -174,6 +180,7 @@ class ControlPanel extends JPanel implements ActionListener {
             }
         } else if (e.getSource() == refreshButton) {
             settingsLoader.show();
+            settingsLoader.setLocationRelativeTo(this);
         } else if (e.getSource() == settingsLoader) {
             treadmillController.RefreshSettings(
                 settingsLoader.getSelectedFile(),
@@ -184,7 +191,7 @@ class ControlPanel extends JPanel implements ActionListener {
 
 public class BehaviorMate {
 
-    public static void main(String... args) {
+    public static void main(String[] args) {
 
         try {
             UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
