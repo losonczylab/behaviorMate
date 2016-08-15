@@ -9,6 +9,7 @@ import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import javax.swing.BoxLayout;
 import javax.swing.Box;
+import javax.swing.UIManager;
 import java.awt.GridLayout;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
@@ -185,6 +186,9 @@ public class BehaviorMate {
 
     public static void main(String... args) {
 
+        try {
+            UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
+        } catch (Exception e) {}
         JFrame frame = new JFrame("Treadmill");
         JPanel frame_container = new JPanel(new BorderLayout());
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
