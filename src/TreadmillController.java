@@ -213,6 +213,12 @@ public class TreadmillController extends PApplet {
      * int[] reward_locations array
      */
     public void shuffle_rewards() {
+        if (reward_locations.length == 1) {
+	    reward_locations[0] = (int) random(reward_radius,track_length-reward_radius);
+	    display.setRewardLocations(reward_locations, reward_radius);
+            return;
+        }
+
         int interval = (int)(track_length-2*reward_radius)/reward_locations.length;
         reward_locations[0] = reward_radius + interval/2;
         for (int i = 1; i < reward_locations.length; i++) {

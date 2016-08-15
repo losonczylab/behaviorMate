@@ -79,7 +79,7 @@ public class SettingsLoader extends JDialog implements ActionListener {
         frame_container.add(accept_panel, BorderLayout.SOUTH);
 
         add(frame_container);
-        setSize(550, 100);
+        setSize(550, 120);
     }
 
     public String getSelectedFile() {
@@ -165,7 +165,7 @@ public class SettingsLoader extends JDialog implements ActionListener {
         });
 
         frame.add(launchButton);
-        frame.setSize(150,50);
+        frame.setSize(150,100);
         frame.setVisible(true);
     }
 }
