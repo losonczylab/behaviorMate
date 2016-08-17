@@ -332,8 +332,12 @@ public class TreadmillController extends PApplet {
 
             JSONArray valves = create_subjson.getJSONArray("valves");
             for (int j=0; j < valves.size(); j++) {
-                behavior_comm.sendMessage(
-                    setup_valve_json(valves.getInt(j)).toString());
+                JSONObject valve_json = setup_valve_json(valves.getInt(j));
+                if (!create_subjson.isNull("frequency")) {
+                    valve_json.getJSONObject("valves").setInt(
+                        "frequency", create_subjson.getInt("frequency"));
+                }
+                behavior_comm.sendMessage(valve_json.toString());
             }
             behavior_comm.sendMessage(create_json.toString());
             delay(150);

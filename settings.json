@@ -55,6 +55,14 @@
         "type": "constant",
         "valves": [3],
         "durations": [-1],
+    },
+    {
+        "id": "tone_context",
+        "type": "pulsed",
+        "valves": [7],
+        "durations": [500],
+        "interval": 1000,
+        "frequency": 262
     }
   ],
   "sync_pin": 12,
