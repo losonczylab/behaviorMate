@@ -2,13 +2,13 @@
 { 
   "position_controller":
     { "ip": "127.0.0.1",
-      "send_port": 5020,
-      "receive_port": 5025
+      "send_port": 5000,
+      "receive_port": 5005
     },
   "behavior_controller":
     { "ip": "127.0.0.1",
-      "send_port": 5010,
-      "receive_port": 5015
+      "send_port": 5050,
+      "receive_port": 5055
     },
   "reward": 
     { "locations": [
@@ -42,13 +42,79 @@
         2500
       ]
    },
+  "contexts": [
+    {
+        "id": "light_context",
+        "type": "pulsed",
+        "valves": [13],
+        "durations": [500],
+        "interval": 1000
+    },
+    {
+        "id": "odor_context",
+        "type": "constant",
+        "valves": [3],
+        "durations": [-1],
+    }
+  ],
   "sync_pin": 12,
   "trial_length": 10,
   "tone_duration": 0,
   "position_scale": 1.0,
   "track_length": 3000,
   "lap_reset_tag": "",
-  "lap_tolerance": 0.05,
+  "lap_tolerance": 0.05
+},
+"tag2": {
+  "position_controller":
+    { "ip": "127.0.0.1",
+      "send_port": 5020,
+      "receive_port": 5025
+    },
+  "behavior_controller":
+    { "ip": "127.0.0.1",
+      "send_port": 5010,
+      "receive_port": 5015
+    },
+  "reward": 
+    { "locations": [
+        500,
+        1500,
+        2500
+      ],
+      "radius": 120,
+      "max_duration": 5,
+      "type": "moving",
+      "number": 10,
+      "drop_size": 60,
+      "pin": 7,
+      "operant_rate": 2,
+      "initial_open": 0
+    },
+  "sensors": [
+    { "pin": 2,
+      "report_pin": 20,
+      "type": "lickport"
+    },
+    { "pin": 22,
+      "type": "rfid_reader"
+    }],
+  "laser": {
+      "radius": 200,
+      "pin": 10,
+      "reward_centered": true,
+      "locations": [
+        750,
+        2500
+      ]
+   },
+  "sync_pin": 12,
+  "trial_length": 10,
+  "tone_duration": 0,
+  "position_scale": 1.0,
+  "track_length": 9000,
+  "lap_reset_tag": "",
+  "lap_tolerance": 0.05
 },
 "_system": {
     "data_directory":"/Users/jbowler/Desktop/pMateData"

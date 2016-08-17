@@ -1,2 +1,2 @@
 Main-Class: BehaviorMate
-Class-Path: lib\\core.jar lib\\java-json.jar
+Class-Path: lib/core.jar lib/java-json.jar

@@ -5,6 +5,7 @@ import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Map;
+import java.util.ArrayList;
 
 import processing.core.PApplet;
 import processing.core.PSurface;
@@ -177,6 +178,7 @@ public class TreadmillController extends PApplet {
                 soundUtil.tone(settings_json.getInt("tone_freq"),toneDuration);
             } catch(Exception e) {}
         }
+        startContexts();
         timer.startTimer();
         JSONObject valve_json = open_valve_json(settings_json.getInt("sync_pin"), 100);
         behavior_comm.sendMessage(valve_json.toString());
@@ -311,6 +313,58 @@ public class TreadmillController extends PApplet {
         }
     }
 
+    
+    ArrayList<String> startContextMessages;
+    ArrayList<String> stopContextMessages;
+    void configure_contexts() {
+        startContextMessages = new ArrayList<String>();
+        stopContextMessages = new ArrayList<String>();
+        if (settings_json.isNull("contexts")) {
+            return;
+        }
+        
+        JSONArray contexts = settings_json.getJSONArray("contexts");
+        for (int i=0; i < contexts.size(); i++) {
+            JSONObject create_subjson = contexts.getJSONObject(i);
+            create_subjson.setString("action", "create");
+            JSONObject create_json = new JSONObject();
+            create_json.setJSONObject("contexts", create_subjson);
+
+            JSONArray valves = create_subjson.getJSONArray("valves");
+            for (int j=0; j < valves.size(); j++) {
+                behavior_comm.sendMessage(
+                    setup_valve_json(valves.getInt(j)).toString());
+            }
+            behavior_comm.sendMessage(create_json.toString());
+            delay(150);
+
+            JSONObject start_subjson = new JSONObject();
+            start_subjson.setString("action", "start");
+            start_subjson.setString("id", create_subjson.getString("id"));
+            JSONObject start_json = new JSONObject();
+            start_json.setJSONObject("contexts", start_subjson);
+            startContextMessages.add(start_json.toString());
+
+            JSONObject stop_subjson = new JSONObject();
+            stop_subjson.setString("action", "stop");
+            stop_subjson.setString("id", create_subjson.getString("id"));
+            JSONObject stop_json = new JSONObject();
+            stop_json.setJSONObject("contexts", stop_subjson);
+            stopContextMessages.add(stop_json.toString());
+        }
+    }
+
+    void startContexts() {
+        for (int i = 0; i < startContextMessages.size(); i++) {
+            behavior_comm.sendMessage(startContextMessages.get(i));
+        }
+    }
+
+    void stopContexts() {
+        for (int i = 0; i < startContextMessages.size(); i++) {
+            behavior_comm.sendMessage(stopContextMessages.get(i));
+        }
+    }
 
     /**
      * Configures the settings to trigger an opto-laser around the reward zone.
@@ -457,12 +511,10 @@ public class TreadmillController extends PApplet {
         }
 
         system_json = loadJSONObject("settings.json").getJSONObject("_system");
-        if (position == -1) {
-            if (!settings_json.getString("lap_reset_tag", "").equals("")) {
-                position = -1;
-            } else {
-                position = 0;
-            }
+        if (!settings_json.getString("lap_reset_tag", "").equals("")) {
+            position = -1;
+        } else if (position == -1) {
+            position = 0;
         }
 
         trial_duration = settings_json.getInt("trial_length");
@@ -490,14 +542,11 @@ public class TreadmillController extends PApplet {
 
         JSONObject valve_json = setup_valve_json(settings_json.getInt("sync_pin"));
         behavior_comm.sendMessage(valve_json.toString());
-        if (display == null) {
-            //display = new Display(cp5, track_length);
-            display = new Display(track_length);
-        } else {
-            display.setRewardLocations(reward_locations, reward_radius);
-        }
+        display.setRewardLocations(reward_locations, reward_radius);
+        display.setTrackLength(track_length);
 
         configure_rewards();
+        configure_contexts();
         configure_laser();
     }
 
@@ -534,6 +583,7 @@ public class TreadmillController extends PApplet {
         fWriter = null;
         timer = new ExperimentTimer();
 
+        display = new Display();
         vr_comm = new UdpClient(8025, 8050);
         reload_settings();
         prepareExitHandler();
@@ -716,6 +766,7 @@ public class TreadmillController extends PApplet {
 
         Date stopDate = Calendar.getInstance().getTime();
         endListener.ended();
+        stopContexts();
         
         JSONObject end_log = new JSONObject();
         behavior_comm.sendMessage(stop_context_message);

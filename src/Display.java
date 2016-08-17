@@ -29,7 +29,7 @@ public class Display extends PApplet {
     private int map_offset;
     private int tag_offset;
 
-    public Display(float track_length) {
+    public Display() {
         lickRate = 0;
         lapRate = 0;
         positionRate = 0;
@@ -42,10 +42,14 @@ public class Display extends PApplet {
         tag_offset = 240;
         currentTag = "";
         mouseName = "";
-        displayScale = 300.0f/track_length;
+        displayScale = 300.0f/1.0f;
         this.reward_locations = new int[0];
         this.laser_locations = new int[0];
         this.laser_radius = 0;
+    }
+
+    void setTrackLength(float trackLength) {
+        displayScale = 300.0f/trackLength;
     }
 
     void setMouseName(String mouseName) {
