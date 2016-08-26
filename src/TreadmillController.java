@@ -5,6 +5,7 @@ import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Map;
+import java.util.Iterator;
 import java.util.ArrayList;
 
 import processing.core.PApplet;
@@ -26,15 +27,19 @@ class JSONBuffer {
 
 public class TreadmillController extends PApplet {
 
-    EndListener endListener;
+    TrialListener trialListener;
 
     FileWriter fWriter;
     UdpClient position_comm;
     UdpClient behavior_comm;
     UdpClient vr_comm;
+    VrController vrController;
 
     Display display;
     ExperimentTimer timer;
+    
+    String settings_filename;
+    String settings_tag;
 
     /**
      * json object with all the settings related to this trail. Stored at the top
@@ -127,9 +132,20 @@ public class TreadmillController extends PApplet {
     /** Date format for logging experiment start/stop */
     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-    public TreadmillController(EndListener el) {
-        this.endListener = el;
+    public TreadmillController(String filename, String tag, TrialListener el) {
+        println(filename);
+        this.trialListener = el;
+        this.settings_filename = filename;
+        this.settings_tag = tag;
     }
+
+    public TreadmillController(TrialListener el) {
+        this.trialListener = el;
+        this.settings_filename = "settings.json";
+        this.settings_tag = "default";
+    }
+
+
     public int getRewardPin() {
         return reward_valve;
     }
@@ -171,6 +187,8 @@ public class TreadmillController extends PApplet {
         fWriter.write(start_log.toString());
         fWriter.write(position_log.toString());
 
+        trialListener.started(fWriter.getFile());
+
         int toneDuration = settings_json.getInt("tone_duration");
         if (toneDuration > 0) {
             SoundUtils soundUtil = new SoundUtils();
@@ -178,6 +196,9 @@ public class TreadmillController extends PApplet {
                 soundUtil.tone(settings_json.getInt("tone_freq"),toneDuration);
             } catch(Exception e) {}
         }
+        
+        vrController.loadScene("fond_dock");
+
         startContexts();
         timer.startTimer();
         JSONObject valve_json = open_valve_json(settings_json.getInt("sync_pin"), 100);
@@ -188,13 +209,15 @@ public class TreadmillController extends PApplet {
     }
 
     public void RefreshSettings(String filename, String tag) {
-        behavior_comm.closeSocket();
-        position_comm.closeSocket();
-        reload_settings(filename, tag);
+        settings_filename = filename;
+        settings_tag = tag;
+        RefreshSettings();
     }
 
     public void RefreshSettings() {
-        RefreshSettings("settings.json", "default");
+        behavior_comm.closeSocket();
+        position_comm.closeSocket();
+        reload_settings(settings_filename, settings_tag);
     }
 
     /**
@@ -218,8 +241,11 @@ public class TreadmillController extends PApplet {
      */
     public void shuffle_rewards() {
         if (reward_locations.length == 1) {
-	    reward_locations[0] = (int) random(reward_radius,track_length-reward_radius);
-	    display.setRewardLocations(reward_locations, reward_radius);
+            reward_locations[0] = (int) random(reward_radius,track_length-reward_radius);
+            display.setRewardLocations(reward_locations, reward_radius);
+            if (vrController != null) {
+                vrController.setRewards(reward_locations);
+            }
             return;
         }
 
@@ -239,6 +265,9 @@ public class TreadmillController extends PApplet {
             (int) random(reward_locations[reward_locations.length-2]+2*reward_radius, track_length-reward_radius);
 
         display.setRewardLocations(reward_locations, reward_radius);
+        if (vrController != null) {
+            vrController.setRewards(reward_locations);
+        }
     }
 
     /**
@@ -285,6 +314,7 @@ public class TreadmillController extends PApplet {
     JSONObject open_valve_json(int pin, int duration) {
         JSONObject valve_json = new JSONObject();
         JSONObject valve_subjson = new JSONObject();
+
         valve_subjson.setInt("pin", pin);
         valve_subjson.setString("action","open");
         valve_subjson.setInt("duration",duration);
@@ -312,6 +342,44 @@ public class TreadmillController extends PApplet {
             delay(150);
         }
     }
+
+    //ArrayList<UdpClient> vr_comms;
+    /*void load_scene(String sceneName) {
+        JSONObject sceneJson = new JSONObject();
+        sceneJson.setString("type", "loadScene");
+        sceneJson.setString("data", sceneName);
+
+        Iterator<UdpClient> itr = vr_comms.iterator();
+        while (itr.hasNext()) {
+            itr.next().sendMessage(sceneJson.toString());
+        }
+    }
+
+    void configure_vr() {
+        vr_comms = new ArrayList<UdpClient>();
+        if (settings_json.isNull("display_controllers")) {
+            return;
+        }
+
+        JSONObject vr_settings = settings_json.getJSONObject("display_controllers");
+        Iterator<String> itr = vr_settings.keyIterator();
+        while (itr.hasNext()) {
+            JSONObject vr_json = vr_settings.getJSONObject(itr.next());
+            UdpClient vr_client = new UdpClient(vr_json.getString("ip"),
+                vr_json.getInt("port"));
+
+            JSONObject view_json = new JSONObject();
+            view_json.setInt("viewAngle", vr_json.getInt("view_angle"));
+            view_json.setInt("deflection", vr_json.getInt("deflection"));
+            JSONObject msg_json = new JSONObject();
+            msg_json.setString("data", view_json.toString());
+            
+            vr_client.sendMessage(msg_json.toString());
+            vr_comms.add(vr_client);
+        }
+        
+        load_scene("scene0");
+    }*/
 
     
     ArrayList<String> startContextMessages;
@@ -443,6 +511,9 @@ public class TreadmillController extends PApplet {
                 reward_locations[i] = locations.getInt(i);
             }
             display.setRewardLocations(reward_locations, reward_radius);
+            if (vrController != null) {
+                vrController.setRewards(reward_locations);
+            }
         } else {
             moving_rewards = true;
             reward_locations = new int[reward_info.getInt("number")];
@@ -485,7 +556,7 @@ public class TreadmillController extends PApplet {
         stop_context_message = context_message_json.toString();
     }
 
-    void updateVr()
+    /*void updateVr()
     {
         JSONObject position_json = new JSONObject();
         JSONObject position_data = new JSONObject();
@@ -496,7 +567,7 @@ public class TreadmillController extends PApplet {
         position_json.setString("type", "position");
 
         vr_comm.sendMessage(position_json.toString().replace("\n",""));
-    }
+    }*/
 
 
     void reload_settings(String filename, String tag) {
@@ -514,9 +585,11 @@ public class TreadmillController extends PApplet {
            return;
         }
 
-        system_json = loadJSONObject("settings.json").getJSONObject("_system");
+        system_json = loadJSONObject(filename).getJSONObject("_system");
         if (!settings_json.getString("lap_reset_tag", "").equals("")) {
-            position = -1;
+            if (!settings_json.getString("lap_reset_tag").equals(lap_tag)) {
+                position = -1;
+            }
         } else if (position == -1) {
             position = 0;
         }
@@ -552,10 +625,34 @@ public class TreadmillController extends PApplet {
         configure_rewards();
         configure_contexts();
         configure_laser();
+        if (!settings_json.isNull("display_controllers")) {
+            vrController = new VrController(
+                settings_json.getJSONObject("display_controllers"));
+            if (vrController != null) {
+                vrController.setRewards(reward_locations);
+            }
+
+            JSONArray scenes = settings_json.getJSONArray("vr_scenes");
+            for (int i=0; i < scenes.size(); i++) {
+                vrController.addScene(scenes.getString(i));
+            }
+        } else {
+            vrController = new VrController();
+        }
     }
 
     void reload_settings() {
-        reload_settings("settings.json", "default");
+        reload_settings(settings_filename, settings_tag);
+    }
+
+    public void addComment(String comment) {
+        if (fWriter == null) {
+            return;
+        }
+
+        JSONObject comment_json = new JSONObject();
+        comment_json.setString("comments", comment);
+        fWriter.write(comment_json.toString());
     }
 
     public PSurface getPSurface() {
@@ -584,11 +681,12 @@ public class TreadmillController extends PApplet {
         laser_locations = new int[0];
         position = -1;
         lap_count = 0;
+        lap_tag = "";
         fWriter = null;
         timer = new ExperimentTimer();
 
         display = new Display();
-        vr_comm = new UdpClient(8025, 8050);
+        //vr_comm = new UdpClient("192.168.1.55",8025, 8050);
         reload_settings();
         prepareExitHandler();
     }
@@ -633,6 +731,7 @@ public class TreadmillController extends PApplet {
                         lap_log.setFloat("time", time);
                         lap_log.setInt("lap", lap_count);
                         lap_log.setString("message", "no tag");
+                        vrController.changeScene();
                         fWriter.write(lap_log.toString());
                         lap_count++;
                         display.setLapCount(lap_count);
@@ -643,7 +742,9 @@ public class TreadmillController extends PApplet {
                     json_buffer.json.setFloat("y", position);
                     json_buffer.json.setFloat("time", time);
                     fWriter.write(json_buffer.json.toString());
+                    vrController.update(position);
                 }
+
             }
         }
 
@@ -746,6 +847,7 @@ public class TreadmillController extends PApplet {
                         lap_log.setInt("lap", lap_count);
                         fWriter.write(lap_log.toString());
                         lap_count++;
+                        vrController.changeScene();
                         display.setLapCount(lap_count);
                     }
                 }
@@ -769,7 +871,7 @@ public class TreadmillController extends PApplet {
         }
 
         Date stopDate = Calendar.getInstance().getTime();
-        endListener.ended();
+        trialListener.ended();
         stopContexts();
         
         JSONObject end_log = new JSONObject();
@@ -779,6 +881,9 @@ public class TreadmillController extends PApplet {
         fWriter.write(end_log.toString());
         display.setMouseName("");
 
+        vrController.update(0.0f);
+        vrController.loadScene("scene0");
+
         started = false;
         rewarding = false;
         lasering = false;
@@ -787,7 +892,6 @@ public class TreadmillController extends PApplet {
         next_reward = 0;
         next_laser = 0;
         lap_count = 0;
-        fWriter = null;
         timer = new ExperimentTimer();
     }
 

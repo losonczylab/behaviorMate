@@ -3,6 +3,9 @@ import javax.swing.JPanel;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
+import javax.swing.JTextArea;
+import javax.swing.JComboBox;
+import java.io.File;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.BorderLayout;
@@ -97,19 +100,37 @@ class ValveTestForm extends JPanel implements ActionListener {
     }
 }
 
-class EndListener {
+class TrialListener {
     private ControlPanel controlPanel;
+    private CommentsBox commentsBox;
     
-    public EndListener() {
+    public TrialListener() {
         controlPanel = null;
+        commentsBox = null;
     }
 
     public void setControlPanel(ControlPanel controlPanel) {
         this.controlPanel = controlPanel;
     }
 
+    public void setCommentsBox(CommentsBox commentsBox) {
+        this.commentsBox = commentsBox;
+    }
+
+    public void started(File logFile) {
+        if (commentsBox != null) {
+            commentsBox.setCurrentFile(logFile);
+        }
+    }
+
     public void ended() {
-        controlPanel.setEnabled(true);
+        if (controlPanel != null) {
+            controlPanel.setEnabled(true);
+        }
+
+        if (commentsBox != null) {
+            commentsBox.addOption("next trial");
+        }
     }
 }
 
@@ -189,21 +210,137 @@ class ControlPanel extends JPanel implements ActionListener {
     }
 }
 
+class CommentsBox extends JPanel implements ActionListener {
+    JComboBox<String> fileSelect;
+    JButton saveButton;
+    File currentFile;
+    String currentItem;
+    String nextItem;
+    String lastSelection;
+    String savedString;
+    
+    String nextItemText;
+    String currentItemText;
+
+    JPanel formContainer;
+    JTextArea commentArea;
+    JTextArea nextCommentArea;
+    TreadmillController treadmillController;
+
+    public CommentsBox(TreadmillController treadmillController) {
+        currentFile = null;
+        currentItem = null;
+        this.treadmillController = treadmillController;
+        nextItemText = "";
+        currentItemText = "";
+        savedString = "";
+
+        setLayout(new BorderLayout());
+
+        formContainer = new JPanel();
+        formContainer.setLayout(new BoxLayout(formContainer, BoxLayout.Y_AXIS));
+
+        fileSelect = new JComboBox<String>();
+        fileSelect.addActionListener(this);
+        formContainer.add(fileSelect);
+        formContainer.add(Box.createVerticalStrut(15));
+
+        saveButton = new JButton("save comment");
+        saveButton.addActionListener(this);
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(saveButton);
+        saveButton.setPreferredSize(new Dimension(200,
+            saveButton.getPreferredSize().height));
+        formContainer.add(buttonPanel);
+        add(formContainer, BorderLayout.WEST);
+
+        commentArea = new JTextArea(5,200);
+        nextCommentArea = new JTextArea(5,200);
+        add(commentArea, BorderLayout.CENTER);
+
+        add(new JLabel("Comments"), BorderLayout.NORTH);
+        nextItem = "next trial";
+        lastSelection = nextItem;
+        fileSelect.addItem(nextItem);
+    }
+
+    public void setCurrentFile(File file) {
+        if (fileSelect.getSelectedItem() == nextItem) {
+            currentItemText = commentArea.getText();
+        } else {
+            currentItemText = nextItemText;
+            commentArea.setText(nextItemText);
+        }
+
+        System.out.println(savedString);
+        if (!savedString.equals("")) {
+            treadmillController.addComment(savedString);
+            savedString = "";
+        }
+
+        fileSelect.removeActionListener(this);
+        fileSelect.removeAllItems();
+        currentFile = file;
+        currentItem = file.getName();
+
+        fileSelect.addItem(currentItem);
+        fileSelect.setSelectedItem(currentItem);
+
+        nextItemText = "";
+        lastSelection = currentItem;
+
+        fileSelect.addActionListener(this);
+    }
+
+    public void addOption(String option) {
+        if (option.equals(nextItem)) {
+            fileSelect.addItem(nextItem);
+        } else {
+            fileSelect.addItem(option);
+
+        }
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == saveButton) {
+            if (commentArea.getText().equals("")) {
+                return;
+            }
+
+            if (fileSelect.getSelectedItem() == nextItem) {
+                savedString = commentArea.getText();
+            } else {
+                treadmillController.addComment(commentArea.getText());
+            }
+        } else if (e.getSource() == fileSelect) {
+            if (!fileSelect.getSelectedItem().equals(lastSelection)) {
+                if (fileSelect.getSelectedItem() == nextItem) {
+                    currentItemText = commentArea.getText();
+                    commentArea.setText(nextItemText);
+                } else {
+                    nextItemText = commentArea.getText();
+                    commentArea.setText(currentItemText);
+                }
+                lastSelection = (String)fileSelect.getSelectedItem();
+            }
+        }
+    }
+}
+
 public class BehaviorMate {
+    static SettingsLoader settingsLoader;
+    static JFrame startFrame;
 
-    public static void main(String[] args) {
-
-        try {
-            UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
-        } catch (Exception e) {}
+    private static void startTreadmill(String settingsFilename, String settingsTag) {
         JFrame frame = new JFrame("Treadmill");
         JPanel frame_container = new JPanel(new BorderLayout());
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        EndListener el = new EndListener();
-        TreadmillController treadmillController = new TreadmillController(el);
+        TrialListener tl = new TrialListener();
+        TreadmillController treadmillController = 
+            new TreadmillController(settingsFilename, settingsTag, tl);
         ControlPanel control_panel = new ControlPanel(treadmillController);
-        el.setControlPanel(control_panel);
+        tl.setControlPanel(control_panel);
         frame_container.add(control_panel, BorderLayout.CENTER);
 
         JPanel container = new JPanel();
@@ -215,13 +352,40 @@ public class BehaviorMate {
         container.setSize(800, 600);
         frame_container.add(container, BorderLayout.EAST);
 
+        CommentsBox commentsBox = new CommentsBox(treadmillController);
+        tl.setCommentsBox(commentsBox);
+        frame_container.add(commentsBox, BorderLayout.SOUTH);
+
         frame.add(frame_container);
 
         frame.pack();
-        frame.setSize(800, 630);
+        frame.setSize(800, 700);
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
 
         ps.startThread();
+    }
+
+
+    public static void main(String[] args) {
+        try {
+            UIManager.setLookAndFeel(
+                "com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
+        } catch (Exception e) {}
+
+        startFrame = new JFrame("oi!");
+        settingsLoader = new SettingsLoader(startFrame);
+        settingsLoader.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                startTreadmill(settingsLoader.getSelectedFile(),
+                    settingsLoader.getSelectedTag());
+
+                startFrame.setVisible(false);
+            }
+        });
+        startFrame.setLocationRelativeTo(null);
+        startFrame.setVisible(true);
+        settingsLoader.setLocationRelativeTo(startFrame);
+        settingsLoader.show();
     }
 }

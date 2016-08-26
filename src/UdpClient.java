@@ -31,9 +31,39 @@ class UdpClient extends PApplet {
         }
     }
 
+    public UdpClient(String ip, int arduinoPort, int receivePort) {
+        // configure send port 
+        arduinoAddress = new InetSocketAddress(ip,arduinoPort);
+        this.address = ip + ":" + receivePort;
+
+        try {
+            udpSocket = new DatagramSocket(receivePort);
+            udpSocket.setSoTimeout(1);
+            byte[] receiveData = new byte[1024];
+            incomingUdp = new DatagramPacket(receiveData, receiveData.length);
+        } catch (IOException e) {
+            println(e);
+            println("exiting in setup udp receiver");
+            System.exit(0); 
+        }
+    }
+
+    public UdpClient(String ip, int arduinoPort) {
+        // configure send port 
+        arduinoAddress = new InetSocketAddress(ip,arduinoPort);
+        this.address = ip;
+        try {
+            udpSocket = new DatagramSocket(null);
+        } catch (IOException e) {
+            println(e);
+            println("error createing unbound socket");
+        }
+    }
+
+
     void sendMessage(String message) {
       message = message.replaceAll("[\r|\n|\\s]", "");
-      println("trying to send data: " + message);
+      println("attempting send [" + arduinoAddress + "]: " + message);
       try {
           byte[] sendData = message.getBytes("UTF-8");
           DatagramPacket sendPacket = new DatagramPacket(sendData, 0,
@@ -72,24 +102,4 @@ class UdpClient extends PApplet {
         udpSocket.close();
         delay(100);
     }
-
-    /*
-    void testArduino() {
-        println("testing Arduino");
-        try {
-          udpSocket.setSoTimeout(1000);
-        } catch (SocketException se) {}
-      
-        sendUdpData("{\"communicator\":{\"action\":\"test\"}}");
-        String[] message = {""};
-        if (!receiveUdpData(message, false)) {
-          println("failed to connect to arduino");
-        }
-        println("message: " + message[0]);
-      
-        try {
-            udpSocket.setSoTimeout(1);
-        } catch (SocketException se) {}
-            println("arduino test successful");
-    }*/
 }

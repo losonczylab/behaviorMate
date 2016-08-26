@@ -48,6 +48,10 @@ public class FileWriter extends PApplet {
         }
     }
   
+    public File getFile() {
+        return new File(logFile.getAbsolutePath());
+    }
+
     /**
      * Write a line to the experiment's log file.
      * @param msg message to be written to the log file

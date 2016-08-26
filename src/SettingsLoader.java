@@ -14,6 +14,7 @@ import java.awt.FlowLayout;
 import java.awt.Dimension;
 import java.io.File;
 import java.util.Iterator;
+import javax.swing.JOptionPane;
 
 import org.json.JSONObject;
 import java.io.BufferedReader;
@@ -105,13 +106,14 @@ public class SettingsLoader extends JDialog implements ActionListener {
             }
         } catch (IOException e) {
             System.out.println(e.toString());
+            return null;
         }
 
         JSONObject jsonObj = null;
         try {
             jsonObj = new JSONObject(jsonData);
         } catch(JSONException e) {
-            System.out.println(e.toString());
+            JOptionPane.showMessageDialog(this, e.toString());
         }
 
         return jsonObj;
