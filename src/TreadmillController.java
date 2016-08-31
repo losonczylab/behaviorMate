@@ -445,6 +445,8 @@ public class TreadmillController extends PApplet {
         if (settings_json.isNull("laser")) {
             laser_pin = -1;
             laser_radius = 0;
+            laser_locations = int[];
+            display.setLaserLocations(laser_locations, laser_radius);
 
             return;
         }
