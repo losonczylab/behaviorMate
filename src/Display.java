@@ -28,6 +28,7 @@ public class Display extends PApplet {
     private int text_offset;
     private int map_offset;
     private int tag_offset;
+    private String schedule;
 
     public Display() {
         lickRate = 0;
@@ -46,6 +47,8 @@ public class Display extends PApplet {
         this.reward_locations = new int[0];
         this.laser_locations = new int[0];
         this.laser_radius = 0;
+
+        this.schedule = "hello world";
     }
 
     void setTrackLength(float trackLength) {
@@ -57,7 +60,7 @@ public class Display extends PApplet {
     }
 
     void addLick(boolean count) {
-        lickRate = max(200, lickRate+50);
+        lickRate = min(200, lickRate+50);
         if (count) {
             lickCount++;
         }
@@ -76,7 +79,7 @@ public class Display extends PApplet {
     }
 
     void addReward() {
-        rewardRate = max(200, rewardRate+50);
+        rewardRate = min(200, rewardRate+50);
         rewardCount++;
     }
 
@@ -99,7 +102,8 @@ public class Display extends PApplet {
         this.laser_radius = radius * this.displayScale;
     }
 
-    void update(PApplet app, float dy, float position, float time, boolean context, boolean lasering) {
+    void update(PApplet app, float dy, float position, float time,
+            boolean context, boolean lasering) {
         app.textSize(18);
 
         if (lickRate > 0) {
@@ -152,6 +156,10 @@ public class Display extends PApplet {
         for (int i=0; i < this.reward_locations.length; i++) {
             app.rect(map_offset+reward_locations[i]*displayScale-reward_radius, 200, 2*reward_radius, 10);
         }
+
+        app.textSize(14);
+        app.fill(color(204,204,0));
+        app.text(this.schedule, 60, 80);
 
         app.fill(color(204,0,0));
         app.rect(map_offset+position*displayScale-5, 200, 10, 10);

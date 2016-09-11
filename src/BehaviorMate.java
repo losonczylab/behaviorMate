@@ -13,6 +13,7 @@ import java.awt.FlowLayout;
 import javax.swing.BoxLayout;
 import javax.swing.Box;
 import javax.swing.UIManager;
+import javax.swing.JOptionPane;
 import java.awt.GridLayout;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
@@ -23,6 +24,7 @@ import java.lang.NumberFormatException;
 import processing.awt.PSurfaceAWT.SmoothCanvas;
 import processing.core.PApplet;
 import processing.core.PSurface;
+import processing.data.JSONObject;
 
 
 class LabeledTextField extends JPanel {
@@ -126,6 +128,7 @@ class TrialListener {
     public void ended() {
         if (controlPanel != null) {
             controlPanel.setEnabled(true);
+            controlPanel.showAttrsForm();
         }
 
         if (commentsBox != null) {
@@ -139,18 +142,24 @@ class ControlPanel extends JPanel implements ActionListener {
     private LabeledTextField mouseNameBox;
     private LabeledTextField experimentGroupBox;
     private ValveTestForm valveTestForm;
+    private JButton showAttrsButton;
     private JButton refreshButton;
     private JButton startButton;
     private TreadmillController treadmillController;
     private SettingsLoader settingsLoader;
+    private TrialAttrsForm trialAttrsForm;
+    private boolean attrsCompleted;
+    private JFrame parent;
 
-    public ControlPanel(TreadmillController treadmillController) {
+    public ControlPanel(JFrame parent, TreadmillController treadmillController,
+            SettingsLoader settingsLoader) {
         this.treadmillController = treadmillController;
-        settingsLoader = new SettingsLoader(this);
+        this.settingsLoader = settingsLoader;
         settingsLoader.addActionListener(this);
+        this.parent = parent;
 
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        experimentGroupBox = new LabeledTextField("Experiment Group", 14);
+        experimentGroupBox = new LabeledTextField("Project Name", 14);
         add(experimentGroupBox);
         mouseNameBox = new LabeledTextField("Mouse Name", 14);
         add(mouseNameBox);
@@ -159,9 +168,13 @@ class ControlPanel extends JPanel implements ActionListener {
         valveTestForm = new ValveTestForm(treadmillController);
         valveTestForm.setPreferredSize(new Dimension(200, 250));
         add(valveTestForm);
-        add(Box.createVerticalStrut(150));
+        add(Box.createVerticalStrut(125));
 
         JPanel buttonPanel = new JPanel(new GridLayout(0,1));
+        showAttrsButton= new JButton("Edit Trial Attributes");
+        showAttrsButton.addActionListener(this);
+        buttonPanel.add(showAttrsButton);
+
         refreshButton = new JButton("Re-Load Settings");
         refreshButton.addActionListener(this);
         buttonPanel.add(refreshButton);
@@ -171,6 +184,34 @@ class ControlPanel extends JPanel implements ActionListener {
         buttonPanel.add(startButton);
 
         add(buttonPanel);
+
+        trialAttrsForm = new TrialAttrsForm(this);
+        trialAttrsForm.addActionListener(this);
+        trialAttrsForm.loadForm(settingsLoader.getSelectedFile(),
+            settingsLoader.getSelectedTag());
+        showAttrsForm();
+    }
+
+    public void showAttrsForm() {
+        if (trialAttrsForm.showForm()) {
+            attrsCompleted = false;
+        } else {
+            attrsCompleted = true;
+        }
+    }
+
+    private void updateAttrs() {
+        String trialAttrs = "";
+        try {
+            trialAttrs = trialAttrsForm.getValues();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this,
+                "Unable to parse Trial Attributes");
+            showAttrsForm();
+            return;
+        }
+        System.out.println(trialAttrs);
+        treadmillController.addSettings(trialAttrs);
     }
 
     public void setEnabled(boolean enabled) {
@@ -179,33 +220,66 @@ class ControlPanel extends JPanel implements ActionListener {
             experimentGroupBox.setEnabled(false);
             valveTestForm.setEnabled(false);
             refreshButton.setEnabled(false);
+            showAttrsButton.setEnabled(false);
             startButton.setText("Stop");
         } else {
             startButton.setText("Start");
             mouseNameBox.setEnabled(true);
             experimentGroupBox.setEnabled(true);
             valveTestForm.setEnabled(true);
+            showAttrsButton.setEnabled(true);
             refreshButton.setEnabled(true);
         }
     }
 
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == startButton) {
-            if (startButton.getText().equals("Start") &&
-                    (treadmillController.Start(mouseNameBox.getText(),
-                                               experimentGroupBox.getText()))) {
-                setEnabled(false);
+            if (startButton.getText().equals("Start")) {
+                if (!attrsCompleted) {
+                    JOptionPane.showMessageDialog(this,
+                        "Complete Trial Attributes Form");
+
+                    return;
+                }
+
+                if (mouseNameBox.getText().equals("")) {
+                    JOptionPane.showMessageDialog(this,
+                        "Mouse Name is Blank");
+                    return;
+                }
+
+                if (experimentGroupBox.getText().equals("")) {
+                    JOptionPane.showMessageDialog(this,
+                        "Project Name is Blank");
+                    return;
+                }
+
+                if (treadmillController.Start(mouseNameBox.getText(),
+                                              experimentGroupBox.getText())) {
+                    setEnabled(false);
+                } else {
+                    JOptionPane.showMessageDialog(this,
+                        "Unable to Start ... Scan RFID tag?");
+                }
             } else {
                 treadmillController.endExperiment();
                 setEnabled(true);
             }
+        } else if (e.getSource() == showAttrsButton) {
+            showAttrsForm();
         } else if (e.getSource() == refreshButton) {
-            settingsLoader.show();
             settingsLoader.setLocationRelativeTo(this);
+            settingsLoader.show();
         } else if (e.getSource() == settingsLoader) {
-            treadmillController.RefreshSettings(
-                settingsLoader.getSelectedFile(),
-                settingsLoader.getSelectedTag());
+            parent.setTitle(settingsLoader.getSelectedTag());
+            String filename = settingsLoader.getSelectedFile();
+            String tag = settingsLoader.getSelectedTag();
+
+            treadmillController.RefreshSettings(filename, tag);
+            trialAttrsForm.loadForm(filename, tag);
+        } else if (e.getSource() == trialAttrsForm) {
+            attrsCompleted = true;
+            updateAttrs();
         }
     }
 }
@@ -272,7 +346,6 @@ class CommentsBox extends JPanel implements ActionListener {
             commentArea.setText(nextItemText);
         }
 
-        System.out.println(savedString);
         if (!savedString.equals("")) {
             treadmillController.addComment(savedString);
             savedString = "";
@@ -331,15 +404,19 @@ public class BehaviorMate {
     static SettingsLoader settingsLoader;
     static JFrame startFrame;
 
-    private static void startTreadmill(String settingsFilename, String settingsTag) {
-        JFrame frame = new JFrame("Treadmill");
+    private static void startTreadmill(String settingsFilename, String settingsTag,
+            SettingsLoader settingsLoader) {
+        JFrame frame = new JFrame(settingsTag);
         JPanel frame_container = new JPanel(new BorderLayout());
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         TrialListener tl = new TrialListener();
         TreadmillController treadmillController = 
             new TreadmillController(settingsFilename, settingsTag, tl);
-        ControlPanel control_panel = new ControlPanel(treadmillController);
+        //TreadmillController treadmillController = 
+        //    new SalienceController(settingsFilename, settingsTag, tl);
+        ControlPanel control_panel = new ControlPanel(frame, treadmillController,
+            settingsLoader);
         tl.setControlPanel(control_panel);
         frame_container.add(control_panel, BorderLayout.CENTER);
 
@@ -378,7 +455,7 @@ public class BehaviorMate {
         settingsLoader.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 startTreadmill(settingsLoader.getSelectedFile(),
-                    settingsLoader.getSelectedTag());
+                    settingsLoader.getSelectedTag(), settingsLoader);
 
                 startFrame.setVisible(false);
             }

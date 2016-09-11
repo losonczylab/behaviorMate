@@ -177,15 +177,10 @@ public class TreadmillController extends PApplet {
         start_log.setString("experiment_group", experiment_group);
         start_log.setString("start", dateFormat.format(startDate));
 
-        JSONObject position_log = new JSONObject();
-        position_log.setFloat("time", 0);
-        position_log.setFloat("y", position);
-
         JSONObject settings_log = new JSONObject();
         settings_log.setJSONObject("settings", settings_json);
         fWriter.write(settings_log.toString());
         fWriter.write(start_log.toString());
-        fWriter.write(position_log.toString());
 
         trialListener.started(fWriter.getFile());
 
@@ -206,6 +201,84 @@ public class TreadmillController extends PApplet {
 
         started = true;
         return true;
+    }
+
+    private JSONObject parseJSONFields(JSONArray fields) {
+        JSONObject value = new JSONObject();
+        for (int i=0; i<fields.size(); i++) {
+            JSONObject setting = fields.getJSONObject(i);
+            String key = setting.getString("key");
+            String type = setting.getString("type");
+            
+            if (type.equals("String")) {
+                value.setString(key, setting.getString("value"));
+            } else if (type.equals("int")) {
+                value.setInt(key, setting.getInt("value"));
+            } else if (type.equals("float")) {
+                value.setDouble(key, setting.getDouble("value"));
+            } else if (type.equals("JSONObject")) {
+                value.setJSONObject(key, parseJSONFields(
+                    setting.getJSONArray("fields")));
+            }
+        }
+
+        return value;
+    }
+
+    private JSONObject mergeJSONFields(JSONObject orig, JSONArray update_fields) {
+        for (int i=0; i<update_fields.size(); i++) {
+            JSONObject setting = update_fields.getJSONObject(i);
+            String key = setting.getString("key");
+            String type = setting.getString("type");
+            
+            if (type.equals("String")) {
+                orig.setString(key, setting.getString("value"));
+            } else if (type.equals("int")) {
+                orig.setInt(key, setting.getInt("value"));
+            } else if (type.equals("float")) {
+                orig.setDouble(key, setting.getDouble("value"));
+            } else if (type.equals("JSONObject")) {
+                if (!orig.isNull(key)) {
+                    orig.setJSONObject(key, mergeJSONFields(orig.getJSONObject(key),
+                        setting.getJSONArray("fields")));
+                } else {
+                    orig.setJSONObject(key, parseJSONFields(
+                        setting.getJSONArray("fields")));
+                }
+            } else if (type.equals("JSONArray")) {
+                orig.setJSONArray(key, setting.getJSONArray("value"));
+            }
+        }
+
+        return orig;
+    }
+    
+    public void addSettings(String settings) {
+        JSONArray new_settings = parseJSONArray(settings);
+        for (int i=0; i<new_settings.size(); i++) {
+            JSONObject setting = new_settings.getJSONObject(i);
+            String key = setting.getString("key");
+            String type = setting.getString("type");
+            
+            if (type.equals("String")) {
+                settings_json.setString(key, setting.getString("value"));
+            } else if (type.equals("int")) {
+                settings_json.setInt(key, setting.getInt("value"));
+            } else if (type.equals("float")) {
+                settings_json.setDouble(key, setting.getDouble("value"));
+            } else if (type.equals("JSONObject")) {
+                settings_json.setJSONObject(key,
+                    mergeJSONFields(settings_json.getJSONObject(key),
+                    setting.getJSONArray("fields")));
+            } else if (type.equals("JSONArray")) {
+                settings_json.setJSONArray(key, setting.getJSONArray("value"));
+            }
+        }
+
+        //TODO: diff and only reconfigure if an update is made
+        behavior_comm.closeSocket();
+        position_comm.closeSocket();
+        reconfigureExperiment();
     }
 
     public void RefreshSettings(String filename, String tag) {
@@ -342,45 +415,6 @@ public class TreadmillController extends PApplet {
             delay(150);
         }
     }
-
-    //ArrayList<UdpClient> vr_comms;
-    /*void load_scene(String sceneName) {
-        JSONObject sceneJson = new JSONObject();
-        sceneJson.setString("type", "loadScene");
-        sceneJson.setString("data", sceneName);
-
-        Iterator<UdpClient> itr = vr_comms.iterator();
-        while (itr.hasNext()) {
-            itr.next().sendMessage(sceneJson.toString());
-        }
-    }
-
-    void configure_vr() {
-        vr_comms = new ArrayList<UdpClient>();
-        if (settings_json.isNull("display_controllers")) {
-            return;
-        }
-
-        JSONObject vr_settings = settings_json.getJSONObject("display_controllers");
-        Iterator<String> itr = vr_settings.keyIterator();
-        while (itr.hasNext()) {
-            JSONObject vr_json = vr_settings.getJSONObject(itr.next());
-            UdpClient vr_client = new UdpClient(vr_json.getString("ip"),
-                vr_json.getInt("port"));
-
-            JSONObject view_json = new JSONObject();
-            view_json.setInt("viewAngle", vr_json.getInt("view_angle"));
-            view_json.setInt("deflection", vr_json.getInt("deflection"));
-            JSONObject msg_json = new JSONObject();
-            msg_json.setString("data", view_json.toString());
-            
-            vr_client.sendMessage(msg_json.toString());
-            vr_comms.add(vr_client);
-        }
-        
-        load_scene("scene0");
-    }*/
-
     
     ArrayList<String> startContextMessages;
     ArrayList<String> stopContextMessages;
@@ -445,7 +479,7 @@ public class TreadmillController extends PApplet {
         if (settings_json.isNull("laser")) {
             laser_pin = -1;
             laser_radius = 0;
-            laser_locations = int[];
+            laser_locations = new int[0];
             display.setLaserLocations(laser_locations, laser_radius);
 
             return;
@@ -580,7 +614,7 @@ public class TreadmillController extends PApplet {
            background(0);
            fill(color(255,0,0));
            textSize(24);
-           text("Settings.json failed to load!", 50, 50);
+           text("Settings failed to load!", 50, 50);
            text(e.toString(), 50, 80);
            noLoop();
            nodraw = true;
@@ -588,6 +622,10 @@ public class TreadmillController extends PApplet {
         }
 
         system_json = loadJSONObject(filename).getJSONObject("_system");
+        reconfigureExperiment();
+    }
+
+    void reconfigureExperiment() {
         if (!settings_json.getString("lap_reset_tag", "").equals("")) {
             if (!settings_json.getString("lap_reset_tag").equals(lap_tag)) {
                 position = -1;
@@ -688,7 +726,6 @@ public class TreadmillController extends PApplet {
         timer = new ExperimentTimer();
 
         display = new Display();
-        //vr_comm = new UdpClient("192.168.1.55",8025, 8050);
         reload_settings();
         prepareExitHandler();
     }
@@ -854,7 +891,30 @@ public class TreadmillController extends PApplet {
                     }
                 }
             }
-            
+
+            if (!behavior_json.isNull("tag")) {
+                JSONObject tag = behavior_json.getJSONObject("tag");
+                String tag_id = tag.getString("id");
+                display.setCurrentTag(tag_id);
+                if (tag_id.equals(lap_tag)) {
+                    display.setLastLap(position);
+                    position = 0;
+                    next_reward = 0;
+                    next_laser = 0;
+                    if (moving_rewards) {
+                        shuffle_rewards();
+                    }
+                    if (started) {
+                        JSONObject lap_log = new JSONObject();
+                        lap_log.setFloat("time", time);
+                        lap_log.setInt("lap", lap_count);
+                        fWriter.write(lap_log.toString());
+                        lap_count++;
+                        vrController.changeScene();
+                        display.setLapCount(lap_count);
+                    }
+                }
+            }
             if (started) {
                 json_buffer.json.setFloat("time", time);
                 fWriter.write(json_buffer.json.toString());
@@ -901,7 +961,7 @@ public class TreadmillController extends PApplet {
      * add a function hook to run at shutdown. this code runs of the program is
      * terminated unexpectidly, ensuring that the log files are closed out.
      */
-    private void prepareExitHandler () {
+    protected void prepareExitHandler () {
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             public void run () {
                 Date stopDate = Calendar.getInstance().getTime();
