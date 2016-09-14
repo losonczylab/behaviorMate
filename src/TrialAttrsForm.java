@@ -325,7 +325,6 @@ public class TrialAttrsForm extends JDialog implements ActionListener {
         }
         input_container.revalidate();
         input_container.repaint();
-        show();
     }
 
     public boolean showForm() {

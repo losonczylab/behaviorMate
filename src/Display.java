@@ -48,7 +48,7 @@ public class Display extends PApplet {
         this.laser_locations = new int[0];
         this.laser_radius = 0;
 
-        this.schedule = "hello world";
+        this.schedule = "";
     }
 
     void setTrackLength(float trackLength) {
@@ -64,6 +64,10 @@ public class Display extends PApplet {
         if (count) {
             lickCount++;
         }
+    }
+
+    void setSchedule(String schedule) {
+        this.schedule = schedule;
     }
 
     void setLapCount(int count) {
@@ -153,6 +157,7 @@ public class Display extends PApplet {
         }
 
         app.fill(color(0,204,0));
+        
         for (int i=0; i < this.reward_locations.length; i++) {
             app.rect(map_offset+reward_locations[i]*displayScale-reward_radius, 200, 2*reward_radius, 10);
         }

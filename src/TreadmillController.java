@@ -10,7 +10,10 @@ import java.util.ArrayList;
 
 import processing.core.PApplet;
 import processing.core.PSurface;
+
+//TODO: replace processing.data.JSONObject with json.org.JSONObject
 import processing.data.JSONObject;
+//TODO: replace processing.data.JSONArray with json.org.JSONObject
 import processing.data.JSONArray;
 
 /**
@@ -121,16 +124,27 @@ public class TreadmillController extends PApplet {
 
     /** stores the json string to start the reward context */
     String start_context_message;
+
     /** stores the json string to stop the reward context */
     String stop_context_message;
 
     /** Read buffer for position messages */
     JSONBuffer position_buffer = new JSONBuffer();
+
     /** Read buffer for behavior messages */
     JSONBuffer json_buffer = new JSONBuffer();
 
     /** Date format for logging experiment start/stop */
     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+    public TreadmillController(String settings_string, String system_string,
+            TrialListener el, boolean useless) {
+        this.trialListener = el;
+        this.settings_filename = "";
+        this.settings_tag = "";
+        this.settings_json = parseJSONObject(settings_string);
+        this.system_json = parseJSONObject(system_string);
+    }
 
     public TreadmillController(String filename, String tag, TrialListener el) {
         println(filename);
@@ -144,7 +158,6 @@ public class TreadmillController extends PApplet {
         this.settings_filename = "settings.json";
         this.settings_tag = "default";
     }
-
 
     public int getRewardPin() {
         return reward_valve;
@@ -287,10 +300,18 @@ public class TreadmillController extends PApplet {
         RefreshSettings();
     }
 
+    public void RefreshSettings(JSONObject settings_json,
+            JSONObject system_json) {
+        this.settings_json = settings_json;
+        this.system_json = system_json;
+        RefreshSettings();
+    }
+
     public void RefreshSettings() {
         behavior_comm.closeSocket();
         position_comm.closeSocket();
-        reload_settings(settings_filename, settings_tag);
+        //reload_settings(settings_filename, settings_tag);
+        reload_settings();
     }
 
     /**
@@ -313,6 +334,10 @@ public class TreadmillController extends PApplet {
      * int[] reward_locations array
      */
     public void shuffle_rewards() {
+        if (reward_locations.length == 0) {
+            return;
+        }
+
         if (reward_locations.length == 1) {
             reward_locations[0] = (int) random(reward_radius,track_length-reward_radius);
             display.setRewardLocations(reward_locations, reward_radius);
@@ -401,6 +426,10 @@ public class TreadmillController extends PApplet {
      * must include pin, type, and report_pin must be specified as needed
      */
     void configure_sensors() {
+        if (settings_json.isNull("sensors")) {
+            return;
+        }
+
         JSONArray sensors = settings_json.getJSONArray("sensors");
         for (int i=0; i < sensors.size(); i++) {
             JSONObject create_subjson = sensors.getJSONObject(i);
@@ -524,7 +553,6 @@ public class TreadmillController extends PApplet {
         JSONObject stop_laser_json = new JSONObject();
         stop_laser_json.setJSONObject("valves", stop_submessage);
         stop_laser_message = stop_laser_json.toString();
-        println(start_laser_message);
         behavior_comm.sendMessage(stop_laser_json.toString());
     }
 
@@ -534,6 +562,15 @@ public class TreadmillController extends PApplet {
      * locations
      */
     void configure_rewards() {
+        if (settings_json.isNull("reward")) {
+            reward_valve = -1;
+            reward_radius = 0;
+            reward_duration = 0;
+            reward_locations = new int[0];
+            stop_context_message = null;
+            return;
+        }
+
         JSONObject reward_info = settings_json.getJSONObject("reward");
         reward_valve = reward_info.getInt("pin");
         reward_radius = reward_info.getInt("radius");
@@ -589,6 +626,7 @@ public class TreadmillController extends PApplet {
 
         context_message.setString("action", "stop");
         context_message_json.setJSONObject("contexts", context_message);
+        println(context_message.toString());
         stop_context_message = context_message_json.toString();
     }
 
@@ -605,6 +643,11 @@ public class TreadmillController extends PApplet {
         vr_comm.sendMessage(position_json.toString().replace("\n",""));
     }*/
 
+    void reload_settings(JSONObject settings_json, JSONObject system_json) {
+        this.settings_json = settings_json;
+        system_json = this.system_json;
+        reconfigureExperiment();
+    }
 
     void reload_settings(String filename, String tag) {
         try {
@@ -659,10 +702,10 @@ public class TreadmillController extends PApplet {
 
         JSONObject valve_json = setup_valve_json(settings_json.getInt("sync_pin"));
         behavior_comm.sendMessage(valve_json.toString());
-        display.setRewardLocations(reward_locations, reward_radius);
         display.setTrackLength(track_length);
 
         configure_rewards();
+        display.setRewardLocations(reward_locations, reward_radius);
         configure_contexts();
         configure_laser();
         if (!settings_json.isNull("display_controllers")) {
@@ -682,7 +725,8 @@ public class TreadmillController extends PApplet {
     }
 
     void reload_settings() {
-        reload_settings(settings_filename, settings_tag);
+        reconfigureExperiment();
+        //reload_settings(settings_filename, settings_tag);
     }
 
     public void addComment(String comment) {
@@ -719,6 +763,7 @@ public class TreadmillController extends PApplet {
         next_reward = 0;
         next_laser = 0;
         laser_locations = new int[0];
+        reward_locations = new int[0];
         position = -1;
         lap_count = 0;
         lap_tag = "";
@@ -880,6 +925,7 @@ public class TreadmillController extends PApplet {
                     if (moving_rewards) {
                         shuffle_rewards();
                     }
+
                     if (started) {
                         JSONObject lap_log = new JSONObject();
                         lap_log.setFloat("time", time);
@@ -892,9 +938,9 @@ public class TreadmillController extends PApplet {
                 }
             }
 
-            if (!behavior_json.isNull("tag")) {
-                JSONObject tag = behavior_json.getJSONObject("tag");
-                String tag_id = tag.getString("id");
+            if (!behavior_json.isNull("tag_reader")) {
+                JSONObject tag = behavior_json.getJSONObject("tag_reader");
+                String tag_id = tag.getString("tag");
                 display.setCurrentTag(tag_id);
                 if (tag_id.equals(lap_tag)) {
                     display.setLastLap(position);
@@ -937,7 +983,9 @@ public class TreadmillController extends PApplet {
         stopContexts();
         
         JSONObject end_log = new JSONObject();
-        behavior_comm.sendMessage(stop_context_message);
+        if (stop_context_message != null) {
+            behavior_comm.sendMessage(stop_context_message);
+        }
         end_log.setFloat("time", timer.getTime());
         end_log.setString("stop", dateFormat.format(stopDate));
         fWriter.write(end_log.toString());

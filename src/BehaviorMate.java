@@ -19,12 +19,19 @@ import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Dimension;
 
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+
 import java.lang.NumberFormatException;
+import org.json.JSONException;
+import java.io.IOException;
+import java.io.FileNotFoundException;
 
 import processing.awt.PSurfaceAWT.SmoothCanvas;
 import processing.core.PApplet;
 import processing.core.PSurface;
-import processing.data.JSONObject;
 
 
 class LabeledTextField extends JPanel {
@@ -206,7 +213,7 @@ class ControlPanel extends JPanel implements ActionListener {
             trialAttrs = trialAttrsForm.getValues();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this,
-                "Unable to parse Trial Attributes");
+                "Unable to parse Trial Attributes\n" + e.getMessage());
             showAttrsForm();
             return;
         }
@@ -277,6 +284,7 @@ class ControlPanel extends JPanel implements ActionListener {
 
             treadmillController.RefreshSettings(filename, tag);
             trialAttrsForm.loadForm(filename, tag);
+            showAttrsForm();
         } else if (e.getSource() == trialAttrsForm) {
             attrsCompleted = true;
             updateAttrs();
@@ -404,19 +412,81 @@ public class BehaviorMate {
     static SettingsLoader settingsLoader;
     static JFrame startFrame;
 
-    private static void startTreadmill(String settingsFilename, String settingsTag,
-            SettingsLoader settingsLoader) {
+    private static JSONObject parseJsonFile(String filename) {
+        String jsonData = "";
+        BufferedReader br = null;
+        try {
+            String line;
+            br = new BufferedReader(new FileReader(filename));
+            while ((line = br.readLine()) != null) {
+                if (!line.startsWith("//")) {
+                    jsonData += line + "\n";
+                }
+            }
+        } catch (IOException e) {
+            System.out.println(e.toString());
+        }
+
+        JSONObject jsonObj = null;
+        try {
+            jsonObj = new JSONObject(jsonData);
+        } catch(JSONException e) {
+            String message = "Failed to parse: " + filename +
+                "\n" + e.toString();
+            JOptionPane.showMessageDialog(null, message);
+        }
+
+        return jsonObj;
+    }
+
+    private static JSONObject parseJsonFile(String filename, String tag) {
+        JSONObject json  = parseJsonFile(filename);
+
+        try {
+            json = json.getJSONObject(tag);
+        } catch (JSONException e) {
+            String message = "Failed to find tag: " + tag +
+                "\n" + e.toString();
+            JOptionPane.showMessageDialog(null, message);
+
+            json = null;
+        }
+
+        return json;
+    }
+
+    private static void startTreadmill(SettingsLoader settingsLoader) {
+        String settingsFile = settingsLoader.getSelectedFile();
+        String settingsTag = settingsLoader.getSelectedTag();
+
+        JSONObject settings = parseJsonFile(settingsFile, settingsTag);
+        JSONObject system_settings = parseJsonFile(settingsFile, "_system");
+
         JFrame frame = new JFrame(settingsTag);
         JPanel frame_container = new JPanel(new BorderLayout());
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         TrialListener tl = new TrialListener();
-        TreadmillController treadmillController = 
-            new TreadmillController(settingsFilename, settingsTag, tl);
-        //TreadmillController treadmillController = 
-        //    new SalienceController(settingsFilename, settingsTag, tl);
-        ControlPanel control_panel = new ControlPanel(frame, treadmillController,
-            settingsLoader);
+
+        TreadmillController treadmillController;
+        String experimentType = "treadmill";
+        try {
+            experimentType = settings.getString("experimentType");
+        } catch (JSONException e) { }
+
+
+        if (experimentType.equals("salience")) {
+            treadmillController = 
+                new SalienceController(settings.toString(),
+                    system_settings.toString(), tl, true);
+        } else {
+            treadmillController = 
+                new TreadmillController(settings.toString(),
+                    system_settings.toString(), tl, true);
+        }
+
+        ControlPanel control_panel = new ControlPanel(frame,
+            treadmillController, settingsLoader);
         tl.setControlPanel(control_panel);
         frame_container.add(control_panel, BorderLayout.CENTER);
 
@@ -441,6 +511,7 @@ public class BehaviorMate {
         frame.setVisible(true);
 
         ps.startThread();
+
     }
 
 
@@ -454,9 +525,7 @@ public class BehaviorMate {
         settingsLoader = new SettingsLoader(startFrame);
         settingsLoader.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                startTreadmill(settingsLoader.getSelectedFile(),
-                    settingsLoader.getSelectedTag(), settingsLoader);
-
+                startTreadmill(settingsLoader);
                 startFrame.setVisible(false);
             }
         });

@@ -1,0 +1,50 @@
+{"default":
+{ 
+  "experimentType": "salience",
+  "position_controller":
+    { "ip": "127.0.0.1",
+      "send_port": 5020,
+      "receive_port": 5025
+    },
+  "behavior_controller":
+    { "ip": "127.0.0.1",
+      "send_port": 5010,
+      "receive_port": 5015
+    },
+    "sensors": [
+    { "pin": 2,
+      "report_pin": 20,
+      "type": "lickport"
+    },
+    { "pin": 22,
+      "type": "rfid_reader"
+    }],
+  "stims": [
+    { "name": "light",
+      "address": "behavior_controller",
+      "pin": 5,
+      "duration": 100 },
+    { "name": "airpuff",
+      "address": "behavior_controller",
+      "pin": 7,
+      "duration": 100 },
+    { "name": "tone",
+      "pin": 15,
+      "address": "behavior_controller",
+      "duration": 500,
+      "freq": 500 }
+  ],
+  "sync_pin": 12,
+  "trial_length": 9,
+  "prestim_time": 3,
+  "stim_time": 5,
+  "poststim_time": 2,
+  "position_scale": 1.0,
+  "track_length": 6000,
+  "lap_reset_tag": "",
+  "log_file": "logs/vr.log"
+},
+"_system": {
+    "data_directory":"/Users/jbowler/Desktop/pMateData"
+}
+}
