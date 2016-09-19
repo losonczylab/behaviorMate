@@ -939,7 +939,7 @@ public class TreadmillController extends PApplet {
             }
 
             if (!behavior_json.isNull("tag_reader") &&
-                    !behavior_json.isNull("tag")) {
+                    !behavior_json.getJSONObject("tag_reader").isNull("tag")) {
                 JSONObject tag = behavior_json.getJSONObject("tag_reader");
                 String tag_id = tag.getString("tag");
                 display.setCurrentTag(tag_id);
