@@ -300,26 +300,31 @@ public class SalienceController extends TreadmillController {
 
             //TODO: tag_reader is replacing lap remove when transition is complete
             if ((!behavior_json.isNull("lap")) || (!behavior_json.isNull("tag_reader"))) {
-                String tag;
+                String tag = null;
                 try {
                     tag = behavior_json.getJSONObject("lap").getString("tag");
                 } catch (Exception e) {
-                    tag = behavior_json.getJSONObject("tag_reader").getString("tag");
-                }
-                display.setCurrentTag(tag);
-                if (tag.equals(lap_tag)) {
-                    display.setLastLap(position);
-                    position = 0;
-                    next_reward = 0;
-                    lap_count++;
-                    if (moving_rewards) {
-                        shuffle_rewards();
+                    if (!behavior_json.getJSONObject("tag_reader").isNull("tag")) {
+                        tag = behavior_json.getJSONObject("tag_reader").getString("tag");
                     }
-                    if (fWriter != null) {
-                        JSONObject lap_log = new JSONObject();
-                        lap_log.setFloat("time", time);
-                        lap_log.setInt("lap", lap_count);
-                        fWriter.write(lap_log.toString());
+                }
+
+                if (tag != null) {
+                    display.setCurrentTag(tag);
+                    if (tag.equals(lap_tag)) {
+                        display.setLastLap(position);
+                        position = 0;
+                        next_reward = 0;
+                        lap_count++;
+                        if (moving_rewards) {
+                            shuffle_rewards();
+                        }
+                        if (fWriter != null) {
+                            JSONObject lap_log = new JSONObject();
+                            lap_log.setFloat("time", time);
+                            lap_log.setInt("lap", lap_count);
+                            fWriter.write(lap_log.toString());
+                        }
                     }
                 }
             }
