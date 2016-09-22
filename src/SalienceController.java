@@ -43,11 +43,12 @@ public class SalienceController extends TreadmillController {
             return false;
         }
 
-        display.setMouseName(mouse_name);
+        //display.setMouseName(mouse_name);
         display.setLickCount(0);
         display.setLapCount(0);
         display.setRewardCount(0);
         lap_count=0;
+        display.setMouseName("Trial Length: "+schedule.get(schedule.size()-1).time + " s");
         
         fWriter = new FileWriter(system_json.getString("data_directory", "data"), mouse_name);
 
@@ -65,8 +66,6 @@ public class SalienceController extends TreadmillController {
 
         trialListener.started(fWriter.getFile());
 
-        createSchedule();
-        displaySchedule();
         startContexts();
         timer.startTimer();
         JSONObject valve_json = open_valve_json(settings_json.getInt("sync_pin"), 100);
@@ -186,6 +185,8 @@ public class SalienceController extends TreadmillController {
         }
 
         schedule.get(schedule.size()-1).type = "end_experiment";
+        display.setMouseName("Next Trial: "+schedule.get(schedule.size()-1).time + " s");
+        displaySchedule();
 
         nextEvent = schedule.get(0);
     }
@@ -382,8 +383,5 @@ public class SalienceController extends TreadmillController {
         
         display.update(this, dy/position_scale, position, time, rewarding, lasering);
     }
-
-
-
 
 }

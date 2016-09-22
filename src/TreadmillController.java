@@ -206,6 +206,7 @@ public class TreadmillController extends PApplet {
         }
         
         vrController.loadScene("fond_dock");
+        vrController.setRewards(reward_locations);
 
         startContexts();
         timer.startTimer();
@@ -722,6 +723,12 @@ public class TreadmillController extends PApplet {
         } else {
             vrController = new VrController();
         }
+
+        createSchedule();
+    }
+
+    void createSchedule() {
+
     }
 
     void reload_settings() {
@@ -1004,6 +1011,7 @@ public class TreadmillController extends PApplet {
         next_laser = 0;
         lap_count = 0;
         timer = new ExperimentTimer();
+        createSchedule();
     }
 
     /**
