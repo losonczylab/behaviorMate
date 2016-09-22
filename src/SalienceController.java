@@ -132,7 +132,13 @@ public class SalienceController extends TreadmillController {
             stim_array.add(stim);
 
             if (!stim.isNull("pin")) {
-                JSONObject valve_json = setup_valve_json(stim.getInt("pin"));
+                JSONObject valve_json;
+                if (stim.isNull("frequency")) {
+                    valve_json = setup_valve_json(stim.getInt("pin"));
+                } else {
+                    valve_json = setup_valve_json(
+                        stim.getInt("pin"), stim.getInt("frequency"));
+                }
                 behavior_comm.sendMessage(valve_json.toString());
             }
         }

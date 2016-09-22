@@ -385,6 +385,18 @@ public class TreadmillController extends PApplet {
         return valve_json;
     }
 
+
+    JSONObject setup_valve_json(int pin, int frequency) {
+        JSONObject valve_json = new JSONObject();
+        JSONObject valve_subjson = new JSONObject();
+        valve_subjson.setInt("pin", pin);
+        valve_subjson.setInt("frequency", frequency);
+        valve_subjson.setString("action", "create");
+        valve_json.setJSONObject("valves", valve_subjson);
+
+        return valve_json;
+    }
+
     /**
      * Generates the JSONObject necessary to close a valve.
      *
