@@ -147,7 +147,6 @@ public class TreadmillController extends PApplet {
     }
 
     public TreadmillController(String filename, String tag, TrialListener el) {
-        println(filename);
         this.trialListener = el;
         this.settings_filename = filename;
         this.settings_tag = tag;
@@ -293,6 +292,16 @@ public class TreadmillController extends PApplet {
         behavior_comm.closeSocket();
         position_comm.closeSocket();
         reconfigureExperiment();
+    }
+
+    public void RefreshSettings(String settings_string, String system_string,
+            boolean useless) {
+
+        this.settings_filename = "";
+        this.settings_tag = "";
+        this.settings_json = parseJSONObject(settings_string);
+        this.system_json = parseJSONObject(system_string);
+        RefreshSettings();
     }
 
     public void RefreshSettings(String filename, String tag) {
@@ -649,7 +658,6 @@ public class TreadmillController extends PApplet {
 
         context_message.setString("action", "stop");
         context_message_json.setJSONObject("contexts", context_message);
-        println(context_message.toString());
         stop_context_message = context_message_json.toString();
     }
 

@@ -282,7 +282,11 @@ class ControlPanel extends JPanel implements ActionListener {
             String filename = settingsLoader.getSelectedFile();
             String tag = settingsLoader.getSelectedTag();
 
-            treadmillController.RefreshSettings(filename, tag);
+            JSONObject settings = BehaviorMate.parseJsonFile(filename, tag);
+            JSONObject system_settings = BehaviorMate.parseJsonFile(filename, "_system");
+
+            treadmillController.RefreshSettings(settings.toString(),
+                system_settings.toString(), true);
             trialAttrsForm.loadForm(filename, tag);
             showAttrsForm();
         } else if (e.getSource() == trialAttrsForm) {
@@ -439,7 +443,7 @@ public class BehaviorMate {
         return jsonObj;
     }
 
-    private static JSONObject parseJsonFile(String filename, String tag) {
+    public static JSONObject parseJsonFile(String filename, String tag) {
         JSONObject json  = parseJsonFile(filename);
 
         try {
