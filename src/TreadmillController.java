@@ -610,6 +610,9 @@ public class TreadmillController extends PApplet {
         } else {
             moving_rewards = true;
             reward_locations = new int[reward_info.getInt("number")];
+            for (int i=0; i < reward_info.getInt("number"); i++) {
+                contexts.add(new Context(0, reward_duration, reward_radius, i));
+            }
             shuffle_rewards();
         }
 

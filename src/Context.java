@@ -27,7 +27,6 @@ public class Context {
 
 
     private boolean checkTime(float time) {
-        System.out.println((this.started_time + this.duration) + " " + time);
         if (this.started_time == -1) {
             this.started_time = time;
             return true;
