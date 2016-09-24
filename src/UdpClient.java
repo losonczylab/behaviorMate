@@ -81,7 +81,7 @@ class UdpClient extends PApplet {
             udpSocket.receive(incomingUdp);
             String message = new String(
                 incomingUdp.getData(), 0, incomingUdp.getLength());
-            println("[" + this.address + "] " + message);
+            //println("[" + this.address + "] " + message);
             json.json = new JSONObject();
             json.json.setJSONObject(this.address, JSONObject.parse(message));
 

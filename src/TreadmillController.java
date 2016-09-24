@@ -99,7 +99,7 @@ public class TreadmillController extends PApplet {
     /** pin number for the reward locations */
     int reward_valve;
     /** temporal limit on reward zone */
-    float reward_duration;
+    int reward_duration;
 
     /** indicates weither the opto laser is currently on */
     boolean lasering;
@@ -363,6 +363,10 @@ public class TreadmillController extends PApplet {
         reward_locations[reward_locations.length-1] =
             (int) random(reward_locations[reward_locations.length-2]+2*reward_radius, track_length-reward_radius);
 
+        for (int i = 0; i < reward_locations.length; i++) {
+            contexts.get(i).move(reward_locations[i]);
+        }
+
         display.setRewardLocations(reward_locations, reward_radius);
         if (vrController != null) {
             vrController.setRewards(reward_locations);
@@ -574,13 +578,14 @@ public class TreadmillController extends PApplet {
      * Configures the reward zone contexts and establishes the initial reward zone
      * locations
      */
+    ArrayList<Context> contexts;
     void configure_rewards() {
+        contexts = new ArrayList<Context>();
         if (settings_json.isNull("reward")) {
             reward_valve = -1;
             reward_radius = 0;
             reward_duration = 0;
             reward_locations = new int[0];
-            stop_context_message = null;
             return;
         }
 
@@ -595,6 +600,8 @@ public class TreadmillController extends PApplet {
             reward_locations = new int[locations.size()];
             for (int i=0; i < locations.size(); i++) {
                 reward_locations[i] = locations.getInt(i);
+                contexts.add(new Context(locations.getInt(i),
+                    reward_duration, reward_radius, i));
             }
             display.setRewardLocations(reward_locations, reward_radius);
             if (vrController != null) {
@@ -643,24 +650,13 @@ public class TreadmillController extends PApplet {
         stop_context_message = context_message_json.toString();
     }
 
-    /*void updateVr()
-    {
-        JSONObject position_json = new JSONObject();
-        JSONObject position_data = new JSONObject();
-        position_data.setFloat("x", 0);
-        position_data.setFloat("y", position);
-        position_data.setFloat("z", 0);
-        position_json.setString("data", position_data.toString().replace("\n",""));
-        position_json.setString("type", "position");
-
-        vr_comm.sendMessage(position_json.toString().replace("\n",""));
-    }*/
 
     void reload_settings(JSONObject settings_json, JSONObject system_json) {
         this.settings_json = settings_json;
         system_json = this.system_json;
         reconfigureExperiment();
     }
+
 
     void reload_settings(String filename, String tag) {
         try {
@@ -794,6 +790,37 @@ public class TreadmillController extends PApplet {
         prepareExitHandler();
     }
 
+
+    public void resetLap(String tag, float time) {
+        next_reward = 0;
+        next_laser = 0;
+        if (moving_rewards) {
+            shuffle_rewards();
+        }
+        if (started) {
+            JSONObject lap_log = new JSONObject();
+            lap_log.setFloat("time", time);
+            lap_log.setInt("lap", lap_count);
+            if (tag.equals("")) {
+                lap_log.setString("message", "no tag");
+            } else {
+                display.setLastLap(position);
+                lap_count++;
+                vrController.changeScene();
+                display.setLapCount(lap_count);
+            }
+            vrController.changeScene();
+            fWriter.write(lap_log.toString());
+            lap_count++;
+            display.setLapCount(lap_count);
+
+            for (int i=0; i < contexts.size(); i++) {
+                contexts.get(i).reset();
+            }
+        }
+    }
+
+
     /** processing function which is looped over continuously. Main logic of the
      * experiment is in the body of this function.
      */
@@ -824,21 +851,7 @@ public class TreadmillController extends PApplet {
 
                 if (position > track_length*(1 + lap_tolerance)) {
                     position = track_length*lap_tolerance;
-                    next_reward = 0;
-                    next_laser = 0;
-                    if (moving_rewards) {
-                        shuffle_rewards();
-                    }
-                    if (started) {
-                        JSONObject lap_log = new JSONObject();
-                        lap_log.setFloat("time", time);
-                        lap_log.setInt("lap", lap_count);
-                        lap_log.setString("message", "no tag");
-                        vrController.changeScene();
-                        fWriter.write(lap_log.toString());
-                        lap_count++;
-                        display.setLapCount(lap_count);
-                    }
+                    resetLap("", time); 
                 }
 
                 if (started) {
@@ -847,41 +860,15 @@ public class TreadmillController extends PApplet {
                     fWriter.write(json_buffer.json.toString());
                     vrController.update(position);
                 }
-
             }
         }
 
         boolean inZone = false;
         boolean laserZone = false;
         if (started) {
-            for (int i = next_reward; i < reward_locations.length; i++) {
-                int rewardZone = reward_locations[i];
-                if ((position > (rewardZone - reward_radius)) &&
-                        (position < (rewardZone + reward_radius))) {
-                    if ((rewarding) && ((reward_start + reward_duration) < time)) {
-                        inZone = false;
-                        next_reward++;
-                    } else {
-                        next_reward = i;
-                        inZone = true;
-                    }
-        
-                    break;
-                }
-            }
-
-            for (int i = next_laser; i < laser_locations.length; i++) {
-                int zone = laser_locations[i];
-                if ((position > (zone - laser_radius)) &&
-                        (position < (zone + laser_radius))) {
-                    if ((lasering) && ((laser_start + reward_duration) < time)) {
-                        laserZone = false;
-                        next_laser++;
-                    } else {
-                        next_laser = i;
-                        laserZone = true;
-                    }
-        
+            for (int i=0; i < contexts.size(); i++) {
+                if (contexts.get(i).check(position, time)) {
+                    inZone = true;
                     break;
                 }
             }
@@ -895,7 +882,9 @@ public class TreadmillController extends PApplet {
             rewarding = true;
             behavior_comm.sendMessage(start_context_message);
             if (!laser_on_reward) {
-                reward_start = time;
+                if ((reward_start + reward_duration) > time) {
+                    reward_start = time;
+                }
             }
         }
 
@@ -937,23 +926,7 @@ public class TreadmillController extends PApplet {
                 String tag = behavior_json.getJSONObject("lap").getString("tag");
                 display.setCurrentTag(tag);
                 if (tag.equals(lap_tag)) {
-                    display.setLastLap(position);
-                    position = 0;
-                    next_reward = 0;
-                    next_laser = 0;
-                    if (moving_rewards) {
-                        shuffle_rewards();
-                    }
-
-                    if (started) {
-                        JSONObject lap_log = new JSONObject();
-                        lap_log.setFloat("time", time);
-                        lap_log.setInt("lap", lap_count);
-                        fWriter.write(lap_log.toString());
-                        lap_count++;
-                        vrController.changeScene();
-                        display.setLapCount(lap_count);
-                    }
+                    
                 }
             }
 
@@ -963,22 +936,8 @@ public class TreadmillController extends PApplet {
                 String tag_id = tag.getString("tag");
                 display.setCurrentTag(tag_id);
                 if (tag_id.equals(lap_tag)) {
-                    display.setLastLap(position);
                     position = 0;
-                    next_reward = 0;
-                    next_laser = 0;
-                    if (moving_rewards) {
-                        shuffle_rewards();
-                    }
-                    if (started) {
-                        JSONObject lap_log = new JSONObject();
-                        lap_log.setFloat("time", time);
-                        lap_log.setInt("lap", lap_count);
-                        fWriter.write(lap_log.toString());
-                        lap_count++;
-                        vrController.changeScene();
-                        display.setLapCount(lap_count);
-                    }
+                    resetLap(lap_tag, time);
                 }
             }
             if (started) {
