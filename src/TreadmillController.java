@@ -180,7 +180,11 @@ public class TreadmillController extends PApplet {
         display.setRewardCount(0);
         lap_count=0;
         
-        fWriter = new FileWriter(system_json.getString("data_directory", "data"), mouse_name);
+        try {
+            fWriter = new FileWriter(system_json.getString("data_directory", "data"), mouse_name);
+        } catch (IOException e) {
+            return false;
+        }
 
         Date startDate = Calendar.getInstance().getTime();
         

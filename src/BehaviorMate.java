@@ -266,7 +266,7 @@ class ControlPanel extends JPanel implements ActionListener {
                     setEnabled(false);
                 } else {
                     JOptionPane.showMessageDialog(this,
-                        "Unable to Start ... Scan RFID tag?");
+                        "Unable to Start ... Scan RFID tag? or check behavior save directory");
                 }
             } else {
                 treadmillController.endExperiment();

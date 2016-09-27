@@ -28,7 +28,7 @@ public class FileWriter extends PApplet {
      * @param pathname path to directory in which to store logfiles.
      * @param mouse    mouse name to identify each animal
      */
-    public FileWriter(String pathname, String mouse) {
+    public FileWriter(String pathname, String mouse) throws IOException {
         File directory = new File(pathname + sep + mouse);
     
         println(directory);
@@ -40,12 +40,12 @@ public class FileWriter extends PApplet {
         logFile = new File(pathname + sep + mouse + sep + mouse + "_" +
             logNameFormat.format(logDate) + ".tdml");
         println(logFile);
-        try {
+        //try {
             fos = new FileOutputStream(logFile, false);
-        } catch (IOException e) {
-            println(e);
-            println("error creating file");
-        }
+        //} catch (IOException e) {
+        //    println(e);
+        //    println("error creating file");
+        //}
     }
   
     public File getFile() {

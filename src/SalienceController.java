@@ -3,6 +3,7 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.Calendar;
 import java.util.Date;
+import java.io.IOException;
 
 import processing.data.JSONObject;
 import processing.data.JSONArray;
@@ -50,7 +51,11 @@ public class SalienceController extends TreadmillController {
         lap_count=0;
         display.setMouseName("Trial Length: "+schedule.get(schedule.size()-1).time + " s");
         
-        fWriter = new FileWriter(system_json.getString("data_directory", "data"), mouse_name);
+        try {
+            fWriter = new FileWriter(system_json.getString("data_directory", "data"), mouse_name);
+        } catch (IOException e) {
+            return false;
+        }
 
         Date startDate = Calendar.getInstance().getTime();
         
