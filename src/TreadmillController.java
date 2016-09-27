@@ -204,7 +204,7 @@ public class TreadmillController extends PApplet {
             } catch(Exception e) {}
         }
         
-        vrController.loadScene("fond_dock");
+        vrController.changeScene();
         vrController.setRewards(reward_locations);
 
         startContexts();
@@ -743,12 +743,11 @@ public class TreadmillController extends PApplet {
             vrController = new VrController();
         }
 
+        vrController.loadScene("scene0");
         createSchedule();
     }
 
-    void createSchedule() {
-
-    }
+    void createSchedule() { }
 
     void reload_settings() {
         reconfigureExperiment();
@@ -1013,6 +1012,7 @@ public class TreadmillController extends PApplet {
                 if (fWriter !=  null) {
                     fWriter.write(end_log.toString());
                 }
+                vrController.loadScene("scene0");
                 println("closing");
             }
       }));
