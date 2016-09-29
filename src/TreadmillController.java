@@ -463,7 +463,8 @@ public class TreadmillController extends PApplet {
         JSONArray sensors = settings_json.getJSONArray("sensors");
         for (int i=0; i < sensors.size(); i++) {
             JSONObject create_subjson = sensors.getJSONObject(i);
-            if (create_subjson.getString("type", "").equals("lickport")) {
+            if (create_subjson.getString("type", "").equals("lickport") ||
+                    (create_subjson.getString("type", "").equals("piezoport"))) {
                 lickport_pin = create_subjson.getInt("pin");
             }
             create_subjson.setString("action", "create");
