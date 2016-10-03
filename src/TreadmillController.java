@@ -827,7 +827,6 @@ public class TreadmillController extends PApplet {
                 lap_log.setString("message", "no tag");
             } else {
                 display.setLastLap(position);
-                lap_count++;
                 vrController.changeScene();
                 display.setLapCount(lap_count);
             }
