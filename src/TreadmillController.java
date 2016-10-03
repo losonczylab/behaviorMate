@@ -57,6 +57,7 @@ public class TreadmillController extends PApplet {
 
     String mouse_name;
     float position;
+    float distance;
     /** 
      * scale to convert position updates from rotary encoder to mm traversed on the
      * track
@@ -795,6 +796,7 @@ public class TreadmillController extends PApplet {
         laser_locations = new int[0];
         reward_locations = new int[0];
         position = -1;
+        distance = 0;
         lap_count = 0;
         lap_tag = "";
         fWriter = null;
@@ -807,8 +809,13 @@ public class TreadmillController extends PApplet {
 
 
     public void resetLap(String tag, float time) {
+        if (distance < 0.5*track_length) {
+            return;
+        }
+
         next_reward = 0;
         next_laser = 0;
+        distance = 0;
         if (moving_rewards) {
             shuffle_rewards();
         }
@@ -824,6 +831,7 @@ public class TreadmillController extends PApplet {
                 vrController.changeScene();
                 display.setLapCount(lap_count);
             }
+
             vrController.changeScene();
             fWriter.write(lap_log.toString());
             lap_count++;
@@ -835,6 +843,41 @@ public class TreadmillController extends PApplet {
         }
     }
 
+
+    protected float updatePosition(float time) {
+        float dy = 0;
+        if (position_comm.receiveMessage(json_buffer)) {
+            JSONObject position_json =
+                json_buffer.json.getJSONObject(position_comm.address);
+
+            if (!position_json.isNull("position")) {
+                dy = position_json.getJSONObject("position").getFloat("dy", 0);
+                dy /= position_scale;
+                distance += dy;
+                if (position != -1) {
+                    if ((position + dy) < 0) {
+                        position += track_length;
+                    }
+                    position += dy;
+                }
+
+                if (position > track_length*(1 + lap_tolerance)) {
+                    position = track_length*lap_tolerance;
+                    resetLap("", time); 
+                    distance = position;
+                }
+
+                if (started) {
+                    json_buffer.json.setFloat("y", position);
+                    json_buffer.json.setFloat("time", time);
+                    fWriter.write(json_buffer.json.toString());
+                    vrController.update(position);
+                }
+            }
+        }
+
+        return dy;
+    }
 
     /** processing function which is looped over continuously. Main logic of the
      * experiment is in the body of this function.
@@ -850,33 +893,7 @@ public class TreadmillController extends PApplet {
             endExperiment();
         }
 
-        float dy = 0;
-        if (position_comm.receiveMessage(json_buffer)) {
-            JSONObject position_json =
-                json_buffer.json.getJSONObject(position_comm.address);
-
-            if (!position_json.isNull("position")) {
-                dy = position_json.getJSONObject("position").getFloat("dy", 0);
-                if (position != -1) {
-                    position += dy/position_scale;
-                    if (position < 0) {
-                        position += track_length;
-                    }
-                }
-
-                if (position > track_length*(1 + lap_tolerance)) {
-                    position = track_length*lap_tolerance;
-                    resetLap("", time); 
-                }
-
-                if (started) {
-                    json_buffer.json.setFloat("y", position);
-                    json_buffer.json.setFloat("time", time);
-                    fWriter.write(json_buffer.json.toString());
-                    vrController.update(position);
-                }
-            }
-        }
+        float dy = updatePosition(time);
 
         boolean inZone = false;
         boolean laserZone = false;
@@ -930,7 +947,7 @@ public class TreadmillController extends PApplet {
             if (!behavior_json.isNull("valve")) {
                 JSONObject valveJson = behavior_json.getJSONObject("valve");
                 if (valveJson.getString(""+reward_valve, "close").equals("open")) {
-                    display.addReward();
+                    display.setMouseName("ERROR!!!! arduino code is out of date");
                 } else if ((valveJson.getInt("pin", -1) == reward_valve) &&          // This check is needed for new arduino syntax
                         valveJson.getString("action", "close").equals("open")) {
                     display.addReward();
@@ -938,11 +955,7 @@ public class TreadmillController extends PApplet {
             }
 
             if (!behavior_json.isNull("lap")) {
-                String tag = behavior_json.getJSONObject("lap").getString("tag");
-                display.setCurrentTag(tag);
-                if (tag.equals(lap_tag)) {
-                    
-                }
+                display.setMouseName("ERROR!!!! arduino code is out of date");
             }
 
             if (!behavior_json.isNull("tag_reader") &&
@@ -955,13 +968,14 @@ public class TreadmillController extends PApplet {
                     resetLap(lap_tag, time);
                 }
             }
+
             if (started) {
                 json_buffer.json.setFloat("time", time);
                 fWriter.write(json_buffer.json.toString());
             }
         }
         
-        display.update(this, dy/position_scale, position, time, rewarding, lasering);
+        display.update(this, dy, position, time, rewarding, lasering);
     }
 
     /**

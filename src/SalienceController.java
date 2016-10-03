@@ -250,44 +250,8 @@ public class SalienceController extends TreadmillController {
 
     public void draw() {
         background(0);
-        float time = timer.checkTime();;
-        float dy = 0;
-        if (position_comm.receiveMessage(json_buffer)) {
-            JSONObject position_json =
-                json_buffer.json.getJSONObject(position_comm.address);
-
-            if (!position_json.isNull("position")) {
-                dy = position_json.getJSONObject("position").getFloat("dy", 0);
-                if (position != -1) {
-                    position += dy/position_scale;
-                    if (position < 0) {
-                        position += track_length;
-                    }
-                }
-
-                if (position > track_length*(1 + lap_tolerance)) {
-                    position = track_length*lap_tolerance;
-                    next_reward = 0;
-                    lap_count++;
-                    if (moving_rewards) {
-                        shuffle_rewards();
-                    }
-                    if (fWriter != null) {
-                        JSONObject lap_log = new JSONObject();
-                        lap_log.setFloat("time", time);
-                        lap_log.setInt("lap", lap_count);
-                        lap_log.setString("message", "no tag");
-                        fWriter.write(lap_log.toString());
-                    }
-                }
-
-                if (fWriter != null) {
-                    json_buffer.json.setFloat("y", position);
-                    json_buffer.json.setFloat("time", time);
-                    fWriter.write(json_buffer.json.toString());
-                }
-            }
-        }
+        float time = timer.checkTime();
+        float dy = updatePosition(time);
 
         if (behavior_comm.receiveMessage(json_buffer)) {
             JSONObject behavior_json =
