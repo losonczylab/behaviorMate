@@ -349,42 +349,8 @@ public class TreadmillController extends PApplet {
      * int[] reward_locations array
      */
     public void shuffle_rewards() {
-        if (reward_locations.length == 0) {
-            return;
-        }
-
-        if (reward_locations.length == 1) {
-            reward_locations[0] = (int) random(reward_radius,track_length-reward_radius);
-            display.setRewardLocations(reward_locations, reward_radius);
-            if (vrController != null) {
-                vrController.setRewards(reward_locations);
-            }
-            return;
-        }
-
-        int interval = (int)(track_length-2*reward_radius)/reward_locations.length;
-        reward_locations[0] = reward_radius + interval/2;
-        for (int i = 1; i < reward_locations.length; i++) {
-            reward_locations[i] = reward_locations[i-1] + interval;
-        }
-
-        reward_locations[0] =
-            (int) random(reward_radius,reward_locations[1]-2*reward_radius);
-        for (int i = 1; i < reward_locations.length-1; i++) {
-            reward_locations[i] =
-                (int) random(reward_locations[i-1]+2*reward_radius, reward_locations[i+1]-2*reward_radius);
-        }
-        reward_locations[reward_locations.length-1] =
-            (int) random(reward_locations[reward_locations.length-2]+2*reward_radius, track_length-reward_radius);
-
-        for (int i = 0; i < reward_locations.length; i++) {
-            contexts.get(i).move(reward_locations[i]);
-        }
-
-        display.setRewardLocations(reward_locations, reward_radius);
-        if (vrController != null) {
-            vrController.setRewards(reward_locations);
-        }
+        contexts_list.shuffle(track_length);
+        vrController.setRewards(contexts_list.toList());
     }
 
     /**
@@ -594,13 +560,18 @@ public class TreadmillController extends PApplet {
      * locations
      */
     ArrayList<Context> contexts;
+    ContextList contexts_list;
     void configure_rewards() {
-        contexts = new ArrayList<Context>();
+        contexts_list.clear();
         if (settings_json.isNull("reward")) {
             reward_valve = -1;
             reward_radius = 0;
+            contexts_list.setRadius(0);
+            contexts_list.setDuration(0);
+
             reward_duration = 0;
             reward_locations = new int[0];
+            display.setContextLocations(contexts_list);
             return;
         }
 
@@ -609,27 +580,33 @@ public class TreadmillController extends PApplet {
         reward_radius = reward_info.getInt("radius");
         reward_duration = reward_info.getInt("max_duration");
 
+        contexts_list.setDuration(reward_info.getInt("max_duration"));
+        contexts_list.setRadius(reward_info.getInt("radius"));
+
         if (reward_info.getString("type").equals("fixed")) {
             moving_rewards = false;
             JSONArray locations = reward_info.getJSONArray("locations");
             reward_locations = new int[locations.size()];
             for (int i=0; i < locations.size(); i++) {
-                reward_locations[i] = locations.getInt(i);
-                contexts.add(new Context(locations.getInt(i),
-                    reward_duration, reward_radius, i));
+                //reward_locations[i] = locations.getInt(i);
+                contexts_list.add(locations.getInt(i));
+                //contexts.add(new Context(locations.getInt(i),
+                //    reward_duration, reward_radius, i));
             }
-            display.setRewardLocations(reward_locations, reward_radius);
+            //display.setRewardLocations(reward_locations, reward_radius);
             if (vrController != null) {
                 vrController.setRewards(reward_locations);
             }
         } else {
             moving_rewards = true;
-            reward_locations = new int[reward_info.getInt("number")];
+            //reward_locations = new int[reward_info.getInt("number")];
             for (int i=0; i < reward_info.getInt("number"); i++) {
-                contexts.add(new Context(0, reward_duration, reward_radius, i));
+                //contexts.add(new Context(0, reward_duration, reward_radius, i));
+                contexts_list.add(0);
             }
             shuffle_rewards();
         }
+        display.setContextLocations(contexts_list);
 
         JSONObject valve_json = setup_valve_json(reward_valve);
         behavior_comm.sendMessage(valve_json.toString());
@@ -730,10 +707,6 @@ public class TreadmillController extends PApplet {
         behavior_comm.sendMessage(valve_json.toString());
         display.setTrackLength(track_length);
 
-        configure_rewards();
-        display.setRewardLocations(reward_locations, reward_radius);
-        configure_contexts();
-        configure_laser();
         if (!settings_json.isNull("display_controllers")) {
             vrController = new VrController(
                 settings_json.getJSONObject("display_controllers"));
@@ -748,6 +721,11 @@ public class TreadmillController extends PApplet {
         } else {
             vrController = new VrController();
         }
+
+        configure_rewards();
+        display.setRewardLocations(reward_locations, reward_radius);
+        configure_contexts();
+        configure_laser();
 
         vrController.loadScene("scene0");
         createSchedule();
@@ -783,6 +761,7 @@ public class TreadmillController extends PApplet {
         sketchPath("");
         textSize(12);
         background(0);
+        frameRate(120);
 
         started = false;
         laser_on_reward = false;
@@ -795,6 +774,7 @@ public class TreadmillController extends PApplet {
         next_laser = 0;
         laser_locations = new int[0];
         reward_locations = new int[0];
+        contexts_list = new ContextList(color(0, 204, 0));
         position = -1;
         distance = 0;
         lap_count = 0;
@@ -836,43 +816,49 @@ public class TreadmillController extends PApplet {
             lap_count++;
             display.setLapCount(lap_count);
 
-            for (int i=0; i < contexts.size(); i++) {
-                contexts.get(i).reset();
-            }
+            contexts_list.reset();
+            //for (int i=0; i < contexts.size(); i++) {
+            //    contexts.get(i).reset();
+            //}
         }
     }
 
 
     protected float updatePosition(float time) {
         float dy = 0;
-        if (position_comm.receiveMessage(json_buffer)) {
+        while (position_comm.receiveMessage(json_buffer)) {
             JSONObject position_json =
                 json_buffer.json.getJSONObject(position_comm.address);
 
             if (!position_json.isNull("position")) {
-                dy = position_json.getJSONObject("position").getFloat("dy", 0);
-                dy /= position_scale;
-                distance += dy;
-                if (position != -1) {
-                    if ((position + dy) < 0) {
-                        position += track_length;
-                    }
-                    position += dy;
-                }
-
-                if (position > track_length*(1 + lap_tolerance)) {
-                    position = track_length*lap_tolerance;
-                    resetLap("", time); 
-                    distance = position;
-                }
-
-                if (started) {
-                    json_buffer.json.setFloat("y", position);
-                    json_buffer.json.setFloat("time", time);
-                    fWriter.write(json_buffer.json.toString());
-                    vrController.update(position);
-                }
+                dy += position_json.getJSONObject("position").getFloat("dy", 0);
             }
+        }
+
+        if (dy == 0) {
+            return 0;
+        }
+
+        dy /= position_scale;
+        distance += dy;
+        if (position != -1) {
+            if ((position + dy) < 0) {
+                position += track_length;
+            }
+            position += dy;
+        }
+
+        if (position > track_length*(1 + lap_tolerance)) {
+            position = track_length*lap_tolerance;
+            resetLap("", time); 
+            distance = position;
+        }
+
+        if (started) {
+            json_buffer.json.setFloat("y", position);
+            json_buffer.json.setFloat("time", time);
+            fWriter.write(json_buffer.json.toString());
+            vrController.update(position);
         }
 
         return dy;
@@ -897,12 +883,7 @@ public class TreadmillController extends PApplet {
         boolean inZone = false;
         boolean laserZone = false;
         if (started) {
-            for (int i=0; i < contexts.size(); i++) {
-                if (contexts.get(i).check(position, time)) {
-                    inZone = true;
-                    break;
-                }
-            }
+            inZone = contexts_list.check(position, time);
         }
 
         if ((!inZone) && (rewarding)) {

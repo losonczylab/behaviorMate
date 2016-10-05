@@ -19,6 +19,9 @@ public class Context {
         this.started_time = -1;
     }
 
+    public int location() {
+        return this.location;
+    }
 
     private boolean checkPosition(float position) {
         return ((position > (location - radius)) &&
@@ -26,6 +29,7 @@ public class Context {
     }
 
 
+    // assumes position has already been checked
     private boolean checkTime(float time) {
         if (this.started_time == -1) {
             this.started_time = time;

@@ -1,9 +1,6 @@
-//import controlP5.ControlP5;
-//import controlP5.Bang;
-//import controlP5.Textfield;
-
 import processing.core.PApplet;
 import processing.core.PFont;
+import java.util.ArrayList;
 
 /**
  * Display update to the screen showing the cureent behavior of the animial on
@@ -29,6 +26,7 @@ public class Display extends PApplet {
     private int map_offset;
     private int tag_offset;
     private String schedule;
+    private ArrayList<ContextList> contextsContainer;
 
     public Display() {
         lickRate = 0;
@@ -47,6 +45,7 @@ public class Display extends PApplet {
         this.reward_locations = new int[0];
         this.laser_locations = new int[0];
         this.laser_radius = 0;
+        contextsContainer = new ArrayList<ContextList>();
 
         this.schedule = "";
     }
@@ -99,6 +98,11 @@ public class Display extends PApplet {
     void setRewardLocations(int[] reward_locations, float radius) {
         this.reward_locations = reward_locations;
         this.reward_radius = radius * this.displayScale;
+    }
+
+    public void setContextLocations(ContextList contexts) {
+        contexts.setDisplayScale(this.displayScale);
+        contextsContainer.add(contexts);
     }
 
     void setLaserLocations(int[] laser_locations, float radius) {
@@ -158,8 +162,19 @@ public class Display extends PApplet {
 
         app.fill(color(0,204,0));
         
+        /*
         for (int i=0; i < this.reward_locations.length; i++) {
             app.rect(map_offset+reward_locations[i]*displayScale-reward_radius, 200, 2*reward_radius, 10);
+        }*/
+
+        for (int i=0; i < contextsContainer.size(); i++) {
+            ContextList list = contextsContainer.get(i);
+            app.fill(list.displayColor());
+            float radius = list.displayRadius();
+            for (int j=0; j < list.size(); j++) {
+                app.rect(map_offset+list.getLocation(j)*displayScale-radius,
+                    200, 2*radius, 10);
+            }
         }
 
         app.textSize(14);
