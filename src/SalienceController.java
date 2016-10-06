@@ -356,7 +356,7 @@ public class SalienceController extends TreadmillController {
             tone = null;
         }*/
         
-        display.update(this, dy/position_scale, position, time, rewarding, lasering);
+        display.update(this, dy/position_scale, position, time, lasering);
     }
 
 }

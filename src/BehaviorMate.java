@@ -406,6 +406,7 @@ class CommentsBox extends JPanel implements ActionListener {
                     nextItemText = commentArea.getText();
                     commentArea.setText(currentItemText);
                 }
+
                 lastSelection = (String)fileSelect.getSelectedItem();
             }
         }
@@ -416,19 +417,21 @@ public class BehaviorMate {
     static SettingsLoader settingsLoader;
     static JFrame startFrame;
 
-    private static JSONObject parseJsonFile(String filename) {
+    public static JSONObject parseJsonFile(String filename) {
         String jsonData = "";
         BufferedReader br = null;
         try {
             String line;
             br = new BufferedReader(new FileReader(filename));
             while ((line = br.readLine()) != null) {
-                if (!line.startsWith("//")) {
+                if (!line.trim().startsWith("//")) {
                     jsonData += line + "\n";
                 }
             }
         } catch (IOException e) {
-            System.out.println(e.toString());
+            String message = "Failed to parse: " + filename +
+                "\n" + e.toString();
+            JOptionPane.showMessageDialog(null, message);
         }
 
         JSONObject jsonObj = null;

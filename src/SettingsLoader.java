@@ -46,7 +46,7 @@ public class SettingsLoader extends JDialog implements ActionListener {
         File defaultFile = new File("settings.json");
         pathTextField = new JTextField(defaultFile.getAbsolutePath(), 25);
 
-        JSONObject jsonObj = parseJsonFile(defaultFile);
+        JSONObject jsonObj = BehaviorMate.parseJsonFile("settings.json");
         if (jsonObj != null) {
             Iterator<?> keys = jsonObj.keys();
             while (keys.hasNext()) {
@@ -95,30 +95,6 @@ public class SettingsLoader extends JDialog implements ActionListener {
         this.actionListener = actionListener;
     }
 
-    private JSONObject parseJsonFile(File jsonFile) {
-        String jsonData = "";
-        BufferedReader br = null;
-        try {
-            String line;
-            br = new BufferedReader(new FileReader(jsonFile));
-            while ((line = br.readLine()) != null) {
-                jsonData += line + "\n";
-            }
-        } catch (IOException e) {
-            System.out.println(e.toString());
-            return null;
-        }
-
-        JSONObject jsonObj = null;
-        try {
-            jsonObj = new JSONObject(jsonData);
-        } catch(JSONException e) {
-            JOptionPane.showMessageDialog(this, e.toString());
-        }
-
-        return jsonObj;
-    }
-
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == fileChooserButton) {
             final JFileChooser fileChooser = new JFileChooser();
@@ -131,7 +107,7 @@ public class SettingsLoader extends JDialog implements ActionListener {
                 File file = fileChooser.getSelectedFile();
                 comboBox.removeAllItems();
                 pathTextField.setText(file.getAbsolutePath());
-                JSONObject json = parseJsonFile(file);
+                JSONObject json = BehaviorMate.parseJsonFile(file.getAbsolutePath());
                 if (json != null) {
                     Iterator<?> keys = json.keys();
                     while (keys.hasNext()) {

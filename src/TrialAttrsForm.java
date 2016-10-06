@@ -303,7 +303,7 @@ public class TrialAttrsForm extends JDialog implements ActionListener {
 
     public void loadForm(String settingsFile, String tag) {
         File file = new File(settingsFile);
-        JSONObject jsonObj = parseJsonFile(file);
+        JSONObject jsonObj = BehaviorMate.parseJsonFile(settingsFile);
         JSONArray fields = null;
         fieldsInput = null;
         input_container.removeAll();
@@ -342,31 +342,6 @@ public class TrialAttrsForm extends JDialog implements ActionListener {
 
     public void addActionListener(ActionListener actionListener) {
         this.actionListener = actionListener;
-    }
-
-    private static JSONObject parseJsonFile(File jsonFile) {
-        String jsonData = "";
-        BufferedReader br = null;
-        try {
-            String line;
-            br = new BufferedReader(new FileReader(jsonFile));
-            while ((line = br.readLine()) != null) {
-                jsonData += line + "\n";
-            }
-        } catch (IOException e) {
-            System.out.println(e.toString());
-        }
-
-        JSONObject jsonObj = null;
-        try {
-            jsonObj = new JSONObject(jsonData);
-        } catch(JSONException e) {
-            String message = "Failed to parse: " + jsonFile.getAbsolutePath() +
-                "\n" + e.toString();
-            JOptionPane.showMessageDialog(null, message);
-        }
-
-        return jsonObj;
     }
 
     public void actionPerformed(ActionEvent e) {

@@ -1,4 +1,5 @@
 import processing.core.PApplet;
+import processing.data.JSONObject;
 import java.util.ArrayList;
 
 public class ContextList extends PApplet {
@@ -8,11 +9,23 @@ public class ContextList extends PApplet {
     private float display_radius;
     private int display_color;
     private UdpClient comm;
+    private String id;
+    private String startString;
+    private String stopString;
+    private boolean active;
+    private String status;
+    private Display display;
 
-    public ContextList(int display_color) {
+    public ContextList(Display display, int display_color) {
         this.contexts = new ArrayList<Context>();
+        this.display = display;
         this.display_color = display_color;
         this.comm = null;
+        this.startString = "";
+        this.stopString = "";
+        this.id = "context";
+        this.active = false;
+        this.status = "";
     }
 
     public ContextList(int duration, int radius, int display_color) {
@@ -21,11 +34,36 @@ public class ContextList extends PApplet {
         this.display_radius = (float) radius;
         this.duration = duration;
         this.display_color = display_color;
+        this.display = display;
         this.comm = null;
+        this.startString = "";
+        this.stopString = "";
+        this.id = "context";
+        this.active = false;
+        this.status = "";
+    }
+
+    public void setComm(UdpClient comm) {
+        this.comm = comm;
     }
 
     public void setDuration(int duration) {
         this.duration = duration;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+
+        JSONObject context_message = new JSONObject();
+        context_message.setString("action", "start");
+        context_message.setString("id", this.id);
+        JSONObject context_message_json = new JSONObject();
+        context_message_json.setJSONObject("contexts", context_message);
+        this.startString = context_message_json.toString();
+
+        context_message.setString("action", "stop");
+        context_message_json.setJSONObject("contexts", context_message);
+        this.stopString = context_message_json.toString();
     }
 
     public void setRadius(int radius) {
@@ -62,13 +100,41 @@ public class ContextList extends PApplet {
     }
 
     public boolean check(float position, float time) {
+        boolean inZone = false;
         for (int i=0; i < this.contexts.size(); i++) {
             if (this.contexts.get(i).check(position, time)) {
-                return true;
+                inZone = true;
             }
         }
 
-        return false;
+        if ((!inZone) && (this.active)) {
+            this.active = false;
+            this.status = "sent stop";
+            this.comm.sendMessage(this.stopString);
+        } else if((inZone) && (!this.active)) {
+            this.active = true;
+            this.status = "sent start";
+            this.comm.sendMessage(this.startString);
+            /*if (!laser_on_reward) {
+                if ((reward_start + reward_duration) > time) {
+                    reward_start = time;
+                }
+            }*/
+        }
+
+        return this.active;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getStatus() {
+        return this.status;
+    }
+
+    public String getId() {
+        return this.id;
     }
 
     public int getLocation(int i) {

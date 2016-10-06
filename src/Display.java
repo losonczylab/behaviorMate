@@ -18,15 +18,15 @@ public class Display extends PApplet {
     private float displayScale;
     private String currentTag;
     private String mouseName;
-    private int[] reward_locations;
     private float reward_radius;
-    private int[] laser_locations;
     private float laser_radius;
     private int text_offset;
     private int map_offset;
     private int tag_offset;
     private String schedule;
     private ArrayList<ContextList> contextsContainer;
+    private String reward_status;
+    private String laser_status;
 
     public Display() {
         lickRate = 0;
@@ -42,12 +42,16 @@ public class Display extends PApplet {
         currentTag = "";
         mouseName = "";
         displayScale = 300.0f/1.0f;
-        this.reward_locations = new int[0];
-        this.laser_locations = new int[0];
+        this.reward_status = "stopped";
+        this.laser_status = "stopped";
         this.laser_radius = 0;
         contextsContainer = new ArrayList<ContextList>();
 
         this.schedule = "";
+    }
+
+    void resetContexts() {
+        contextsContainer = new ArrayList<ContextList>();
     }
 
     void setTrackLength(float trackLength) {
@@ -95,23 +99,21 @@ public class Display extends PApplet {
         lastLap = position;
     }
 
-    void setRewardLocations(int[] reward_locations, float radius) {
-        this.reward_locations = reward_locations;
-        this.reward_radius = radius * this.displayScale;
-    }
-
     public void setContextLocations(ContextList contexts) {
         contexts.setDisplayScale(this.displayScale);
         contextsContainer.add(contexts);
     }
 
-    void setLaserLocations(int[] laser_locations, float radius) {
-        this.laser_locations = laser_locations;
-        this.laser_radius = radius * this.displayScale;
+    void setContextStatus(String id, String status) {
+        if (id.equals("hidden_reward")) {
+            this.reward_status = status;
+        } else if (id.equals("laser_context")) {
+            this.laser_status = status;
+        }
     }
 
-    void update(PApplet app, float dy, float position, float time,
-            boolean context, boolean lasering) {
+    void update(PApplet app, float dy, float position, float time, 
+            boolean lasering) {
         app.textSize(18);
 
         if (lickRate > 0) {
@@ -132,6 +134,7 @@ public class Display extends PApplet {
             positionRate = positionRate/abs(positionRate) * max(0.0f, abs(positionRate)-0.5f);
         }
 
+        app.textSize(18);
         app.text(this.mouseName, 20, 40);
         app.text("Position: " + position, text_offset, 20);
         app.text("Lick Count: " + lickCount, text_offset, 40);
@@ -141,35 +144,20 @@ public class Display extends PApplet {
         app.textSize(18);
         app.text("Time: " + time, text_offset, 100);
         app.text("Lap Count: " + lapCount, text_offset, 120);
-        if (context) {
-            app.text("Context: On", text_offset, 140);
-        } else {
-            app.text("Context: Off", text_offset, 140);
-        }
-        if (lasering) {
-            app.text("Laser: On", text_offset, 160);
-        } else {
-            app.text("Laser: Off", text_offset, 160);
-        }
+        
+        //app.text("Reward Zone: " + this.reward_status, text_offset, 140);
+        //app.text("Laser: " + this.laser_status, text_offset, 160);
 
         app.fill(color(204,204,0));
         app.rect(map_offset, 200, 300, 10);
-
-        app.fill(color(0,204,204));
-        for (int i=0; i < this.laser_locations.length; i++) {
-            app.rect(map_offset+laser_locations[i]*displayScale-this.laser_radius, 200, 2*this.laser_radius, 10);
-        }
-
-        app.fill(color(0,204,0));
-        
-        /*
-        for (int i=0; i < this.reward_locations.length; i++) {
-            app.rect(map_offset+reward_locations[i]*displayScale-reward_radius, 200, 2*reward_radius, 10);
-        }*/
-
+        int yoffset = 140;
         for (int i=0; i < contextsContainer.size(); i++) {
             ContextList list = contextsContainer.get(i);
+
             app.fill(list.displayColor());
+            app.textSize(14);
+            app.text(list.getId() + ": "  + list.getStatus(), text_offset, yoffset+i*20);
+
             float radius = list.displayRadius();
             for (int j=0; j < list.size(); j++) {
                 app.rect(map_offset+list.getLocation(j)*displayScale-radius,
