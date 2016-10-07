@@ -654,51 +654,53 @@ public class TreadmillController extends PApplet {
         reward_valve = reward_info.getInt("pin");
         //reward_duration = reward_info.getInt("max_duration");
 
-        reward_list.setComm(behavior_comm);
-        reward_list.setDuration(reward_info.getInt("max_duration"));
-        reward_list.setRadius(reward_info.getInt("radius"));
+        if (!reward_info.isNull("locations")) {
+            reward_list.setComm(behavior_comm);
+            reward_list.setDuration(reward_info.getInt("max_duration"));
+            reward_list.setRadius(reward_info.getInt("radius"));
 
-        if (reward_info.getString("type").equals("fixed")) {
-            moving_rewards = false;
-            JSONArray locations = reward_info.getJSONArray("locations");
-            for (int i=0; i < locations.size(); i++) {
-                reward_list.add(locations.getInt(i));
+            if (reward_info.getString("type").equals("fixed")) {
+                moving_rewards = false;
+                JSONArray locations = reward_info.getJSONArray("locations");
+                for (int i=0; i < locations.size(); i++) {
+                    reward_list.add(locations.getInt(i));
+                }
+            } else {
+                moving_rewards = true;
+                for (int i=0; i < reward_info.getInt("number"); i++) {
+                    reward_list.add(0);
+                }
+                shuffle_rewards();
             }
-        } else {
-            moving_rewards = true;
-            for (int i=0; i < reward_info.getInt("number"); i++) {
-                reward_list.add(0);
-            }
-            shuffle_rewards();
+            display.setContextLocations(reward_list);
+
+            JSONObject valve_json = setup_valve_json(reward_valve);
+            behavior_comm.sendMessage(valve_json.toString());
+            JSONObject close_json = close_valve_json(reward_valve);
+            behavior_comm.sendMessage(close_json.toString());
+
+            JSONArray context_valves = new JSONArray();
+            context_valves.append(reward_valve);
+            JSONArray context_duration = new JSONArray();
+            context_duration.append(reward_info.getInt("drop_size"));
+
+            JSONObject context_setup = new JSONObject();
+            context_setup.setString("action", "create");
+            context_setup.setString("id", "hidden_reward");
+            context_setup.setJSONArray("valves", context_valves);
+            context_setup.setJSONArray("durations", context_duration);
+            context_setup.setString("type", "operant");
+            context_setup.setInt("operant_rate", reward_info.getInt("operant_rate"));
+            context_setup.setInt("initial_open", reward_info.getInt("initial_open"));
+            context_setup.setInt("sensor", lickport_pin);
+
+            JSONObject context_setup_json = new JSONObject();
+            context_setup_json.setJSONObject("contexts", context_setup);
+            behavior_comm.sendMessage(context_setup_json.toString());
+
+            reward_list.setId("hidden_reward");
+            contexts.add(reward_list);
         }
-        display.setContextLocations(reward_list);
-
-        JSONObject valve_json = setup_valve_json(reward_valve);
-        behavior_comm.sendMessage(valve_json.toString());
-        JSONObject close_json = close_valve_json(reward_valve);
-        behavior_comm.sendMessage(close_json.toString());
-
-        JSONArray context_valves = new JSONArray();
-        context_valves.append(reward_valve);
-        JSONArray context_duration = new JSONArray();
-        context_duration.append(reward_info.getInt("drop_size"));
-
-        JSONObject context_setup = new JSONObject();
-        context_setup.setString("action", "create");
-        context_setup.setString("id", "hidden_reward");
-        context_setup.setJSONArray("valves", context_valves);
-        context_setup.setJSONArray("durations", context_duration);
-        context_setup.setString("type", "operant");
-        context_setup.setInt("operant_rate", reward_info.getInt("operant_rate"));
-        context_setup.setInt("initial_open", reward_info.getInt("initial_open"));
-        context_setup.setInt("sensor", lickport_pin);
-
-        JSONObject context_setup_json = new JSONObject();
-        context_setup_json.setJSONObject("contexts", context_setup);
-        behavior_comm.sendMessage(context_setup_json.toString());
-
-        reward_list.setId("hidden_reward");
-        contexts.add(reward_list);
     }
 
 
