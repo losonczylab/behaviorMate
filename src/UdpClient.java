@@ -12,12 +12,14 @@ class UdpClient extends PApplet {
     DatagramPacket incomingUdp;
     DatagramSocket udpSocket;
     String address;
+    byte[] receiveData;
     
     public UdpClient(int arduinoPort, int receivePort) {
         // configure send port 
         String ip = "127.0.0.1";
         arduinoAddress = new InetSocketAddress("127.0.0.1",arduinoPort);
         this.address = ip + ":" + receivePort;
+        receiveData = new byte[1024];
 
         try {
             udpSocket = new DatagramSocket(receivePort);
@@ -35,10 +37,11 @@ class UdpClient extends PApplet {
         // configure send port 
         arduinoAddress = new InetSocketAddress(ip,arduinoPort);
         this.address = ip + ":" + receivePort;
+        receiveData = new byte[1024];
 
         try {
             udpSocket = new DatagramSocket(receivePort);
-            udpSocket.setSoTimeout(1);
+            udpSocket.setSoTimeout(0);
             byte[] receiveData = new byte[1024];
             incomingUdp = new DatagramPacket(receiveData, receiveData.length);
         } catch (IOException e) {
@@ -52,6 +55,7 @@ class UdpClient extends PApplet {
         // configure send port 
         arduinoAddress = new InetSocketAddress(ip,arduinoPort);
         this.address = ip;
+        receiveData = new byte[1024];
         try {
             udpSocket = new DatagramSocket(null);
         } catch (IOException e) {
@@ -63,7 +67,7 @@ class UdpClient extends PApplet {
 
     void sendMessage(String message) {
       message = message.replaceAll("[\r|\n|\\s]", "");
-      println("attempting send [" + arduinoAddress + "]: " + message);
+      //println("attempting send [" + arduinoAddress + "]: " + message);
       try {
           byte[] sendData = message.getBytes("UTF-8");
           DatagramPacket sendPacket = new DatagramPacket(sendData, 0,
@@ -76,21 +80,20 @@ class UdpClient extends PApplet {
     }
 
     boolean receiveMessage(JSONBuffer json) {
+        incomingUdp = new DatagramPacket(receiveData, receiveData.length);
         try {
-            byte[] receiveData = new byte[1024];
             udpSocket.receive(incomingUdp);
-            String message = new String(
-                incomingUdp.getData(), 0, incomingUdp.getLength());
-            //println("[" + this.address + "] " + message);
-            json.json = new JSONObject();
-            json.json.setJSONObject(this.address, JSONObject.parse(message));
-
-            return true;
         } catch (IOException e) {
-        // no new messages recieved, return false
+            return false;
         }
 
-        return false;
+        String message = new String(
+            incomingUdp.getData(), 0, incomingUdp.getLength());
+        //println("[" + this.address + "] " + message);
+        json.json = new JSONObject();
+        json.json.setJSONObject(this.address, JSONObject.parse(message));
+
+        return true;
     }
 
     void flushBuffer() {
