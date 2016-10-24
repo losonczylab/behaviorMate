@@ -80,10 +80,12 @@ class UdpClient extends PApplet {
     }
 
     boolean receiveMessage(JSONBuffer json) {
+        long sTime = System.currentTimeMillis();
         incomingUdp = new DatagramPacket(receiveData, receiveData.length);
         try {
             udpSocket.receive(incomingUdp);
         } catch (IOException e) {
+            System.out.println("time=" + ((System.currentTimeMillis() - sTime)));
             return false;
         }
 
