@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.ArrayList;
 
 import processing.core.PApplet;
+import processing.core.PGraphics;
 import processing.core.PSurface;
 
 //TODO: replace processing.data.JSONObject with json.org.JSONObject
@@ -122,12 +123,6 @@ public class TreadmillController extends PApplet {
     String stop_laser_message;
 
     int lickport_pin;
-
-    /** stores the json string to start the reward context */
-    String start_context_message;
-
-    /** stores the json string to stop the reward context */
-    String stop_context_message;
 
     /** Read buffer for position messages */
     JSONBuffer position_buffer = new JSONBuffer();
@@ -296,7 +291,12 @@ public class TreadmillController extends PApplet {
         //TODO: diff and only reconfigure if an update is made
         behavior_comm.closeSocket();
         position_comm.closeSocket();
-        reconfigureExperiment();
+
+        try {
+            reconfigureExperiment();
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void RefreshSettings(String settings_string, String system_string,
@@ -707,7 +707,11 @@ public class TreadmillController extends PApplet {
     void reload_settings(JSONObject settings_json, JSONObject system_json) {
         this.settings_json = settings_json;
         system_json = this.system_json;
-        reconfigureExperiment();
+        try {
+            reconfigureExperiment();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -727,10 +731,14 @@ public class TreadmillController extends PApplet {
         }
 
         system_json = loadJSONObject(filename).getJSONObject("_system");
-        reconfigureExperiment();
+        try {
+            reconfigureExperiment();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    void reconfigureExperiment() {
+    void reconfigureExperiment() throws Exception {
         //TODO: diff the new settings from the old and only make necessary updates
 
         contexts = new ArrayList<ContextList>();
@@ -775,6 +783,7 @@ public class TreadmillController extends PApplet {
             vrController = new VrController(
                 settings_json.getJSONObject("display_controllers"));
 
+
             JSONArray scenes = settings_json.getJSONArray("vr_scenes");
             for (int i=0; i < scenes.size(); i++) {
                 vrController.addScene(scenes.getString(i));
@@ -795,8 +804,11 @@ public class TreadmillController extends PApplet {
     void createSchedule() { }
 
     void reload_settings() {
-        reconfigureExperiment();
-        //reload_settings(settings_filename, settings_tag);
+        try {    
+            reconfigureExperiment();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void addComment(String comment) {
@@ -842,11 +854,15 @@ public class TreadmillController extends PApplet {
         fWriter = null;
         timer = new ExperimentTimer();
 
+        PGraphics img = createGraphics(100,100);
         display = new Display();
+        display.prepGraphics(this);
+        
         reward_list = new ContextList(display, color(0, 204, 0));
         laser_list = new ContextList(display, color(0, 204, 204));
         reload_settings();
         prepareExitHandler();
+
     }
 
 
@@ -1044,11 +1060,11 @@ public class TreadmillController extends PApplet {
         Date stopDate = Calendar.getInstance().getTime();
         trialListener.ended();
         stopContexts();
+        for (int i=0; i < contexts.size(); i++) {
+            contexts.get(i).stop();
+        }
         
         JSONObject end_log = new JSONObject();
-        if (stop_context_message != null) {
-            behavior_comm.sendMessage(stop_context_message);
-        }
         end_log.setFloat("time", timer.getTime());
         end_log.setString("stop", dateFormat.format(stopDate));
         fWriter.write(end_log.toString());
@@ -1077,8 +1093,9 @@ public class TreadmillController extends PApplet {
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             public void run () {
                 Date stopDate = Calendar.getInstance().getTime();
-                behavior_comm.sendMessage(stop_context_message);
-                behavior_comm.sendMessage(stop_laser_message);
+                for (int i=0; i < contexts.size(); i++) {
+                    contexts.get(i).stop();
+                }
 
                 JSONObject end_log = new JSONObject();
                 end_log.setFloat("time", timer.getTime());

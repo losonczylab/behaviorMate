@@ -129,6 +129,12 @@ public class ContextList extends PApplet {
         this.status = status;
     }
 
+    public void stop() {
+        this.active = false;
+        this.status = "sent stop";
+        this.comm.sendMessage(this.stopString);
+    }
+
     public String getStatus() {
         return this.status;
     }

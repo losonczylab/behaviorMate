@@ -3,71 +3,69 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.LinkedList;
 
 import processing.core.PApplet;
 import processing.data.JSONObject;
+
 
 class UdpClient extends PApplet {
     SocketAddress arduinoAddress;
     DatagramPacket incomingUdp;
     DatagramSocket udpSocket;
+    ReceiveThread rt;
     String address;
-    byte[] receiveData;
     
-    public UdpClient(int arduinoPort, int receivePort) {
+    public UdpClient(int arduinoPort, int receivePort) throws IOException {
         // configure send port 
         String ip = "127.0.0.1";
         arduinoAddress = new InetSocketAddress("127.0.0.1",arduinoPort);
         this.address = ip + ":" + receivePort;
-        receiveData = new byte[1024];
 
         try {
             udpSocket = new DatagramSocket(receivePort);
-            udpSocket.setSoTimeout(1);
-            byte[] receiveData = new byte[1024];
-            incomingUdp = new DatagramPacket(receiveData, receiveData.length);
         } catch (IOException e) {
-            println(e);
-            println("exiting in setup udp receiver");
-            System.exit(0); 
+            e.printStackTrace();
+            throw new IOException("error connecting to " + this.address);
         }
+
+        rt = new ReceiveThread(udpSocket);
+        rt.start();
     }
 
-    public UdpClient(String ip, int arduinoPort, int receivePort) {
+    public UdpClient(String ip, int arduinoPort, int receivePort) throws IOException {
         // configure send port 
         arduinoAddress = new InetSocketAddress(ip,arduinoPort);
         this.address = ip + ":" + receivePort;
-        receiveData = new byte[1024];
 
         try {
             udpSocket = new DatagramSocket(receivePort);
-            udpSocket.setSoTimeout(0);
-            byte[] receiveData = new byte[1024];
-            incomingUdp = new DatagramPacket(receiveData, receiveData.length);
         } catch (IOException e) {
-            println(e);
-            println("exiting in setup udp receiver");
-            System.exit(0); 
+            e.printStackTrace();
+            throw new IOException("error connecting to " + this.address);
         }
+
+        rt = new ReceiveThread(udpSocket);
+        rt.start();
     }
 
-    public UdpClient(String ip, int arduinoPort) {
+    public UdpClient(String ip, int arduinoPort) throws IOException {
         // configure send port 
         arduinoAddress = new InetSocketAddress(ip,arduinoPort);
         this.address = ip;
-        receiveData = new byte[1024];
+
         try {
             udpSocket = new DatagramSocket(null);
         } catch (IOException e) {
-            println(e);
-            println("error createing unbound socket");
+            e.printStackTrace();
+            throw new IOException("error connecting to " + this.address);
         }
     }
 
 
     void sendMessage(String message) {
       message = message.replaceAll("[\r|\n|\\s]", "");
-      //println("attempting send [" + arduinoAddress + "]: " + message);
+
       try {
           byte[] sendData = message.getBytes("UTF-8");
           DatagramPacket sendPacket = new DatagramPacket(sendData, 0,
@@ -80,22 +78,58 @@ class UdpClient extends PApplet {
     }
 
     boolean receiveMessage(JSONBuffer json) {
-        long sTime = System.currentTimeMillis();
-        incomingUdp = new DatagramPacket(receiveData, receiveData.length);
-        try {
-            udpSocket.receive(incomingUdp);
-        } catch (IOException e) {
-            System.out.println("time=" + ((System.currentTimeMillis() - sTime)));
-            return false;
+        String message = this.rt.poll();
+        if (message != null) {
+            json.json = new JSONObject();
+            try {
+                json.json.setJSONObject(this.address, JSONObject.parse(message));
+            } catch (RuntimeException e) {
+                return false;
+            }
+
+            return true;
         }
 
-        String message = new String(
-            incomingUdp.getData(), 0, incomingUdp.getLength());
-        //println("[" + this.address + "] " + message);
-        json.json = new JSONObject();
-        json.json.setJSONObject(this.address, JSONObject.parse(message));
+        return false;
+    }
 
-        return true;
+    public class ReceiveThread extends Thread {
+        private Thread t;
+        private DatagramSocket sock;
+        private DatagramPacket incomingUdp;
+        private LinkedList<String> messageQueue;
+        private byte[] receiveData;
+
+        ReceiveThread(DatagramSocket sock) {
+            receiveData = new byte[1024];
+            this.sock = sock;
+            incomingUdp = new DatagramPacket(receiveData, receiveData.length);
+            messageQueue = new LinkedList<String>();
+        }
+
+        public String poll() {
+            return messageQueue.poll();
+        }
+
+        public void run() {
+            while (true) {
+                try {
+                    sock.receive(incomingUdp);
+                } catch (IOException e) {}
+
+                String message = new String(
+                    incomingUdp.getData(), 0, incomingUdp.getLength());
+                messageQueue.add(message);
+            }
+        }
+
+        public void start() {
+            System.out.println("start");
+            if (t == null) {
+                t = new Thread (this, "name " + System.nanoTime());
+                t.start();
+            }
+        }
     }
 
     void flushBuffer() {

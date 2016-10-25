@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.io.IOException;
 
 import processing.data.JSONObject;
 import processing.data.JSONArray;
@@ -11,10 +12,10 @@ public class VrController {
     private boolean isNull;
 
     public VrController() {
-        isNull = true;;
+        isNull = true;
     }
 
-    public VrController(JSONObject vr_settings) {
+    public VrController(JSONObject vr_settings) throws IOException {
 
         comms = new ArrayList<UdpClient>();
         scenes = new ArrayList<String>();

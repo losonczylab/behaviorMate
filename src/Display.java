@@ -1,5 +1,6 @@
 import processing.core.PApplet;
 import processing.core.PFont;
+import processing.core.PGraphics;
 import java.util.ArrayList;
 
 /**
@@ -27,6 +28,7 @@ public class Display extends PApplet {
     private ArrayList<ContextList> contextsContainer;
     private String reward_status;
     private String laser_status;
+    private PGraphics pg;
 
     public Display() {
         lickRate = 0;
@@ -112,8 +114,42 @@ public class Display extends PApplet {
         }
     }
 
+    void prepGraphics(PApplet app) {
+        this.pg = app.createGraphics(app.width, app.height);
+        this.pg.beginDraw();
+        this.pg.background(0);
+
+        this.pg.textSize(18);
+        this.pg.text("Position: ", text_offset, 20);
+        this.pg.text("Lick Count: ", text_offset, 40);
+        this.pg.text("Reward Count: ", text_offset, 60);
+        this.pg.text("Time: ", text_offset, 100);
+        this.pg.text("Lap Count: ", text_offset, 120);
+
+        this.pg.textSize(14);
+        this.pg.text("Last Tag: ", text_offset, 80);
+        
+        this.pg.fill(color(204,204,0));
+        this.pg.rect(map_offset, 200, 300, 10);
+
+        this.pg.textSize(10);
+        this.pg.fill(color(255, 0, 0));
+        this.pg.text("velocity", tag_offset-13, 510);
+        this.pg.fill(color(0,255,0));
+        this.pg.text("licking", tag_offset+30, 510);
+        this.pg.fill(color(0,0,255));
+        this.pg.text("reward", tag_offset+70, 510);
+        this.pg.fill(color(255,255,255));
+        this.pg.text("lap", tag_offset+115, 510);
+
+        this.pg.endDraw();
+    }
+
     void update(PApplet app, float dy, float position, float time, 
             boolean lasering) {
+        if (this.pg != null) {
+            app.image(this.pg, 0, 0);
+        }
         app.textSize(18);
 
         if (lickRate > 0) {
@@ -136,18 +172,14 @@ public class Display extends PApplet {
 
         app.textSize(18);
         app.text(this.mouseName, 20, 40);
-        app.text("Position: " + position, text_offset, 20);
-        app.text("Lick Count: " + lickCount, text_offset, 40);
-        app.text("Reward Count: " + rewardCount, text_offset, 60);
+        app.text(position, 75+text_offset, 20);
+        app.text(lickCount, 105+text_offset, 40);
+        app.text(rewardCount, 135+text_offset, 60);
+        app.text(time, 50+text_offset, 100);
+        app.text(lapCount, 100+text_offset, 120);
         app.textSize(14);
-        app.text("Last Tag: " + currentTag, text_offset, 80);
-        app.textSize(18);
-        app.text("Time: " + time, text_offset, 100);
-        app.text("Lap Count: " + lapCount, text_offset, 120);
+        app.text("0"+currentTag, 75+text_offset, 80);
         
-        //app.text("Reward Zone: " + this.reward_status, text_offset, 140);
-        //app.text("Laser: " + this.laser_status, text_offset, 160);
-
         app.fill(color(204,204,0));
         app.rect(map_offset, 200, 300, 10);
         int yoffset = 140;
@@ -172,21 +204,16 @@ public class Display extends PApplet {
         app.fill(color(204,0,0));
         app.rect(map_offset+position*displayScale-5, 200, 10, 10);
 
-        app.textSize(10);
         app.fill(color(255, 0, 0));
         app.rect(tag_offset,500,10,-positionRate);
-        app.text("velocity", tag_offset-13, 510);
 
         app.fill(color(0,255,0));
         app.rect(tag_offset+40,500,10,-lickRate);
-        app.text("licking", tag_offset+30, 510);
 
         app.fill(color(0,0,255));
         app.rect(tag_offset+80,500,10,-rewardRate);
-        app.text("reward", tag_offset+70, 510);
 
         app.fill(color(255,255,255));
         app.rect(tag_offset+120,500,10,-lapRate);
-        app.text("lap", tag_offset+115, 510);
     }
 }
