@@ -325,7 +325,6 @@ public class TreadmillController extends PApplet {
     public void RefreshSettings() {
         behavior_comm.closeSocket();
         position_comm.closeSocket();
-        //reload_settings(settings_filename, settings_tag);
         reload_settings();
     }
 
@@ -492,7 +491,6 @@ public class TreadmillController extends PApplet {
     ArrayList<String> startContextMessages;
     ArrayList<String> stopContextMessages;
     ArrayList<ContextList> contexts;
-    ArrayList<ContextList> moving_contexts;
     void configure_contexts() {
         startContextMessages = new ArrayList<String>();
         stopContextMessages = new ArrayList<String>();
@@ -740,9 +738,7 @@ public class TreadmillController extends PApplet {
 
     void reconfigureExperiment() throws Exception {
         //TODO: diff the new settings from the old and only make necessary updates
-
         contexts = new ArrayList<ContextList>();
-        moving_contexts = new ArrayList<ContextList>();
         display.resetContexts();
         if (!settings_json.getString("lap_reset_tag", "").equals("")) {
             if (!settings_json.getString("lap_reset_tag").equals(lap_tag)) {

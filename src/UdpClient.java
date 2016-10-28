@@ -99,10 +99,17 @@ class UdpClient extends PApplet {
         private DatagramPacket incomingUdp;
         private LinkedList<String> messageQueue;
         private byte[] receiveData;
+        private boolean run;
 
         ReceiveThread(DatagramSocket sock) {
+            this.run = true;
             receiveData = new byte[1024];
             this.sock = sock;
+            try {
+                this.sock.setSoTimeout(250);
+            } catch (IOException e) {
+               System.exit(0); 
+            }
             incomingUdp = new DatagramPacket(receiveData, receiveData.length);
             messageQueue = new LinkedList<String>();
         }
@@ -112,15 +119,18 @@ class UdpClient extends PApplet {
         }
 
         public void run() {
-            while (true) {
+            while (this.run) {
                 try {
                     sock.receive(incomingUdp);
-                } catch (IOException e) {}
+                } catch (IOException e) {
+                    continue;
+                }
 
                 String message = new String(
                     incomingUdp.getData(), 0, incomingUdp.getLength());
                 messageQueue.add(message);
             }
+            this.sock.close();
         }
 
         public void start() {
@@ -130,6 +140,10 @@ class UdpClient extends PApplet {
                 t.start();
             }
         }
+
+        public void stop_thread() {
+            this.run = false;
+        }
     }
 
     void flushBuffer() {
@@ -138,7 +152,12 @@ class UdpClient extends PApplet {
     }
 
     void closeSocket() {
-        udpSocket.close();
-        delay(100);
+        if (rt != null) {
+            rt.stop_thread();
+            delay(250);
+        } else {
+            udpSocket.close();
+            delay(100);
+        }
     }
 }
