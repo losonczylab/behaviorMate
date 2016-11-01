@@ -80,9 +80,6 @@ public class TreadmillController extends PApplet {
 
     int lap_count;
 
-    /** prevents the draw function from running */
-    boolean nodraw;
-
     int trial_duration;
 
     boolean started = false;
@@ -724,7 +721,6 @@ public class TreadmillController extends PApplet {
            text("Settings failed to load!", 50, 50);
            text(e.toString(), 50, 80);
            noLoop();
-           nodraw = true;
            return;
         }
 
@@ -900,7 +896,8 @@ public class TreadmillController extends PApplet {
 
     protected float updatePosition(float time) {
         float dy = 0;
-        while (position_comm.receiveMessage(json_buffer)) {
+        for (int i=0; ((i < 10) && (position_comm.receiveMessage(json_buffer)))
+                ;i++) {
             if ((dy != 0) && (started)) {
                 fWriter.write(json_buffer.json.toString());
             }
@@ -913,11 +910,13 @@ public class TreadmillController extends PApplet {
             }
         }
 
+        dy /= position_scale;
+        display.setPositionRate(dy);
+
         if (dy == 0) {
             return 0;
         }
 
-        dy /= position_scale;
         distance += dy;
         if (position != -1) {
             if ((position + dy) < 0) {
@@ -945,12 +944,11 @@ public class TreadmillController extends PApplet {
     /** processing function which is looped over continuously. Main logic of the
      * experiment is in the body of this function.
      */
+    boolean display_updated = false;
+    int display_rate = 50;
     public void draw() {
-        if (nodraw) {
-            return;
-        }
-
-        background(0);
+        //int loopStartTime = millis();
+        //background(0);
         float time = timer.checkTime();;
         if (time > trial_duration) {
             endExperiment();
@@ -964,7 +962,6 @@ public class TreadmillController extends PApplet {
                 contexts.get(i).check(position, time);
             }
         }
-
         
         /*
         if ((!laserZone) && (lasering)) {
@@ -1041,8 +1038,19 @@ public class TreadmillController extends PApplet {
                 fWriter.write(json_buffer.json.toString());
             }
         }
-        
-        display.update(this, dy, position, time, lasering);
+
+        int display_check = millis()%display_rate;
+        if ((display_check < display_rate/2) && (!display_updated)) {
+            //float t = millis();
+            display.update(this, dy, position, time, lasering);
+            //println("display update: " + (millis()-t));
+            display_updated = true;
+        } else if (display_check > display_rate/2) {
+            display_updated = false;
+        }
+
+        //println("draw loop time: " + (millis()-loopStartTime));
+        //println("\n");
     }
 
     /**

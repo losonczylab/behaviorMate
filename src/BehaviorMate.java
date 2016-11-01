@@ -481,7 +481,6 @@ public class BehaviorMate {
             experimentType = settings.getString("experimentType");
         } catch (JSONException e) { }
 
-
         if (experimentType.equals("salience")) {
             treadmillController = 
                 new SalienceController(settings.toString(),
@@ -518,7 +517,6 @@ public class BehaviorMate {
         frame.setVisible(true);
 
         ps.startThread();
-
     }
 
 

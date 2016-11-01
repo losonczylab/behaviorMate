@@ -71,6 +71,15 @@ public class Display extends PApplet {
         }
     }
 
+    void setPositionRate(float dy) {
+        if (dy == 0) {
+            positionRate = positionRate/abs(positionRate) * max(0.0f, abs(positionRate)-0.5f);
+        } else {
+            positionRate = min(200,dy*5);
+        }
+
+    }
+
     void setSchedule(String schedule) {
         this.schedule = schedule;
     }
@@ -147,10 +156,14 @@ public class Display extends PApplet {
 
     void update(PApplet app, float dy, float position, float time, 
             boolean lasering) {
+        //float t = app.millis();
         if (this.pg != null) {
             app.image(this.pg, 0, 0);
         }
         app.textSize(18);
+        //println("bg updates: " + (app.millis() - t));
+
+        //t = app.millis();
 
         if (lickRate > 0) {
             lickRate -= 5; 
@@ -164,18 +177,22 @@ public class Display extends PApplet {
             rewardRate -= 5; 
         }
 
+        /*
         if (dy != 0) {
             positionRate = min(200,dy*5);
         } else {
             positionRate = positionRate/abs(positionRate) * max(0.0f, abs(positionRate)-0.5f);
-        }
+        }*/
+
+        //println("var updates: " + (app.millis() - t));
+        //t = app.millis();
 
         app.textSize(18);
         app.text(this.mouseName, 20, 40);
-        app.text(position, 75+text_offset, 20);
+        app.text((int)position, 75+text_offset, 20);
         app.text(lickCount, 105+text_offset, 40);
         app.text(rewardCount, 135+text_offset, 60);
-        app.text(time, 50+text_offset, 100);
+        app.text((int)time, 50+text_offset, 100);
         app.text(lapCount, 100+text_offset, 120);
         app.textSize(14);
         app.text("0"+currentTag, 75+text_offset, 80);
@@ -201,6 +218,9 @@ public class Display extends PApplet {
         app.fill(color(204,204,0));
         app.text(this.schedule, 60, 80);
 
+        //app.println("text updates: " + (app.millis() - t));
+        //t = app.millis();
+
         app.fill(color(204,0,0));
         app.rect(map_offset+position*displayScale-5, 200, 10, 10);
 
@@ -215,5 +235,6 @@ public class Display extends PApplet {
 
         app.fill(color(255,255,255));
         app.rect(tag_offset+120,500,10,-lapRate);
+        //app.println("rectangle updates: " +(app.millis()-t));
     }
 }
