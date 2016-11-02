@@ -109,7 +109,7 @@ public class TreadmillController extends PApplet {
 
     int next_laser;
 
-    int[] laser_locations;
+    //int[] laser_locations;
 
     int laser_radius;
 
@@ -837,7 +837,7 @@ public class TreadmillController extends PApplet {
         trial_duration = 0;
         next_reward = 0;
         next_laser = 0;
-        laser_locations = new int[0];
+        //laser_locations = new int[0];
         //reward_locations = new int[0];
         position = -1;
         distance = 0;
@@ -944,11 +944,9 @@ public class TreadmillController extends PApplet {
     /** processing function which is looped over continuously. Main logic of the
      * experiment is in the body of this function.
      */
-    boolean display_updated = false;
+    int display_update = 0;
     int display_rate = 50;
     public void draw() {
-        //int loopStartTime = millis();
-        //background(0);
         float time = timer.checkTime();;
         if (time > trial_duration) {
             endExperiment();
@@ -1039,18 +1037,12 @@ public class TreadmillController extends PApplet {
             }
         }
 
-        int display_check = millis()%display_rate;
-        if ((display_check < display_rate/2) && (!display_updated)) {
-            //float t = millis();
+        int t = millis();
+        int display_check = t-display_update;
+        if (display_check > display_rate) {
             display.update(this, dy, position, time, lasering);
-            //println("display update: " + (millis()-t));
-            display_updated = true;
-        } else if (display_check > display_rate/2) {
-            display_updated = false;
+            display_update = t;
         }
-
-        //println("draw loop time: " + (millis()-loopStartTime));
-        //println("\n");
     }
 
     /**

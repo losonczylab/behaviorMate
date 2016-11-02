@@ -220,7 +220,7 @@ public class SalienceController extends TreadmillController {
         trial_duration = 0;
         next_reward = 0;
         next_laser = 0;
-        laser_locations = new int[0];
+        //laser_locations = new int[0];
         position = -1;
         lap_count = 0;
         lap_tag = "";
