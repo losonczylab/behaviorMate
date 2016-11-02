@@ -228,6 +228,10 @@ public class SalienceController extends TreadmillController {
         timer = new ExperimentTimer();
 
         display = new Display();
+        display.prepGraphics(this);
+
+        reward_list = new ContextList(display, color(0, 204, 0));
+        laser_list = new ContextList(display, color(0, 204, 204)); 
         reload_settings();
         prepareExitHandler();
     }
