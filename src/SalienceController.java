@@ -197,6 +197,7 @@ public class SalienceController extends TreadmillController {
 
         schedule.get(schedule.size()-1).type = "end_experiment";
         display.setMouseName("Next Trial: "+schedule.get(schedule.size()-1).time + " s");
+        settings_json.setFloat("trial_length", schedule.get(schedule.size()-1).time);
         displaySchedule();
 
         nextEvent = schedule.get(0);
