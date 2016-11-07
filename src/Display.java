@@ -195,7 +195,7 @@ public class Display extends PApplet {
         app.text((int)time, 50+text_offset, 100);
         app.text(lapCount, 100+text_offset, 120);
         app.textSize(14);
-        app.text("0"+currentTag, 75+text_offset, 80);
+        app.text(currentTag, 72+text_offset, 80);
         
         app.fill(color(204,204,0));
         app.rect(map_offset, 200, 300, 10);
