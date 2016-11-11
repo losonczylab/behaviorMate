@@ -12,7 +12,7 @@ public class ContextList extends PApplet {
     private String id;
     private String startString;
     private String stopString;
-    private boolean active;
+    private int active;
     private String status;
     private Display display;
 
@@ -24,7 +24,7 @@ public class ContextList extends PApplet {
         this.startString = "";
         this.stopString = "";
         this.id = "context";
-        this.active = false;
+        this.active = -1;
         this.status = "";
     }
 
@@ -39,7 +39,7 @@ public class ContextList extends PApplet {
         this.startString = "";
         this.stopString = "";
         this.id = "context";
-        this.active = false;
+        this.active = -1;
         this.status = "";
     }
 
@@ -101,18 +101,20 @@ public class ContextList extends PApplet {
 
     public boolean check(float position, float time) {
         boolean inZone = false;
-        for (int i=0; i < this.contexts.size(); i++) {
+        int i=0;
+        for (; i < this.contexts.size(); i++) {
             if (this.contexts.get(i).check(position, time)) {
                 inZone = true;
+                break;
             }
         }
 
-        if ((!inZone) && (this.active)) {
-            this.active = false;
+        if ((!inZone) && (this.active != -1)) {
+            this.active = -1;
             this.status = "sent stop";
             this.comm.sendMessage(this.stopString);
-        } else if((inZone) && (!this.active)) {
-            this.active = true;
+        } else if((inZone) && (this.active != i)) {
+            this.active = i;
             this.status = "sent start";
             this.comm.sendMessage(this.startString);
             /*if (!laser_on_reward) {
@@ -122,7 +124,7 @@ public class ContextList extends PApplet {
             }*/
         }
 
-        return this.active;
+        return (this.active != -1);
     }
 
     public void setStatus(String status) {
@@ -130,7 +132,7 @@ public class ContextList extends PApplet {
     }
 
     public void stop() {
-        this.active = false;
+        this.active = -1;
         this.status = "sent stop";
         this.comm.sendMessage(this.stopString);
     }
