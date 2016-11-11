@@ -173,6 +173,10 @@ public class TreadmillController extends PApplet {
         display.setRewardCount(0);
         lap_count=0;
         
+        if (fWriter != null) {
+            fWriter.close();
+        }
+
         try {
             fWriter = new FileWriter(system_json.getString("data_directory", "data"), mouse_name);
         } catch (IOException e) {
@@ -1098,7 +1102,9 @@ public class TreadmillController extends PApplet {
                 end_log.setString("stop", dateFormat.format(stopDate));
                 if (fWriter !=  null) {
                     fWriter.write(end_log.toString());
+                    fWriter.close();
                 }
+
                 vrController.loadScene("scene0");
                 println("closing");
             }

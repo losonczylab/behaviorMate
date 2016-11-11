@@ -4,7 +4,9 @@ import java.io.FileOutputStream;
 import java.io.File;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.LinkedList;
 import java.text.SimpleDateFormat;
+import java.lang.InterruptedException;
 
 import processing.core.PApplet;
 
@@ -15,6 +17,7 @@ import processing.core.PApplet;
  */
 public class FileWriter extends PApplet {
     FileOutputStream fos;
+    WriterThread wt;
     OutputStreamWriter osw;
     File logFile;
     String sep = "/";
@@ -46,6 +49,9 @@ public class FileWriter extends PApplet {
         //    println(e);
         //    println("error creating file");
         //}
+
+        wt = new WriterThread(logFile);
+        wt.start();
     }
   
     public File getFile() {
@@ -57,6 +63,7 @@ public class FileWriter extends PApplet {
      * @param msg message to be written to the log file
      */
     public void write(String msg) {
+        /*
         if (logFile != null) {
             try {
                 fos = new FileOutputStream(logFile, true);
@@ -70,5 +77,76 @@ public class FileWriter extends PApplet {
                 System.out.println("Error writing to data file");
             }
         }
+        */
+        wt.queueMessage(msg);
     } 
+
+    public void close() {
+        wt.stop_thread();
+    }
+
+    public class WriterThread extends Thread {
+        private boolean run;
+        private LinkedList<String> writeQueue;
+        private Thread t;
+        private String messageBuffer;
+
+        private FileOutputStream fos;
+        private OutputStreamWriter osw;
+        private File logFile;
+        private String sep = "/";
+
+        WriterThread(File logFile) {
+            this.run = true;
+            writeQueue = new LinkedList<String>();
+            messageBuffer = null;
+            this.logFile = logFile;
+        }
+
+        public void run() {
+            messageBuffer = writeQueue.poll();
+            while (this.run || messageBuffer != null) {
+                while (messageBuffer != null) {
+                    write(messageBuffer);
+                    messageBuffer = writeQueue.poll();
+                }
+                
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {}
+                messageBuffer = writeQueue.poll();
+            }
+        }
+
+        public void start() {
+            if (t == null) {
+                t = new Thread(this, "writeThread " + System.nanoTime());
+                t.start();
+            }
+        }
+
+        public void stop_thread() {
+            this.run = false;;
+        }
+
+        public void queueMessage(String msg) {
+            writeQueue.add(msg);
+        }
+
+        public void write(String msg) {
+            if (logFile != null) {
+                try {
+                    fos = new FileOutputStream(logFile, true);
+                    osw = new OutputStreamWriter(fos);
+     
+                    osw.write(
+                        msg.replaceAll("[\r|\n]|\\s{2,}","") + "\n");
+                    osw.close();
+                    fos.close();
+                } catch (IOException e) {
+                    System.out.println("Error writing to data file");
+                }
+            }
+        }
+    }
 }
