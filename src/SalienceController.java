@@ -235,13 +235,16 @@ public class SalienceController extends TreadmillController {
         reward_list = new ContextList(display, color(0, 204, 0));
         laser_list = new ContextList(display, color(0, 204, 204)); 
 
+        position_comm = null;
+        behavior_comm = null;
         prepareExitHandler();
+        trialListener.initialized();
     }
 
     public void startTrial() {
         JSONObject start_log = new JSONObject();
         Date dateTime = Calendar.getInstance().getTime();
-        start_log.setFloat("time", millis());
+        start_log.setFloat("time", timer.checkTime());
         start_log.setString("trial_start", dateFormat.format(dateTime));
         fWriter.write(start_log.toString());
     }
@@ -249,17 +252,16 @@ public class SalienceController extends TreadmillController {
     public void endTrial() {
         JSONObject end_log = new JSONObject();
         Date dateTime = Calendar.getInstance().getTime();
-        end_log.setFloat("time", millis());
+        end_log.setFloat("time", timer.checkTime());
         end_log.setString("trial_end", dateFormat.format(dateTime));
         fWriter.write(end_log.toString());
     }
 
     public void draw() {
-        background(0);
         float time = timer.checkTime();
         float dy = updatePosition(time);
 
-        if (behavior_comm.receiveMessage(json_buffer)) {
+        if ((behavior_comm != null) && ((behavior_comm.receiveMessage(json_buffer)))) {
             JSONObject behavior_json =
                 json_buffer.json.getJSONObject(behavior_comm.address);
 
@@ -361,8 +363,13 @@ public class SalienceController extends TreadmillController {
             fWriter.write(tone_json.toString());
             tone = null;
         }*/
-        
-        display.update(this, dy/position_scale, position, time, lasering);
+        int t = millis();
+        int display_check = t-display_update;
+        if (display_check > display_rate) {
+            display.update(this, dy, position, time, lasering);
+            display_update = t;
+        }
+        //display.update(this, dy/position_scale, position, time, lasering);
     }
 
 }
