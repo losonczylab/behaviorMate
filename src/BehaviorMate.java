@@ -132,6 +132,10 @@ class TrialListener {
         }
     }
 
+    public void initialized() {
+        controlPanel.refreshSettings();
+    }
+
     public void ended() {
         if (controlPanel != null) {
             controlPanel.setEnabled(true);
@@ -217,8 +221,21 @@ class ControlPanel extends JPanel implements ActionListener {
             showAttrsForm();
             return;
         }
-        System.out.println(trialAttrs);
-        treadmillController.addSettings(trialAttrs);
+
+        //System.out.println(trialAttrs);
+        try {
+            treadmillController.addSettings(trialAttrs);
+        } catch (Exception exc) {
+            exc.printStackTrace();
+
+            String msg = exc.toString();
+            StackTraceElement[] elements = exc.getStackTrace();
+            for (int i=0; ((i < 3) &&(i < elements.length)); i++) {
+                msg += ("\n " + elements[i].toString());
+            }
+            JOptionPane.showMessageDialog(null, msg);
+            return;
+        }
     }
 
     public void setEnabled(boolean enabled) {
@@ -237,6 +254,33 @@ class ControlPanel extends JPanel implements ActionListener {
             showAttrsButton.setEnabled(true);
             refreshButton.setEnabled(true);
         }
+    }
+
+    public void refreshSettings() {
+        parent.setTitle(settingsLoader.getSelectedTag());
+        String filename = settingsLoader.getSelectedFile();
+        String tag = settingsLoader.getSelectedTag();
+
+        JSONObject settings = BehaviorMate.parseJsonFile(filename, tag);
+        JSONObject system_settings = BehaviorMate.parseJsonFile(filename, "_system");
+
+        try {
+            treadmillController.RefreshSettings(settings.toString(),
+                system_settings.toString(), true);
+        } catch (Exception exc) {
+            exc.printStackTrace();
+
+            String msg = exc.toString();
+            StackTraceElement[] elements = exc.getStackTrace();
+            for (int i=0; ((i < 3) &&(i < elements.length)); i++) {
+                msg += ("\n " + elements[i].toString());
+            }
+            JOptionPane.showMessageDialog(null, msg);
+            return;
+        }
+
+        trialAttrsForm.loadForm(filename, tag);
+        showAttrsForm();
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -278,17 +322,7 @@ class ControlPanel extends JPanel implements ActionListener {
             settingsLoader.setLocationRelativeTo(this);
             settingsLoader.show();
         } else if (e.getSource() == settingsLoader) {
-            parent.setTitle(settingsLoader.getSelectedTag());
-            String filename = settingsLoader.getSelectedFile();
-            String tag = settingsLoader.getSelectedTag();
-
-            JSONObject settings = BehaviorMate.parseJsonFile(filename, tag);
-            JSONObject system_settings = BehaviorMate.parseJsonFile(filename, "_system");
-
-            treadmillController.RefreshSettings(settings.toString(),
-                system_settings.toString(), true);
-            trialAttrsForm.loadForm(filename, tag);
-            showAttrsForm();
+            refreshSettings();
         } else if (e.getSource() == trialAttrsForm) {
             attrsCompleted = true;
             updateAttrs();
@@ -425,7 +459,7 @@ public class BehaviorMate {
             br = new BufferedReader(new FileReader(filename));
             while ((line = br.readLine()) != null) {
                 if (!line.trim().startsWith("//")) {
-                    jsonData += line + "\n";
+                    jsonData += line.split("//")[0] + "\n";
                 }
             }
         } catch (IOException e) {

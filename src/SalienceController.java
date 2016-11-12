@@ -34,7 +34,8 @@ public class SalienceController extends TreadmillController {
         super(settings_string, system_string, el, useless);
     }
 
-    public SalienceController(String filename, String tag, TrialListener el) {
+    public SalienceController(String filename, String tag,
+            TrialListener el) {
         super(filename, tag, el);
     }
 
@@ -233,7 +234,7 @@ public class SalienceController extends TreadmillController {
 
         reward_list = new ContextList(display, color(0, 204, 0));
         laser_list = new ContextList(display, color(0, 204, 204)); 
-        reload_settings();
+
         prepareExitHandler();
     }
 

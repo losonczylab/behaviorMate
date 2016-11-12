@@ -56,21 +56,34 @@ public class TreadmillController extends PApplet {
      */
     JSONObject system_json;
 
-    String mouse_name;
+    //String mouse_name;
+
+    /**
+     * 1-D position of the mouse along track.
+     */
     float position;
+
+    /**
+     * distance run since last lap reset (allowed to be negative). Used to check that
+     * animal is not backing over reset tag.
+     */
     float distance;
+
     /** 
      * scale to convert position updates from rotary encoder to mm traversed on the
      * track
      */
     float position_scale;
-    /** length of the track in mm */
+
+    /** length of the track in mm. "track_length" in settings.*/
     float track_length;
+
     /** 
      *RFID tag string to indicate that a lap has been compleded and position
      * should be reset to 0.
      */
     String lap_tag;
+
     /**
      * force a lap_reset if the position is more then track_length*lap_tolerance past 
      * track_length. Defaults to 0 if lap_reset_tag is not set, 0.99 if not present in
@@ -139,7 +152,8 @@ public class TreadmillController extends PApplet {
         this.system_json = parseJSONObject(system_string);
     }
 
-    public TreadmillController(String filename, String tag, TrialListener el) {
+    public TreadmillController(String filename, String tag,
+            TrialListener el) {
         this.trialListener = el;
         this.settings_filename = filename;
         this.settings_tag = tag;
@@ -267,7 +281,7 @@ public class TreadmillController extends PApplet {
         return orig;
     }
     
-    public void addSettings(String settings) {
+    public void addSettings(String settings) throws Exception {
         JSONArray new_settings = parseJSONArray(settings);
         for (int i=0; i<new_settings.size(); i++) {
             JSONObject setting = new_settings.getJSONObject(i);
@@ -293,15 +307,11 @@ public class TreadmillController extends PApplet {
         behavior_comm.closeSocket();
         position_comm.closeSocket();
 
-        try {
-            reconfigureExperiment();
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
+        reconfigureExperiment();
     }
 
     public void RefreshSettings(String settings_string, String system_string,
-            boolean useless) {
+            boolean useless) throws Exception {
 
         this.settings_filename = "";
         this.settings_tag = "";
@@ -310,22 +320,28 @@ public class TreadmillController extends PApplet {
         RefreshSettings();
     }
 
-    public void RefreshSettings(String filename, String tag) {
+    public void RefreshSettings(String filename, String tag) throws Exception {
         settings_filename = filename;
         settings_tag = tag;
         RefreshSettings();
     }
 
     public void RefreshSettings(JSONObject settings_json,
-            JSONObject system_json) {
+            JSONObject system_json) throws Exception {
         this.settings_json = settings_json;
         this.system_json = system_json;
         RefreshSettings();
     }
 
-    public void RefreshSettings() {
-        behavior_comm.closeSocket();
-        position_comm.closeSocket();
+    public void RefreshSettings() throws Exception {
+        if (behavior_comm != null) {
+            behavior_comm.closeSocket();
+        }
+
+        if (position_comm != null) {
+            position_comm.closeSocket();
+        }
+
         reload_settings();
     }
 
@@ -703,43 +719,26 @@ public class TreadmillController extends PApplet {
     }
 
 
-    void reload_settings(JSONObject settings_json, JSONObject system_json) {
+    void reload_settings(JSONObject settings_json, JSONObject system_json) throws Exception {
         this.settings_json = settings_json;
         system_json = this.system_json;
-        try {
-            reconfigureExperiment();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        reconfigureExperiment();
     }
 
 
-    void reload_settings(String filename, String tag) {
-        try {
-          settings_json = loadJSONObject(filename).getJSONObject(tag);
-        } catch (Exception e) {
-           println(e.toString());
-           background(0);
-           fill(color(255,0,0));
-           textSize(24);
-           text("Settings failed to load!", 50, 50);
-           text(e.toString(), 50, 80);
-           noLoop();
-           return;
-        }
-
+    void reload_settings(String filename, String tag) throws Exception {
+        settings_json = loadJSONObject(filename).getJSONObject(tag);
         system_json = loadJSONObject(filename).getJSONObject("_system");
-        try {
-            reconfigureExperiment();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
+        reconfigureExperiment();
     }
 
     void reconfigureExperiment() throws Exception {
         //TODO: diff the new settings from the old and only make necessary updates
         contexts = new ArrayList<ContextList>();
-        display.resetContexts();
+        if (display != null) {
+            display.resetContexts();
+        }
         if (!settings_json.getString("lap_reset_tag", "").equals("")) {
             if (!settings_json.getString("lap_reset_tag").equals(lap_tag)) {
                 position = -1;
@@ -799,12 +798,8 @@ public class TreadmillController extends PApplet {
 
     void createSchedule() { }
 
-    void reload_settings() {
-        try {    
-            reconfigureExperiment();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    void reload_settings() throws Exception {
+        reconfigureExperiment();
     }
 
     public void addComment(String comment) {
@@ -856,8 +851,18 @@ public class TreadmillController extends PApplet {
         
         reward_list = new ContextList(display, color(0, 204, 0));
         laser_list = new ContextList(display, color(0, 204, 204));
-        reload_settings();
+
+        /*
+        try {
+            reload_settings();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(0);
+        }*/
+        position_comm = null;
+        behavior_comm = null;
         prepareExitHandler();
+        trialListener.initialized();
 
     }
 
@@ -890,7 +895,6 @@ public class TreadmillController extends PApplet {
             lap_count++;
             display.setLapCount(lap_count);
 
-            //reward_list.reset();
             for (int i=0; i < contexts.size(); i++) {
                 contexts.get(i).reset();
             }
@@ -899,6 +903,10 @@ public class TreadmillController extends PApplet {
 
 
     protected float updatePosition(float time) {
+        if (position_comm == null) {
+            return 0;
+        }
+
         float dy = 0;
         for (int i=0; ((i < 10) && (position_comm.receiveMessage(json_buffer)))
                 ;i++) {
@@ -979,7 +987,8 @@ public class TreadmillController extends PApplet {
             }
         }*/
 
-        if (behavior_comm.receiveMessage(json_buffer)) {
+        if ((behavior_comm != null) &&
+                ((behavior_comm.receiveMessage(json_buffer)))) {
             JSONObject behavior_json =
                 json_buffer.json.getJSONObject(behavior_comm.address);
             
