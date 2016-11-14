@@ -31,32 +31,52 @@ class JSONBuffer {
 
 public class TreadmillController extends PApplet {
 
+    /**
+     * event listener to send messages back to the UI wrapper.
+     */
     TrialListener trialListener;
 
+    /**
+     * object for writing behavior log - tdml file.
+     */
     FileWriter fWriter;
-    UdpClient position_comm;
-    UdpClient behavior_comm;
-    UdpClient vr_comm;
-    VrController vrController;
-
-    Display display;
-    ExperimentTimer timer;
-    
-    String settings_filename;
-    String settings_tag;
 
     /**
-     * json object with all the settings related to this trail. Stored at the top
-     * of each of the behavior logs
+     * udp client for reveiving position updates
+     */
+    UdpClient position_comm;
+
+    /**
+     * udp clident for behavior updates.
+     */
+    UdpClient behavior_comm;
+
+    /**
+     * object for sending updates to VR screen controllers.
+     */
+    VrController vrController;
+
+    /**
+     * object showing the current state of the trial.
+     */
+    Display display;
+
+    /**
+     * timer for converting the start time of the experiment with the start of
+     * the current trial.
+     */
+    ExperimentTimer timer;
+    
+    /**
+     * json object with all the settings related to this trail. Stored at the
+     * top of each of the behavior logs
      */
     JSONObject settings_json;
     /**
-     * json object with all the settings related to the computer specifically. Not
-     * saved when each trial is ran.
+     * json object with all the settings related to the computer specifically.
+     * Not saved when each trial is ran.
      */
     JSONObject system_json;
-
-    //String mouse_name;
 
     /**
      * 1-D position of the mouse along track.
@@ -75,11 +95,13 @@ public class TreadmillController extends PApplet {
      */
     float position_scale;
 
-    /** length of the track in mm. "track_length" in settings.*/
+    /**
+     * length of the track in mm. "track_length" in settings.
+     */
     float track_length;
 
     /** 
-     *RFID tag string to indicate that a lap has been compleded and position
+     * RFID tag string to indicate that a lap has been compleded and position
      * should be reset to 0.
      */
     String lap_tag;
@@ -91,78 +113,62 @@ public class TreadmillController extends PApplet {
      */
     float lap_tolerance;
 
+    /**
+     * number of laps the animal has run.
+     */
     int lap_count;
 
+    /**
+     * length of the trial. signals the trial to end. "trial_length" in the settings
+     * file.
+     */
     int trial_duration;
 
+    /**
+     * Indicates weither the trial has been started. used to evaluate if contexts
+     * should be turned on as well if the file writer to be used.
+     */
     boolean started = false;
-    /** indicates if rewards are currently being operantly delivered */
-    boolean rewarding;
-    /** time at which rewards started to be operantly delivered */
-    float reward_start;
-    /** locations of the reward midpoints along the track */
-    //int[] reward_locations;
-    /** radius around reward locations wich deliminates the reward zone*/
-    //int reward_radius;
-    /** index of the next reward possible in int[] reward_locations */
-    int next_reward;
-    /** if true, reward locations change from lap to lap */
+
+    /**
+     * if true, reward locations change from lap to lap
+     */
     boolean moving_rewards;
-    /** pin number for the reward locations */
+
+    /**
+     * pin number for the reward locations
+     */
     int reward_valve;
-    /** temporal limit on reward zone */
-    //int reward_duration;
 
-    /** indicates weither the opto laser is currently on */
-    boolean lasering;
-
-    boolean laser_on_reward;
-
-    float laser_start;
-
-    int next_laser;
-
-    //int[] laser_locations;
-
-    int laser_radius;
-
-    int laser_pin;
-
-    String start_laser_message;
-
-    String stop_laser_message;
-
+    /**
+     * the pin number that the lickport is attached to.
+     */
     int lickport_pin;
 
-    /** Read buffer for position messages */
+    /**
+     * Read buffer for position messages
+     */
     JSONBuffer position_buffer = new JSONBuffer();
 
-    /** Read buffer for behavior messages */
+    /**
+     * Read buffer for behavior messages
+     */
     JSONBuffer json_buffer = new JSONBuffer();
 
-    /** Date format for logging experiment start/stop */
+    /**
+     * Date format for logging experiment start/stop
+     */
     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     public TreadmillController(String settings_string, String system_string,
-            TrialListener el, boolean useless) {
+            TrialListener el) {
         this.trialListener = el;
-        this.settings_filename = "";
-        this.settings_tag = "";
         this.settings_json = parseJSONObject(settings_string);
         this.system_json = parseJSONObject(system_string);
     }
 
-    public TreadmillController(String filename, String tag,
-            TrialListener el) {
-        this.trialListener = el;
-        this.settings_filename = filename;
-        this.settings_tag = tag;
-    }
-
     public TreadmillController(TrialListener el) {
         this.trialListener = el;
-        this.settings_filename = "settings.json";
-        this.settings_tag = "default";
     }
 
     public int getRewardPin() {
@@ -310,19 +316,11 @@ public class TreadmillController extends PApplet {
         reconfigureExperiment();
     }
 
-    public void RefreshSettings(String settings_string, String system_string,
-            boolean useless) throws Exception {
+    public void RefreshSettings(String settings_string,
+            String system_string) throws Exception {
 
-        this.settings_filename = "";
-        this.settings_tag = "";
         this.settings_json = parseJSONObject(settings_string);
         this.system_json = parseJSONObject(system_string);
-        RefreshSettings();
-    }
-
-    public void RefreshSettings(String filename, String tag) throws Exception {
-        settings_filename = filename;
-        settings_tag = tag;
         RefreshSettings();
     }
 
@@ -574,18 +572,15 @@ public class TreadmillController extends PApplet {
     void configure_laser() {
         laser_list.clear();
         if (settings_json.isNull("laser")) {
-            laser_pin = -1;
-            laser_radius = 0;
             laser_list.setRadius(0);
             laser_list.setDuration(0);
 
-            //display.setContextLocations(laser_list);
             return;
         }
 
         JSONObject laser_info = settings_json.getJSONObject("laser");
 
-        laser_pin = laser_info.getInt("pin");
+        int laser_pin = laser_info.getInt("pin");
         JSONObject valve_json = setup_valve_json(laser_pin);
         behavior_comm.sendMessage(valve_json.toString());
         JSONObject close_json = close_valve_json(laser_pin);
@@ -604,12 +599,6 @@ public class TreadmillController extends PApplet {
         context_valves.append(laser_pin);
         JSONArray context_duration = new JSONArray();
         context_duration.append(-1);
-        //TODO: reward centered laser locations
-        //if (laser_info.getBoolean("reward_centered", false)) {
-        //    laser_locations = reward_locations;
-        //    laser_on_reward = true;
-        //} else {
-        laser_on_reward = false;
         display.setContextLocations(laser_list);
 
         JSONObject context_setup = new JSONObject();
@@ -624,27 +613,6 @@ public class TreadmillController extends PApplet {
 
         laser_list.setId("laser_context");
         contexts.add(laser_list);
-
-        //laser_pin = laser_info.getInt("pin");
-        //JSONObject laser_json = setup_valve_json(laser_pin);
-        
-        /*
-        JSONObject start_submessage = new JSONObject();
-        start_submessage.setString("action","open");
-        start_submessage.setInt("duration",-1);
-        start_submessage.setInt("pin",laser_pin);
-        JSONObject start_laser_json = new JSONObject();
-        start_laser_json.setJSONObject("valves", start_submessage);
-        start_laser_message = start_laser_json.toString();
-
-        JSONObject stop_submessage = new JSONObject();
-        stop_submessage.setString("action","close");
-        stop_submessage.setInt("pin",laser_pin);
-        JSONObject stop_laser_json = new JSONObject();
-        stop_laser_json.setJSONObject("valves", stop_submessage);
-        stop_laser_message = stop_laser_json.toString();
-        behavior_comm.sendMessage(stop_laser_json.toString());
-        */
     }
 
 
@@ -828,15 +796,7 @@ public class TreadmillController extends PApplet {
         frameRate(120);
 
         started = false;
-        laser_on_reward = false;
-        rewarding = false;
-        lasering = false;
-        reward_start = 0;
-        laser_start = 0;
         trial_duration = 0;
-        next_reward = 0;
-        next_laser = 0;
-        //laser_locations = new int[0];
         //reward_locations = new int[0];
         position = -1;
         distance = 0;
@@ -852,18 +812,10 @@ public class TreadmillController extends PApplet {
         reward_list = new ContextList(display, color(0, 204, 0));
         laser_list = new ContextList(display, color(0, 204, 204));
 
-        /*
-        try {
-            reload_settings();
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(0);
-        }*/
         position_comm = null;
         behavior_comm = null;
         prepareExitHandler();
         trialListener.initialized();
-
     }
 
 
@@ -872,8 +824,6 @@ public class TreadmillController extends PApplet {
             return;
         }
 
-        next_reward = 0;
-        next_laser = 0;
         distance = 0;
         if (moving_rewards) {
             shuffle_rewards();
@@ -953,42 +903,16 @@ public class TreadmillController extends PApplet {
         return dy;
     }
 
-    /** processing function which is looped over continuously. Main logic of the
-     * experiment is in the body of this function.
-     */
-    int display_update = 0;
-    int display_rate = 50;
-    public void draw() {
-        float time = timer.checkTime();;
-        if (time > trial_duration) {
-            endExperiment();
+    protected void updateBehavior(float time) {
+        if (behavior_comm == null) {
+            return;
         }
 
-        float dy = updatePosition(time);
+        for (int i=0; ((i < 10) && (behavior_comm.receiveMessage(json_buffer)))
+                ; i++) {
 
-        //boolean laserZone = false;
-        if (started) {
-            for (int i=0; i < contexts.size(); i++) {
-                contexts.get(i).check(position, time);
-            }
-        }
-        
-        /*
-        if ((!laserZone) && (lasering)) {
-            lasering = false;
-            behavior_comm.sendMessage(stop_laser_message);
-            
-        } else if((laserZone) && (!lasering)) {
-            lasering = true;
-            behavior_comm.sendMessage(start_laser_message);
-            laser_start = time;
-            if (laser_on_reward) {
-                reward_start = time;
-            }
-        }*/
-
-        if ((behavior_comm != null) &&
-                ((behavior_comm.receiveMessage(json_buffer)))) {
+        //if ((behavior_comm != null) &&
+        //        ((behavior_comm.receiveMessage(json_buffer)))) {
             JSONObject behavior_json =
                 json_buffer.json.getJSONObject(behavior_comm.address);
             
@@ -1050,10 +974,33 @@ public class TreadmillController extends PApplet {
             }
         }
 
+    }
+
+    /** processing function which is looped over continuously. Main logic of the
+     * experiment is in the body of this function.
+     */
+    int display_update = 0;
+    int display_rate = 50;
+    public void draw() {
+        float time = timer.checkTime();;
+        if (time > trial_duration) {
+            endExperiment();
+        }
+
+        float dy = updatePosition(time);
+
+        if (started) {
+            for (int i=0; i < contexts.size(); i++) {
+                contexts.get(i).check(position, time);
+            }
+        }
+
+        updateBehavior(time);
+        
         int t = millis();
         int display_check = t-display_update;
         if (display_check > display_rate) {
-            display.update(this, dy, position, time, lasering);
+            display.update(this, dy, position, time);
             display_update = t;
         }
     }
@@ -1083,12 +1030,6 @@ public class TreadmillController extends PApplet {
         vrController.loadScene("scene0");
 
         started = false;
-        rewarding = false;
-        lasering = false;
-        reward_start = 0;
-        laser_start = 0;
-        next_reward = 0;
-        next_laser = 0;
         lap_count = 0;
         timer = new ExperimentTimer();
         createSchedule();

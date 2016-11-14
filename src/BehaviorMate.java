@@ -266,7 +266,7 @@ class ControlPanel extends JPanel implements ActionListener {
 
         try {
             treadmillController.RefreshSettings(settings.toString(),
-                system_settings.toString(), true);
+                system_settings.toString());
         } catch (Exception exc) {
             exc.printStackTrace();
 
@@ -518,11 +518,11 @@ public class BehaviorMate {
         if (experimentType.equals("salience")) {
             treadmillController = 
                 new SalienceController(settings.toString(),
-                    system_settings.toString(), tl, true);
+                    system_settings.toString(), tl);
         } else {
             treadmillController = 
                 new TreadmillController(settings.toString(),
-                    system_settings.toString(), tl, true);
+                    system_settings.toString(), tl);
         }
 
         ControlPanel control_panel = new ControlPanel(frame,

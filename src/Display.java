@@ -154,8 +154,7 @@ public class Display extends PApplet {
         this.pg.endDraw();
     }
 
-    void update(PApplet app, float dy, float position, float time, 
-            boolean lasering) {
+    void update(PApplet app, float dy, float position, float time) {
         //float t = app.millis();
         if (this.pg != null) {
             app.image(this.pg, 0, 0);
