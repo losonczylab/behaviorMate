@@ -30,13 +30,8 @@ public class SalienceController extends TreadmillController {
     Random random;
 
     public SalienceController(String settings_string, String system_string,
-            TrialListener el, boolean useless) {
-        super(settings_string, system_string, el, useless);
-    }
-
-    public SalienceController(String filename, String tag,
             TrialListener el) {
-        super(filename, tag, el);
+        super(settings_string, system_string, el);
     }
 
     public boolean Start(String mouse_name, String experiment_group) {
@@ -210,19 +205,9 @@ public class SalienceController extends TreadmillController {
         textSize(12);
         background(0);
 
-        next_reward = 0;
         nextEvent = null;
 
         started = false;
-        laser_on_reward = false;
-        rewarding = false;
-        lasering = false;
-        reward_start = 0;
-        laser_start = 0;
-        trial_duration = 0;
-        next_reward = 0;
-        next_laser = 0;
-        //laser_locations = new int[0];
         position = -1;
         lap_count = 0;
         lap_tag = "";
@@ -260,64 +245,7 @@ public class SalienceController extends TreadmillController {
     public void draw() {
         float time = timer.checkTime();
         float dy = updatePosition(time);
-
-        if ((behavior_comm != null) && ((behavior_comm.receiveMessage(json_buffer)))) {
-            JSONObject behavior_json =
-                json_buffer.json.getJSONObject(behavior_comm.address);
-
-            if (!behavior_json.isNull("lick")) {
-                if (behavior_json.getJSONObject("lick")
-                        .getString("action", "stop").equals("start")) {
-                    display.addLick(started);
-                }
-            }
-
-            if (!behavior_json.isNull("valve")) {
-                JSONObject valveJson = behavior_json.getJSONObject("valve");
-                if (valveJson.getString(""+reward_valve, "close").equals("open")) {
-                    display.addReward();
-                } else if ((valveJson.getInt("pin", -1) == reward_valve) &&          // This check is needed for new arduino syntax
-                        valveJson.getString("action", "close").equals("open")) {
-                    display.addReward();
-                }
-            }
-
-            //TODO: tag_reader is replacing lap remove when transition is complete
-            if ((!behavior_json.isNull("lap")) || (!behavior_json.isNull("tag_reader"))) {
-                String tag = null;
-                try {
-                    tag = behavior_json.getJSONObject("lap").getString("tag");
-                } catch (Exception e) {
-                    if (!behavior_json.getJSONObject("tag_reader").isNull("tag")) {
-                        tag = behavior_json.getJSONObject("tag_reader").getString("tag");
-                    }
-                }
-
-                if (tag != null) {
-                    display.setCurrentTag(tag);
-                    if (tag.equals(lap_tag)) {
-                        display.setLastLap(position);
-                        position = 0;
-                        next_reward = 0;
-                        lap_count++;
-                        if (moving_rewards) {
-                            shuffle_rewards();
-                        }
-                        if (fWriter != null) {
-                            JSONObject lap_log = new JSONObject();
-                            lap_log.setFloat("time", time);
-                            lap_log.setInt("lap", lap_count);
-                            fWriter.write(lap_log.toString());
-                        }
-                    }
-                }
-            }
-            
-            if (fWriter != null) {
-                json_buffer.json.setFloat("time", time);
-                fWriter.write(json_buffer.json.toString());
-            }
-        }
+        updateBehavior(time);
 
         if ((nextEvent != null) && (time > nextEvent.time)) {
             println(nextEvent.text);
@@ -366,10 +294,9 @@ public class SalienceController extends TreadmillController {
         int t = millis();
         int display_check = t-display_update;
         if (display_check > display_rate) {
-            display.update(this, dy, position, time, lasering);
+            display.update(this, dy, position, time);
             display_update = t;
         }
-        //display.update(this, dy/position_scale, position, time, lasering);
     }
 
 }
