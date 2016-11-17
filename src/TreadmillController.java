@@ -1018,6 +1018,7 @@ public class TreadmillController extends PApplet {
         stopContexts();
         for (int i=0; i < contexts.size(); i++) {
             contexts.get(i).stop();
+            contexts.get(i).reset();
         }
         
         JSONObject end_log = new JSONObject();
@@ -1045,6 +1046,7 @@ public class TreadmillController extends PApplet {
                 Date stopDate = Calendar.getInstance().getTime();
                 for (int i=0; i < contexts.size(); i++) {
                     contexts.get(i).stop();
+                    contexts.get(i).reset();
                 }
 
                 JSONObject end_log = new JSONObject();
