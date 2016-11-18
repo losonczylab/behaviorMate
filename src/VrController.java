@@ -16,7 +16,6 @@ public class VrController {
     }
 
     public VrController(JSONObject vr_settings) throws IOException {
-
         comms = new ArrayList<UdpClient>();
         scenes = new ArrayList<String>();
 

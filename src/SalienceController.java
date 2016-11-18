@@ -48,7 +48,7 @@ public class SalienceController extends TreadmillController {
         display.setMouseName("Trial Length: "+schedule.get(schedule.size()-1).time + " s");
         
         try {
-            fWriter = new FileWriter(system_json.getString("data_directory", "data"), mouse_name);
+            fWriter = new FileWriter(system_json.getString("data_directory", "data"), mouse_name, this.trialListener);
         } catch (IOException e) {
             return false;
         }

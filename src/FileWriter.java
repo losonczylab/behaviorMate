@@ -31,7 +31,7 @@ public class FileWriter extends PApplet {
      * @param pathname path to directory in which to store logfiles.
      * @param mouse    mouse name to identify each animal
      */
-    public FileWriter(String pathname, String mouse) throws IOException {
+    public FileWriter(String pathname, String mouse, TrialListener tl) throws IOException {
         File directory = new File(pathname + sep + mouse);
     
         println(directory);
@@ -50,7 +50,7 @@ public class FileWriter extends PApplet {
         //    println("error creating file");
         //}
 
-        wt = new WriterThread(logFile);
+        wt = new WriterThread(logFile, tl);
         wt.start();
     }
   
@@ -86,6 +86,7 @@ public class FileWriter extends PApplet {
     }
 
     public class WriterThread extends Thread {
+        private TrialListener tl;
         private boolean run;
         private LinkedList<String> writeQueue;
         private Thread t;
@@ -96,18 +97,29 @@ public class FileWriter extends PApplet {
         private File logFile;
         private String sep = "/";
 
-        WriterThread(File logFile) {
+        WriterThread(File logFile, TrialListener tl) {
             this.run = true;
             writeQueue = new LinkedList<String>();
             messageBuffer = null;
             this.logFile = logFile;
+            this.tl = tl;
         }
 
         public void run() {
             messageBuffer = writeQueue.poll();
             while (this.run || messageBuffer != null) {
                 while (messageBuffer != null) {
-                    write(messageBuffer);
+                    try {
+                        write(messageBuffer);
+                    } catch (IOException e) {
+                        String alert = e.toString();
+                        StackTraceElement[] elements = e.getStackTrace();
+                        for (int i=0; ((i < 3) && (i < elements.length)); i++) {
+                            alert += ("\n" + elements[i].toString());
+                        }
+                        tl.exception(alert);
+                        break;
+                    }
                     messageBuffer = writeQueue.poll();
                 }
                 
@@ -133,19 +145,15 @@ public class FileWriter extends PApplet {
             writeQueue.add(msg);
         }
 
-        public void write(String msg) {
+        public void write(String msg) throws IOException {
             if (logFile != null) {
-                try {
-                    fos = new FileOutputStream(logFile, true);
-                    osw = new OutputStreamWriter(fos);
-     
-                    osw.write(
-                        msg.replaceAll("[\r|\n]|\\s{2,}","") + "\n");
-                    osw.close();
-                    fos.close();
-                } catch (IOException e) {
-                    System.out.println("Error writing to data file");
-                }
+                fos = new FileOutputStream(logFile, true);
+                osw = new OutputStreamWriter(fos);
+ 
+                osw.write(
+                    msg.replaceAll("[\r|\n]|\\s{2,}","") + "\n");
+                osw.close();
+                fos.close();
             }
         }
     }

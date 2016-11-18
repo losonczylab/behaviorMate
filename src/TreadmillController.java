@@ -198,7 +198,7 @@ public class TreadmillController extends PApplet {
         }
 
         try {
-            fWriter = new FileWriter(system_json.getString("data_directory", "data"), mouse_name);
+            fWriter = new FileWriter(system_json.getString("data_directory", "data"), mouse_name, this.trialListener);
         } catch (IOException e) {
             return false;
         }
@@ -1049,12 +1049,14 @@ public class TreadmillController extends PApplet {
                     contexts.get(i).reset();
                 }
 
-                JSONObject end_log = new JSONObject();
-                end_log.setFloat("time", timer.getTime());
-                end_log.setString("stop", dateFormat.format(stopDate));
-                if (fWriter !=  null) {
-                    fWriter.write(end_log.toString());
-                    fWriter.close();
+                if (started) {
+                    JSONObject end_log = new JSONObject();
+                    end_log.setFloat("time", timer.getTime());
+                    end_log.setString("stop", dateFormat.format(stopDate));
+                    if (fWriter !=  null) {
+                        fWriter.write(end_log.toString());
+                        fWriter.close();
+                    }
                 }
 
                 vrController.loadScene("scene0");
