@@ -112,6 +112,7 @@ class ValveTestForm extends JPanel implements ActionListener {
 class TrialListener {
     private ControlPanel controlPanel;
     private CommentsBox commentsBox;
+    private TreadmillController controller;
     
     public TrialListener() {
         controlPanel = null;
@@ -124,6 +125,10 @@ class TrialListener {
 
     public void setCommentsBox(CommentsBox commentsBox) {
         this.commentsBox = commentsBox;
+    }
+
+    public void setController(TreadmillController controller) {
+        this.controller = controller;
     }
 
     public void started(File logFile) {
@@ -145,6 +150,11 @@ class TrialListener {
         if (commentsBox != null) {
             commentsBox.addOption("next trial");
         }
+    }
+
+    public void exception(String message) {
+        controller.endExperiment();
+        JOptionPane.showMessageDialog(null, message);
     }
 }
 
@@ -524,6 +534,7 @@ public class BehaviorMate {
                 new TreadmillController(settings.toString(),
                     system_settings.toString(), tl);
         }
+        tl.setController(treadmillController);
 
         ControlPanel control_panel = new ControlPanel(frame,
             treadmillController, settingsLoader);
