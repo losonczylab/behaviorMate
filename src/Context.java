@@ -24,6 +24,10 @@ public class Context {
     }
 
     private boolean checkPosition(float position) {
+        if (this.radius == -1) {
+            return true;
+        }
+
         return ((position > (location - radius)) &&
             (position < (location + radius)));
     }
@@ -31,6 +35,10 @@ public class Context {
 
     // assumes position has already been checked
     private boolean checkTime(float time) {
+        if (this.duration == -1) {
+            return true;
+        }
+
         if (this.started_time == -1) {
             this.started_time = time;
             return true;

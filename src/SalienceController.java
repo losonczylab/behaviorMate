@@ -67,7 +67,6 @@ public class SalienceController extends TreadmillController {
 
         trialListener.started(fWriter.getFile());
 
-        startContexts();
         timer.startTimer();
         JSONObject valve_json = open_valve_json(settings_json.getInt("sync_pin"), 100);
         behavior_comm.sendMessage(valve_json.toString());
@@ -216,9 +215,6 @@ public class SalienceController extends TreadmillController {
 
         display = new Display();
         display.prepGraphics(this);
-
-        reward_list = new ContextList(display, color(0, 204, 0));
-        laser_list = new ContextList(display, color(0, 204, 204)); 
 
         position_comm = null;
         behavior_comm = null;

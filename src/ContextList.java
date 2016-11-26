@@ -3,20 +3,23 @@ import processing.data.JSONObject;
 import java.util.ArrayList;
 
 public class ContextList extends PApplet {
-    private ArrayList<Context> contexts;
-    private int radius;
-    private int duration;
-    private float display_radius;
-    private int display_color;
-    private UdpClient comm;
-    private String id;
-    private String startString;
-    private String stopString;
-    private int active;
-    private String status;
-    private Display display;
+    protected ArrayList<Context> contexts;
+    protected int radius;
+    protected int duration;
+    protected float display_radius;
+    protected int display_color;
+    protected UdpClient comm;
+    protected String id;
+    protected String startString;
+    protected String stopString;
+    protected int active;
+    protected String status;
+    protected Display display;
+    protected boolean shuffle_contexts;
+    protected float track_length;
 
     public ContextList(Display display, int display_color) {
+        this.duration = -1;
         this.contexts = new ArrayList<Context>();
         this.display = display;
         this.display_color = display_color;
@@ -26,6 +29,8 @@ public class ContextList extends PApplet {
         this.id = "context";
         this.active = -1;
         this.status = "";
+        this.shuffle_contexts = false;
+        this.track_length = -1;
     }
 
     public ContextList(int duration, int radius, int display_color) {
@@ -41,6 +46,8 @@ public class ContextList extends PApplet {
         this.id = "context";
         this.active = -1;
         this.status = "";
+        this.shuffle_contexts = false;
+        this.track_length = -1;
     }
 
     public void setComm(UdpClient comm) {
@@ -70,6 +77,19 @@ public class ContextList extends PApplet {
         this.radius = radius;
     }
 
+    public void setShuffle(boolean shuffle_contexts, float track_length) {
+        this.shuffle_contexts = shuffle_contexts;
+        this.track_length = track_length;
+
+        if (this.shuffle_contexts) {
+            shuffle();
+        }
+    }
+
+    public void setShuffle(boolean shuffle_contexts) {
+        setShuffle(shuffle_contexts, this.track_length);
+    }
+
     public void add(int location) {
         this.contexts.add(new Context(location, this.duration,
             this.radius, this.contexts.size()));
@@ -97,9 +117,13 @@ public class ContextList extends PApplet {
         for (int i=0; i < this.contexts.size(); i++) {
             this.contexts.get(i).reset();
         }
+
+        if (this.shuffle_contexts) {
+            shuffle();
+        }
     }
 
-    public boolean check(float position, float time) {
+    public boolean check(float position, float time, String[] msg_buffer) {
         boolean inZone = false;
         int i=0;
         for (; i < this.contexts.size(); i++) {
@@ -131,7 +155,7 @@ public class ContextList extends PApplet {
         this.status = status;
     }
 
-    public void stop() {
+    public void stop(float time, String[] msg_buffer) {
         this.active = -1;
         this.status = "sent stop";
         this.comm.sendMessage(this.stopString);
@@ -153,16 +177,17 @@ public class ContextList extends PApplet {
         return this.contexts.size();
     }
 
-    public void shuffle(float track_length) {
+    public void shuffle() {
         if (this.contexts.size() == 0) {
             return;
         }
 
         if (this.contexts.size() == 1) {
-            contexts.get(0).move((int) random(this.radius, track_length-this.radius));
+            contexts.get(0).move((int) random(this.radius, this.track_length-this.radius));
+            return;
         }
 
-        int interval = (int)(track_length-2*this.radius)/this.contexts.size();
+        int interval = (int)(this.track_length-2*this.radius)/this.contexts.size();
         contexts.get(0).move(this.radius + interval/2);
         for (int i = 1; i < this.contexts.size(); i++) {
             this.contexts.get(i).move(this.contexts.get(i-1).location() + interval);
@@ -180,7 +205,7 @@ public class ContextList extends PApplet {
 
         int prev_location = this.contexts.get(this.size()-2).location();
         this.contexts.get(this.size()-1).move(
-            (int) random(prev_location+2*this.radius, track_length-this.radius));
+            (int) random(prev_location+2*this.radius, this.track_length-this.radius));
     }
 
     public int[] toList() {
