@@ -176,16 +176,6 @@ public class Display extends PApplet {
             rewardRate -= 5; 
         }
 
-        /*
-        if (dy != 0) {
-            positionRate = min(200,dy*5);
-        } else {
-            positionRate = positionRate/abs(positionRate) * max(0.0f, abs(positionRate)-0.5f);
-        }*/
-
-        //println("var updates: " + (app.millis() - t));
-        //t = app.millis();
-
         app.textSize(18);
         app.text(this.mouseName, 20, 40);
         app.text((int)position, 75+text_offset, 20);
@@ -200,8 +190,17 @@ public class Display extends PApplet {
         app.rect(map_offset, 200, 300, 10);
         int yoffset = 140;
         for (int i=0; i < contextsContainer.size(); i++) {
+            if (i == 3) {
+                yoffset += 40;
+            }
             ContextList list = contextsContainer.get(i);
-
+            if (list.display_color == -1) {
+                app.fill(255);
+                app.textSize(14);
+                app.text(list.getId() + ": "  + list.getStatus(), text_offset, yoffset+i*20);
+                continue;
+            }
+            
             app.fill(list.displayColor());
             app.textSize(14);
             app.text(list.getId() + ": "  + list.getStatus(), text_offset, yoffset+i*20);
@@ -217,9 +216,6 @@ public class Display extends PApplet {
         app.fill(color(204,204,0));
         app.text(this.schedule, 60, 80);
 
-        //app.println("text updates: " + (app.millis() - t));
-        //t = app.millis();
-
         app.fill(color(204,0,0));
         app.rect(map_offset+position*displayScale-5, 200, 10, 10);
 
@@ -234,6 +230,5 @@ public class Display extends PApplet {
 
         app.fill(color(255,255,255));
         app.rect(tag_offset+120,500,10,-lapRate);
-        //app.println("rectangle updates: " +(app.millis()-t));
     }
 }

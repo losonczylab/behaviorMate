@@ -52,11 +52,6 @@ public class TreadmillController extends PApplet {
     UdpClient behavior_comm;
 
     /**
-     * object for sending updates to VR screen controllers.
-     */
-    VrController vrController;
-
-    /**
      * object showing the current state of the trial.
      */
     Display display;
@@ -131,11 +126,6 @@ public class TreadmillController extends PApplet {
     boolean started = false;
 
     /**
-     * if true, reward locations change from lap to lap
-     */
-    boolean moving_rewards;
-
-    /**
      * pin number for the reward locations
      */
     int reward_valve;
@@ -198,7 +188,9 @@ public class TreadmillController extends PApplet {
         }
 
         try {
-            fWriter = new FileWriter(system_json.getString("data_directory", "data"), mouse_name, this.trialListener);
+            fWriter = new FileWriter(
+                system_json.getString("data_directory", "data"),
+                mouse_name, this.trialListener);
         } catch (IOException e) {
             return false;
         }
@@ -216,19 +208,7 @@ public class TreadmillController extends PApplet {
         fWriter.write(start_log.toString());
 
         trialListener.started(fWriter.getFile());
-
-        int toneDuration = settings_json.getInt("tone_duration");
-        if (toneDuration > 0) {
-            SoundUtils soundUtil = new SoundUtils();
-            try {
-                soundUtil.tone(settings_json.getInt("tone_freq"),toneDuration);
-            } catch(Exception e) {}
-        }
         
-        vrController.changeScene();
-        vrController.setRewards(reward_list.toList());
-
-        startContexts();
         timer.startTimer();
         JSONObject valve_json = open_valve_json(settings_json.getInt("sync_pin"), 100);
         behavior_comm.sendMessage(valve_json.toString());
@@ -359,15 +339,6 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * Suffle the location of rewards along the track. Updates the 
-     * int[] reward_locations array
-     */
-    public void shuffle_rewards() {
-        reward_list.shuffle(track_length);
-        vrController.setRewards(reward_list.toList());
-    }
-
-    /**
      * Generates the JSONObject necessary to create a valve.
      *
      * @param  pin the pin number to setup the valve on
@@ -458,33 +429,82 @@ public class TreadmillController extends PApplet {
     }
     
 
-    void configure_context_list(JSONObject context_info) {
-        JSONArray disp_color = context_info.getJSONArray("display_color");
-        ContextList context = new ContextList(display,
-            color(disp_color.getInt(0), disp_color.getInt(1), disp_color.getInt(2)));
+    protected ContextList configure_vr(int color_val) throws Exception {
+        VrContextList context = new VrContextList(display, color_val);
+        JSONObject displays = settings_json.getJSONObject("display_controllers");
 
-        context.setComm(behavior_comm);
-        context.setDuration(context_info.getInt("max_duration"));
-        context.setRadius(context_info.getInt("radius"));
+        UdpClient[] comms = new UdpClient[displays.size()];
+        Iterator<String> itr = displays.keyIterator();
+        for (int i=0; itr.hasNext(); i++) {
+            JSONObject display_json = displays.getJSONObject(itr.next());
+            UdpClient vr_client = new UdpClient(display_json.getString("ip"),
+                display_json.getInt("port"));
+
+            JSONObject view_json = new JSONObject();
+            view_json.setInt("viewAngle", display_json.getInt("view_angle"));
+            view_json.setInt("deflection", display_json.getInt("deflection"));
+            JSONObject msg_json = new JSONObject();
+            msg_json.setString("data", view_json.toString().replace("\n",""));
+            msg_json.setString("type", "cameraSetup");
+
+            vr_client.sendMessage(msg_json.toString());
+            comms[i] = vr_client;
+        }
+
+        context.setComms(comms);
+        return context;
+    }
+
+    void configure_context_list(JSONObject context_info) throws Exception {
+        int color_val = -1;
+        if (!context_info.isNull("display_color")) {
+            JSONArray disp_color = context_info.getJSONArray("display_color");
+            color_val = color(disp_color.getInt(0),
+                disp_color.getInt(1), disp_color.getInt(2));
+        } 
+
+        ContextList context = null;
+        if (context_info.getString("type", "").equals("vr")) {
+            context = configure_vr(color_val);
+        } else {
+            context = new ContextList(display, color_val);
+            context.setComm(behavior_comm);
+        }
+
+        context.setDuration(context_info.getInt("max_duration", -1));
+        context.setRadius(context_info.getInt("radius", -1));
         JSONArray locations = null;
         try {
             locations = context_info.getJSONArray("locations");
-        } catch (RuntimeException e) {
-            for (int i=0; i < context_info.getInt("locations"); i++) {
-                context.add(0);
-            }
-            context.shuffle(track_length);
-        }
+        } catch (RuntimeException e) { }
 
         if (locations != null) {
             for (int i=0; i < locations.size(); i++) {
                 context.add(locations.getInt(i));
             }
+            context.setShuffle(false);
+        } else {
+            int num_contexts = context_info.getInt("locations", 
+                    context_info.getInt("number", 0));
+            if (num_contexts == 0) {
+                context.add((int)(track_length/2.0));
+                context.setRadius((int)(track_length/2.0) + 2);
+                context.setShuffle(false);
+            } else {
+                for (int i=0; i < num_contexts; i++) {
+                    context.add((int)(track_length/2.0));
+                }
+                context.setShuffle(true, track_length);
+            }
         }
         display.setContextLocations(context);
 
-        JSONArray valves = context_info.getJSONArray("valves");
-        for (int i=0; i < valves.size(); i++) {
+        JSONArray valves = null;
+        if (!context_info.isNull("valves")) {
+            valves = context_info.getJSONArray("valves");
+        }
+
+        for (int i=0; ((valves != null) && (i < valves.size())); i++) {
             int valve_pin = valves.getInt(i);
             JSONObject valve_json = setup_valve_json(valve_pin);
             behavior_comm.sendMessage(valve_json.toString());
@@ -492,198 +512,117 @@ public class TreadmillController extends PApplet {
             behavior_comm.sendMessage(close_json.toString());
         }
 
-        JSONArray context_duration = new JSONArray();
+        context.setId(context_info.getString("id"));
         context_info.setString("action", "create");
 
         JSONObject context_setup_json = new JSONObject();
         context_setup_json.setJSONObject("contexts", context_info);
         behavior_comm.sendMessage(context_setup_json.toString());
 
-        context.setId(context_info.getString("id"));
         contexts.add(context);
     }
 
-    ArrayList<String> startContextMessages;
-    ArrayList<String> stopContextMessages;
+
     ArrayList<ContextList> contexts;
-    void configure_contexts() {
-        startContextMessages = new ArrayList<String>();
-        stopContextMessages = new ArrayList<String>();
-        if (settings_json.isNull("contexts")) {
-            return;
-        }
-        
-        JSONArray contexts = settings_json.getJSONArray("contexts");
-        for (int i=0; i < contexts.size(); i++) {
-            JSONObject create_subjson = contexts.getJSONObject(i);
-
-            if (!create_subjson.isNull("locations")) {
-                configure_context_list(create_subjson);
-            } else {
-                create_subjson.setString("action", "create");
-                JSONObject create_json = new JSONObject();
-                create_json.setJSONObject("contexts", create_subjson);
-
-                JSONArray valves = create_subjson.getJSONArray("valves");
-                for (int j=0; j < valves.size(); j++) {
-                    JSONObject valve_json = setup_valve_json(valves.getInt(j));
-                    if (!create_subjson.isNull("frequency")) {
-                        valve_json.getJSONObject("valves").setInt(
-                            "frequency", create_subjson.getInt("frequency"));
-                    }
-                    behavior_comm.sendMessage(valve_json.toString());
-                }
-                behavior_comm.sendMessage(create_json.toString());
-                delay(150);
-
-                JSONObject start_subjson = new JSONObject();
-                start_subjson.setString("action", "start");
-                start_subjson.setString("id", create_subjson.getString("id"));
-                JSONObject start_json = new JSONObject();
-                start_json.setJSONObject("contexts", start_subjson);
-                startContextMessages.add(start_json.toString());
-
-                JSONObject stop_subjson = new JSONObject();
-                stop_subjson.setString("action", "stop");
-                stop_subjson.setString("id", create_subjson.getString("id"));
-                JSONObject stop_json = new JSONObject();
-                stop_json.setJSONObject("contexts", stop_subjson);
-                stopContextMessages.add(stop_json.toString());
+    void configure_contexts() throws Exception {
+        if (!settings_json.isNull("contexts")) {
+            JSONArray contexts_array = settings_json.getJSONArray("contexts");
+            for (int i=0; i < contexts_array.size(); i++) {
+                configure_context_list(contexts_array.getJSONObject(i));
             }
         }
     }
 
-    void startContexts() {
-        for (int i = 0; i < startContextMessages.size(); i++) {
-            behavior_comm.sendMessage(startContextMessages.get(i));
-        }
-    }
-
-    void stopContexts() {
-        for (int i = 0; i < startContextMessages.size(); i++) {
-            behavior_comm.sendMessage(stopContextMessages.get(i));
-        }
-    }
 
     /**
      * Configures the settings to trigger an opto-laser around the reward zone.
+     * reward centered laser zone options is NOT currenly supported (TODO: build
+     * nested context list class). This is to support legacy settings.json files
+     * where laser zones where a seperate entry in settings.json
      */
-    ContextList laser_list;
-    void configure_laser() {
-        laser_list.clear();
-        if (settings_json.isNull("laser")) {
-            laser_list.setRadius(0);
-            laser_list.setDuration(0);
-
-            return;
-        }
-
+    void configure_laser() throws Exception {
         JSONObject laser_info = settings_json.getJSONObject("laser");
-
         int laser_pin = laser_info.getInt("pin");
-        JSONObject valve_json = setup_valve_json(laser_pin);
-        behavior_comm.sendMessage(valve_json.toString());
-        JSONObject close_json = close_valve_json(laser_pin);
-        behavior_comm.sendMessage(close_json.toString());
-
-        laser_list.setComm(behavior_comm);
-        laser_list.setDuration(laser_info.getInt("max_duration"));
-        laser_list.setRadius(laser_info.getInt("radius"));
-
-        JSONArray locations = laser_info.getJSONArray("locations");
-        for (int i=0; i < locations.size(); i++) {
-            laser_list.add(locations.getInt(i));
-        }
 
         JSONArray context_valves = new JSONArray();
         context_valves.append(laser_pin);
+        laser_info.setJSONArray("valves", context_valves);
+
         JSONArray context_duration = new JSONArray();
         context_duration.append(-1);
-        display.setContextLocations(laser_list);
+        laser_info.setJSONArray("durations", context_duration);
 
-        JSONObject context_setup = new JSONObject();
-        context_setup.setString("action", "create");
-        context_setup.setString("id", "laser_context");
-        context_setup.setJSONArray("valves", context_valves);
-        context_setup.setJSONArray("durations", context_duration);
+        laser_info.setString("id", "laser_context");
+        if (laser_info.isNull("display_color")) {
+            JSONArray acolor = new JSONArray();
+            acolor.append(0);
+            acolor.append(204);
+            acolor.append(204);
+            laser_info.setJSONArray("display_color", acolor);
+        }
 
-        JSONObject context_setup_json = new JSONObject();
-        context_setup_json.setJSONObject("contexts", context_setup);
-        behavior_comm.sendMessage(context_setup_json.toString());
+        if (laser_info.getBoolean("reward_centered", false)) {
+            throw new Exception("reward centered not currently supported");
+        }
 
-        laser_list.setId("laser_context");
-        contexts.add(laser_list);
+        configure_context_list(laser_info);
     }
 
 
     /**
      * Configures the reward zone contexts and establishes the initial reward zone
-     * locations
+     * locations. Translates legacy settings.json files to use the new context_list
+     * format.
      */
-    //ArrayList<Context> contexts;
-    ContextList reward_list;
-    void configure_rewards() {
-        reward_list.clear();
-        if (settings_json.isNull("reward")) {
-            reward_valve = -1;
-            reward_list.setRadius(0);
-            reward_list.setDuration(0);
-
-            //display.setContextLocations(reward_list);
-            return;
-        }
-
+    void configure_rewards() throws Exception {
         JSONObject reward_info = settings_json.getJSONObject("reward");
-        reward_valve = reward_info.getInt("pin");
-        //reward_duration = reward_info.getInt("max_duration");
-
-        if (!reward_info.isNull("locations")) {
-            reward_list.setComm(behavior_comm);
-            reward_list.setDuration(reward_info.getInt("max_duration"));
-            reward_list.setRadius(reward_info.getInt("radius"));
-
-            if (reward_info.getString("type").equals("fixed")) {
-                moving_rewards = false;
-                JSONArray locations = reward_info.getJSONArray("locations");
-                for (int i=0; i < locations.size(); i++) {
-                    reward_list.add(locations.getInt(i));
+        if (!reward_info.isNull("id")) {
+            String reward_context = reward_info.getString("id");
+            JSONArray contexts = settings_json.getJSONArray("contexts");
+            for (int i=0; i < contexts.size(); i++) {
+                JSONObject context = contexts.getJSONObject(i);
+                if (context.getString("id").equals(reward_context)) {
+                    JSONArray valve_list = context.getJSONArray("valves");
+                    reward_valve = valve_list.getInt(i);
+                    return;
                 }
-            } else {
-                moving_rewards = true;
-                for (int i=0; i < reward_info.getInt("number"); i++) {
-                    reward_list.add(0);
-                }
-                shuffle_rewards();
             }
-            display.setContextLocations(reward_list);
+        } 
 
-            JSONObject valve_json = setup_valve_json(reward_valve);
-            behavior_comm.sendMessage(valve_json.toString());
-            JSONObject close_json = close_valve_json(reward_valve);
-            behavior_comm.sendMessage(close_json.toString());
+        reward_info.setString("id", "reward");
+        reward_valve = reward_info.getInt("pin");
 
-            JSONArray context_valves = new JSONArray();
-            context_valves.append(reward_valve);
-            JSONArray context_duration = new JSONArray();
-            context_duration.append(reward_info.getInt("drop_size"));
+        JSONArray context_valves = new JSONArray();
+        context_valves.append(reward_valve);
+        reward_info.setJSONArray("valves", context_valves);
 
-            JSONObject context_setup = new JSONObject();
-            context_setup.setString("action", "create");
-            context_setup.setString("id", "hidden_reward");
-            context_setup.setJSONArray("valves", context_valves);
-            context_setup.setJSONArray("durations", context_duration);
-            context_setup.setString("type", "operant");
-            context_setup.setInt("operant_rate", reward_info.getInt("operant_rate"));
-            context_setup.setInt("initial_open", reward_info.getInt("initial_open"));
-            context_setup.setInt("sensor", lickport_pin);
+        JSONArray context_duration = new JSONArray();
+        context_duration.append(reward_info.getInt("drop_size"));
+        reward_info.setJSONArray("durations", context_duration);
 
-            JSONObject context_setup_json = new JSONObject();
-            context_setup_json.setJSONObject("contexts", context_setup);
-            behavior_comm.sendMessage(context_setup_json.toString());
-
-            reward_list.setId("hidden_reward");
-            contexts.add(reward_list);
+        if (!reward_info.isNull("type")) {
+            String reward_type = reward_info.getString("type");
+            if (reward_type.equals("fixed")) {
+                reward_info.remove("number");
+            } else if (reward_type.equals("moving")) {
+                try {
+                    reward_info.getJSONArray("locations");
+                    reward_info.remove("locations");
+                } catch (RuntimeException e) {}
+                reward_info.setInt("locations", reward_info.getInt("number", 1));
+            }
         }
+        reward_info.setString("type", "operant");
+        reward_info.setInt("sensor", lickport_pin);
+        if (reward_info.isNull("display_color")) {
+            JSONArray acolor = new JSONArray();
+            acolor.append(0);
+            acolor.append(204);
+            acolor.append(0);
+            reward_info.setJSONArray("display_color", acolor);
+        }
+
+        configure_context_list(reward_info);
     }
 
 
@@ -742,25 +681,15 @@ public class TreadmillController extends PApplet {
         behavior_comm.sendMessage(valve_json.toString());
         display.setTrackLength(track_length);
 
-        if (!settings_json.isNull("display_controllers")) {
-            vrController = new VrController(
-                settings_json.getJSONObject("display_controllers"));
-
-
-            JSONArray scenes = settings_json.getJSONArray("vr_scenes");
-            for (int i=0; i < scenes.size(); i++) {
-                vrController.addScene(scenes.getString(i));
-            }
-        } else {
-            vrController = new VrController();
+        configure_contexts();
+        if (!settings_json.isNull("reward")) {
+            configure_rewards();
         }
 
-        configure_rewards();
-        //display.setRewardLocations(reward_locations, reward_radius);
-        configure_contexts();
-        configure_laser();
+        if (!settings_json.isNull("laser")) {
+            configure_laser();
+        }
 
-        vrController.loadScene("scene0");
         createSchedule();
     }
 
@@ -797,7 +726,6 @@ public class TreadmillController extends PApplet {
 
         started = false;
         trial_duration = 0;
-        //reward_locations = new int[0];
         position = -1;
         distance = 0;
         lap_count = 0;
@@ -809,9 +737,6 @@ public class TreadmillController extends PApplet {
         display = new Display();
         display.prepGraphics(this);
         
-        reward_list = new ContextList(display, color(0, 204, 0));
-        laser_list = new ContextList(display, color(0, 204, 204));
-
         position_comm = null;
         behavior_comm = null;
         prepareExitHandler();
@@ -825,9 +750,6 @@ public class TreadmillController extends PApplet {
         }
 
         distance = 0;
-        if (moving_rewards) {
-            shuffle_rewards();
-        }
         if (started) {
             JSONObject lap_log = new JSONObject();
             lap_log.setFloat("time", time);
@@ -836,11 +758,9 @@ public class TreadmillController extends PApplet {
                 lap_log.setString("message", "no tag");
             } else {
                 display.setLastLap(position);
-                vrController.changeScene();
                 display.setLapCount(lap_count);
             }
 
-            vrController.changeScene();
             fWriter.write(lap_log.toString());
             lap_count++;
             display.setLapCount(lap_count);
@@ -897,7 +817,6 @@ public class TreadmillController extends PApplet {
             json_buffer.json.setFloat("y", position);
             json_buffer.json.setFloat("time", time);
             fWriter.write(json_buffer.json.toString());
-            vrController.update(position);
         }
 
         return dy;
@@ -981,6 +900,7 @@ public class TreadmillController extends PApplet {
      */
     int display_update = 0;
     int display_rate = 50;
+    String[] msg_buffer = {null};
     public void draw() {
         float time = timer.checkTime();;
         if (time > trial_duration) {
@@ -991,7 +911,11 @@ public class TreadmillController extends PApplet {
 
         if (started) {
             for (int i=0; i < contexts.size(); i++) {
-                contexts.get(i).check(position, time);
+                contexts.get(i).check(position, time, msg_buffer);
+                if (msg_buffer[0] != null) {
+                    fWriter.write(msg_buffer[0]);
+                    msg_buffer[0] = null;
+                }
             }
         }
 
@@ -1015,10 +939,14 @@ public class TreadmillController extends PApplet {
 
         Date stopDate = Calendar.getInstance().getTime();
         trialListener.ended();
-        stopContexts();
         for (int i=0; i < contexts.size(); i++) {
-            contexts.get(i).stop();
+            contexts.get(i).stop(timer.getTime(), msg_buffer);
             contexts.get(i).reset();
+
+            if (msg_buffer[0] != null) {
+                fWriter.write(msg_buffer[0]);
+                msg_buffer[0] = null;
+            }
         }
         
         JSONObject end_log = new JSONObject();
@@ -1026,9 +954,6 @@ public class TreadmillController extends PApplet {
         end_log.setString("stop", dateFormat.format(stopDate));
         fWriter.write(end_log.toString());
         display.setMouseName("");
-
-        vrController.update(0.0f);
-        vrController.loadScene("scene0");
 
         started = false;
         lap_count = 0;
@@ -1045,8 +970,13 @@ public class TreadmillController extends PApplet {
             public void run () {
                 Date stopDate = Calendar.getInstance().getTime();
                 for (int i=0; i < contexts.size(); i++) {
-                    contexts.get(i).stop();
+                    contexts.get(i).stop(timer.getTime(), msg_buffer);
                     contexts.get(i).reset();
+
+                    if (msg_buffer[0] != null) {
+                        fWriter.write(msg_buffer[0]);
+                        msg_buffer[0] = null;
+                    }
                 }
 
                 if (started) {
@@ -1059,7 +989,6 @@ public class TreadmillController extends PApplet {
                     }
                 }
 
-                vrController.loadScene("scene0");
                 println("closing");
             }
       }));
