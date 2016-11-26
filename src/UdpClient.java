@@ -72,8 +72,8 @@ class UdpClient extends PApplet {
             sendData.length, arduinoAddress);
           udpSocket.send(sendPacket);
       } catch (IOException e) {
+        println("error sending to " + this.address + ": " + message);
         println(e);
-        println("error sending packet");
       }
     }
 
