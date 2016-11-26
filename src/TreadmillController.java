@@ -657,7 +657,7 @@ public class TreadmillController extends PApplet {
         trial_duration = settings_json.getInt("trial_length");
         position_scale = settings_json.getFloat("position_scale");
         track_length = settings_json.getFloat("track_length");
-        lap_tag = settings_json.getString("lap_reset_tag");
+        lap_tag = settings_json.getString("lap_reset_tag", "");
         if (!lap_tag.equals("")) {
             lap_tolerance = settings_json.getFloat("lap_tolerance", 0.99f);
         } else {
