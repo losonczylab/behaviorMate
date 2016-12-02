@@ -789,7 +789,7 @@ public class TreadmillController extends PApplet {
 
             if (!position_json.isNull("position")) {
                 dy += position_json.getJSONObject("position").getFloat("dy", 0);
-            } else {
+            } else if (started) {
                 fWriter.write(json_buffer.json.toString());
             }
         }
