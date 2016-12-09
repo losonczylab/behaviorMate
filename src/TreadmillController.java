@@ -7,6 +7,7 @@ import java.util.Calendar;
 import java.util.Map;
 import java.util.Iterator;
 import java.util.ArrayList;
+import java.lang.NullPointerException;
 
 import processing.core.PApplet;
 import processing.core.PGraphics;
@@ -206,6 +207,13 @@ public class TreadmillController extends PApplet {
         JSONObject info_sub_msg = new JSONObject();
         info_sub_msg.setString("action", "info");
         info_msg.setJSONObject("communicator", info_sub_msg);
+
+        try {
+            JSONObject version_info = loadJSONObject("version.json");
+            fWriter.write(version_info.toString());
+        } catch (NullPointerException e) {
+            println(e);
+        }
 
         JSONObject settings_log = new JSONObject();
         settings_log.setJSONObject("settings", settings_json);
