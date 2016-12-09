@@ -218,7 +218,7 @@ public class TreadmillController extends PApplet {
         JSONObject valve_json = open_valve_json(
             settings_json.getInt("sync_pin"), 100);
         behavior_comm.sendMessage(valve_json.toString());
-        behavior_comm.sendMessage(info_sub_msg);
+        behavior_comm.sendMessage(info_msg.toString());
 
         started = true;
         return true;
