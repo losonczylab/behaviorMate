@@ -202,6 +202,11 @@ public class TreadmillController extends PApplet {
         start_log.setString("experiment_group", experiment_group);
         start_log.setString("start", dateFormat.format(startDate));
 
+        JSONObject info_msg = new JSONObject();
+        JSONObject info_sub_msg = new JSONObject();
+        info_sub_msg.setString("action", "info");
+        info_msg.setJSONObject("communcator", info_sub_msg);
+
         JSONObject settings_log = new JSONObject();
         settings_log.setJSONObject("settings", settings_json);
         fWriter.write(settings_log.toString());
@@ -210,8 +215,10 @@ public class TreadmillController extends PApplet {
         trialListener.started(fWriter.getFile());
         
         timer.startTimer();
-        JSONObject valve_json = open_valve_json(settings_json.getInt("sync_pin"), 100);
+        JSONObject valve_json = open_valve_json(
+            settings_json.getInt("sync_pin"), 100);
         behavior_comm.sendMessage(valve_json.toString());
+        behavior_comm.sendMessage(info_sub_msg);
 
         started = true;
         return true;
