@@ -205,7 +205,7 @@ public class TreadmillController extends PApplet {
         JSONObject info_msg = new JSONObject();
         JSONObject info_sub_msg = new JSONObject();
         info_sub_msg.setString("action", "info");
-        info_msg.setJSONObject("communcator", info_sub_msg);
+        info_msg.setJSONObject("communicator", info_sub_msg);
 
         JSONObject settings_log = new JSONObject();
         settings_log.setJSONObject("settings", settings_json);
