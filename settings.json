@@ -12,13 +12,13 @@
         },
         "position_controller": { // address behavior arduino is posting message
             "ip": "127.0.0.1",   // to
-            "send_port": 5000,
-            "receive_port": 5005
+            "send_port": 5010,
+            "receive_port": 5015
         },
         "behavior_controller": { // address arduino reading rotary encoder is
             "ip": "127.0.0.1",   // posting messages to
-            "send_port": 5010,
-            "receive_port": 5015
+            "send_port": 5020,
+            "receive_port": 5025
         },
         "reward": {
             "locations": [ // centroid of reward locations (for fixed rewards).
