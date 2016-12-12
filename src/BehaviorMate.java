@@ -267,7 +267,15 @@ class ControlPanel extends JPanel implements ActionListener {
     }
 
     public void refreshSettings() {
-        parent.setTitle(settingsLoader.getSelectedTag());
+        String version = "Behavior Mate ";
+        try {
+            JSONObject version_json = BehaviorMate.parseJsonFile("version.json");
+            version += (" " + version_json.getString("version") + " - ");
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+
+        parent.setTitle(version + settingsLoader.getSelectedTag());
         String filename = settingsLoader.getSelectedFile();
         String tag = settingsLoader.getSelectedTag();
 
