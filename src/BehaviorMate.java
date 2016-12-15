@@ -579,6 +579,15 @@ public class BehaviorMate {
                 "com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
         } catch (Exception e) {}
 
+        String system_type = System.getProperty("os.name");
+        if (system_type.toLowerCase().contains("windows")) {
+            try {
+                Runtime.getRuntime().exec("cmd /c start set_priority.bat");
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+        }
+
         startFrame = new JFrame("oi!");
         settingsLoader = new SettingsLoader(startFrame);
         settingsLoader.addActionListener(new ActionListener() {
