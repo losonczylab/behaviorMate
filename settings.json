@@ -126,6 +126,21 @@
                                  // play a tone.
             }
         ],
+        "trial_startup": [
+            {
+                "ip": "127.0.0.1",
+                "port": 5010,
+                "message": "test"
+            }
+        ],
+        "trial_shutdown": [
+            {
+                "ip": "127.0.0.1",
+                "port": 5010,
+                "message": "test"
+            }
+        ],
+
         // trial attrs allow for a custom form to overwrite settings or add
         // attitional attributes to the settings field in the .tdml file.
         // Remove this field to stop the form from popping up. Trials will
