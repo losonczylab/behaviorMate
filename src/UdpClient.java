@@ -154,10 +154,8 @@ class UdpClient extends PApplet {
     void closeSocket() {
         if (rt != null) {
             rt.stop_thread();
-            delay(250);
         } else {
             udpSocket.close();
-            delay(100);
         }
     }
 }

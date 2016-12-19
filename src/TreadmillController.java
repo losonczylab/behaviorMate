@@ -166,6 +166,19 @@ public class TreadmillController extends PApplet {
         return reward_valve;
     }
 
+    private void sendMessages(JSONArray messages, String mouse_name) throws Exception {
+        for (int i= 0; i<messages.size(); i++) {
+            JSONObject messageInfo = messages.getJSONObject(i);
+            UdpClient client = new UdpClient(messageInfo.getString("ip"),
+                messageInfo.getInt("port"));
+            JSONObject message = messageInfo.getJSONObject("message");
+            message.setString("filename", fWriter.getFile().getName());
+            message.setString("mouse", mouse_name);
+            client.sendMessage(message.toString());
+            client.closeSocket();
+        }
+    }
+
     /**
      * Starts a new experiment. Linked to clicking the "Start" button on the UI.
      * Creates a New Log file, makes the initial entries, plays a tone (if specified
@@ -219,6 +232,16 @@ public class TreadmillController extends PApplet {
         settings_log.setJSONObject("settings", settings_json);
         fWriter.write(settings_log.toString());
         fWriter.write(start_log.toString());
+
+        if (!settings_json.isNull("trial_startup")) {
+            try {
+                sendMessages(settings_json.getJSONArray("trial_startup"),
+                    mouse_name);
+            } catch (Exception e) {
+                System.out.println(e);
+                return false;
+            }
+        }
 
         trialListener.started(fWriter.getFile());
         
@@ -307,6 +330,7 @@ public class TreadmillController extends PApplet {
         //TODO: diff and only reconfigure if an update is made
         behavior_comm.closeSocket();
         position_comm.closeSocket();
+        delay(500);
 
         reconfigureExperiment();
     }
@@ -334,6 +358,7 @@ public class TreadmillController extends PApplet {
         if (position_comm != null) {
             position_comm.closeSocket();
         }
+        delay(500);
 
         reload_settings();
     }
@@ -975,6 +1000,15 @@ public class TreadmillController extends PApplet {
 
         started = false;
         lap_count = 0;
+
+        if (!settings_json.isNull("trial_shutdown")) {
+            try {
+                sendMessages(settings_json.getJSONArray("trial_shutdown"), "");
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+        }
+
         timer = new ExperimentTimer();
         createSchedule();
     }
