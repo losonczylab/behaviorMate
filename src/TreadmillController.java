@@ -166,7 +166,7 @@ public class TreadmillController extends PApplet {
         return reward_valve;
     }
 
-    private void sendMessages(JSONArray messages, String mouse_name) throws Exception {
+    protected void sendMessages(JSONArray messages, String mouse_name) throws Exception {
         for (int i= 0; i<messages.size(); i++) {
             JSONObject messageInfo = messages.getJSONObject(i);
             UdpClient client = new UdpClient(messageInfo.getString("ip"),
