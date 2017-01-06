@@ -40,15 +40,21 @@ public class SalienceController extends TreadmillController {
             return false;
         }
 
-        //display.setMouseName(mouse_name);
+        display.setMouseName(
+            "Trial Length: " + schedule.get(schedule.size()-1).time + " s");
         display.setLickCount(0);
         display.setLapCount(0);
         display.setRewardCount(0);
         lap_count=0;
-        display.setMouseName("Trial Length: "+schedule.get(schedule.size()-1).time + " s");
         
+        if (fWriter != null) {
+            fWriter.close();
+        }
+
         try {
-            fWriter = new FileWriter(system_json.getString("data_directory", "data"), mouse_name, this.trialListener);
+            fWriter = new FileWriter(
+                system_json.getString("data_directory", "data"),
+                mouse_name, this.trialListener);
         } catch (IOException e) {
             return false;
         }
@@ -60,16 +66,40 @@ public class SalienceController extends TreadmillController {
         start_log.setString("experiment_group", experiment_group);
         start_log.setString("start", dateFormat.format(startDate));
 
+        JSONObject info_msg = new JSONObject();
+        JSONObject info_sub_msg = new JSONObject();
+        info_sub_msg.setString("action", "info");
+        info_msg.setJSONObject("communicator", info_sub_msg);
+
+        try {
+            JSONObject version_info = loadJSONObject("version.json");
+            fWriter.write(version_info.toString());
+        } catch (NullPointerException e) {
+            println(e);
+        }
+
         JSONObject settings_log = new JSONObject();
         settings_log.setJSONObject("settings", settings_json);
         fWriter.write(settings_log.toString());
         fWriter.write(start_log.toString());
 
+        if (!settings_json.isNull("trial_startup")) {
+            try {
+                sendMessages(settings_json.getJSONArray("trial_startup"),
+                    mouse_name);
+            } catch (Exception e) {
+                System.out.println(e);
+                return false;
+            }
+        }
+
         trialListener.started(fWriter.getFile());
 
         timer.startTimer();
-        JSONObject valve_json = open_valve_json(settings_json.getInt("sync_pin"), 100);
+        JSONObject valve_json = open_valve_json(
+            settings_json.getInt("sync_pin"), 100);
         behavior_comm.sendMessage(valve_json.toString());
+        behavior_comm.sendMessage(info_msg.toString());
 
         started = true;
         return true;

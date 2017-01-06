@@ -61,6 +61,24 @@
                 "pin": 22  // pin is the reset pin on the ID-12LA breakout
             }
         ],
+         "trial_startup": [
+            {
+                "ip": "127.0.0.1",
+                "port": 5010,
+                "message": {
+                    "action": "start"
+                }
+            }
+        ],
+         "trial_shutdown": [
+            {
+                "ip": "127.0.0.1",
+                "port": 5010,
+                "message": {
+                    "action": "stop"
+                }
+            }
+        ],
         // "contexts" are time/space localized events that can be configure to
         // occur along the track. See Context Manager in the behavior arduino
         // code for more information
@@ -145,7 +163,7 @@
         // attitional attributes to the settings field in the .tdml file.
         // Remove this field to stop the form from popping up. Trials will
         // not be allowed to start without completed attribute forms.
-        "trial_attrs": {
+        "_trial_attrs": {
             "fields": [
                 {
                     "key": "trial_length", // if this key matches a field in the
@@ -178,7 +196,7 @@
         },
         "sync_pin": 12, // a ttl pulse is delivered at the beginning of each
                         // trial to the sync pin.
-        "trial_length": 300, // duration (in s) of the trial.
+        "trial_length": 30, // duration (in s) of the trial.
         "position_scale": 1.0, // scales the position updates from aritrary
                                // unitst to mm. IMPORTANT! measure this value
                                // on each rig or position updates will be wrong
@@ -194,6 +212,6 @@
     // trial and needs to be set to a directory where the program can write
     // and store files. if windows, ensure to escape backslashes i.e. \\
     "_system": {
-        "data_directory":"/Users/jbowler/Desktop/pMateData"
+        "data_directory":"C:\\Users\\admin\\Desktop\\behaviorData"
     }
 }
