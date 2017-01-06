@@ -552,7 +552,13 @@ public class TreadmillController extends PApplet {
 
         for (int i=0; ((valves != null) && (i < valves.size())); i++) {
             int valve_pin = valves.getInt(i);
-            JSONObject valve_json = setup_valve_json(valve_pin);
+            JSONObject valve_json;
+            if (!context_info.isNull("frequency")) {
+                int freq = context_info.getInt("frequency");
+                valve_json = setup_valve_json(valve_pin, freq);
+            } else {
+                valve_json = setup_valve_json(valve_pin);
+            }
             behavior_comm.sendMessage(valve_json.toString());
             JSONObject close_json = close_valve_json(valve_pin);
             behavior_comm.sendMessage(close_json.toString());

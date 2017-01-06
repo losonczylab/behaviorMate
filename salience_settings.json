@@ -32,9 +32,9 @@
       "pin": 15,
       "address": "behavior_controller",
       "duration": 500,
-      "freq": 500 }
+      "frequency": 500 }
   ],
-  "num_blocks": 4,
+  "num_blocks": 1,
   "sync_pin": 12,
   "trial_length": 9,
   "prestim_time": 3,

@@ -43,12 +43,7 @@ public class FileWriter extends PApplet {
         logFile = new File(pathname + sep + mouse + sep + mouse + "_" +
             logNameFormat.format(logDate) + ".tdml");
         println(logFile);
-        //try {
-            fos = new FileOutputStream(logFile, false);
-        //} catch (IOException e) {
-        //    println(e);
-        //    println("error creating file");
-        //}
+        fos = new FileOutputStream(logFile, false);
 
         wt = new WriterThread(logFile, tl);
         wt.start();
@@ -98,6 +93,7 @@ public class FileWriter extends PApplet {
         private String sep = "/";
 
         WriterThread(File logFile, TrialListener tl) {
+            //Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
             this.run = true;
             writeQueue = new LinkedList<String>();
             messageBuffer = null;

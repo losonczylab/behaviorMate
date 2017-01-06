@@ -1,11 +1,11 @@
 
 all:
 	echo "{" >version.json
-	{ echo "\t \"version\": \""; git tag | cat; echo "\","; } | tr -d "\n" >>version.json
+	{ echo "\t \"version\": \""; git tag | tail -n 1 | cat; echo "\","; } | tr -d "\n" >>version.json
 	echo  >>version.json
 	{ echo "\t \"git_revision\": \""; git rev-parse HEAD | cat; echo "\""; } | tr -d "\n" >>version.json
 	echo "\n}" >>version.json
-	javac -cp lib/core.jar;lib/java-json.jar -d . src/*.java
+	javac -cp lib/core.jar:lib/java-json.jar -d . src/*.java
 	jar cfmv BehaviorMate.jar Manifest.txt *.class
 
 settings:
