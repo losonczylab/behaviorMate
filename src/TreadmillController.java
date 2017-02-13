@@ -23,7 +23,7 @@ import processing.data.JSONArray;
  * reference during calls to UDPComm
  */
 class JSONBuffer {
-    /* Wrapper class for JSONObject which allows for json to be returned by 
+    /* Wrapper class for JSONObject which allows for json to be returned by
        reference during method calls */
 
     public JSONObject json;
@@ -62,7 +62,7 @@ public class TreadmillController extends PApplet {
      * the current trial.
      */
     ExperimentTimer timer;
-    
+
     /**
      * json object with all the settings related to this trail. Stored at the
      * top of each of the behavior logs
@@ -85,7 +85,7 @@ public class TreadmillController extends PApplet {
      */
     float distance;
 
-    /** 
+    /**
      * scale to convert position updates from rotary encoder to mm traversed on the
      * track
      */
@@ -96,16 +96,16 @@ public class TreadmillController extends PApplet {
      */
     float track_length;
 
-    /** 
+    /**
      * RFID tag string to indicate that a lap has been compleded and position
      * should be reset to 0.
      */
     String lap_tag;
 
     /**
-     * force a lap_reset if the position is more then track_length*lap_tolerance past 
+     * force a lap_reset if the position is more then track_length*lap_tolerance past
      * track_length. Defaults to 0 if lap_reset_tag is not set, 0.99 if not present in
-     * settings.json 
+     * settings.json
      */
     float lap_tolerance;
 
@@ -190,13 +190,13 @@ public class TreadmillController extends PApplet {
             (experiment_group.equals(""))) {
             return false;
         }
-        
+
         display.setMouseName(mouse_name);
         display.setLickCount(0);
         display.setLapCount(0);
         display.setRewardCount(0);
         lap_count=0;
-        
+
         if (fWriter != null) {
             fWriter.close();
         }
@@ -210,7 +210,7 @@ public class TreadmillController extends PApplet {
         }
 
         Date startDate = Calendar.getInstance().getTime();
-        
+
         JSONObject start_log = new JSONObject();
         start_log.setString("mouse", mouse_name);
         start_log.setString("experiment_group", experiment_group);
@@ -244,7 +244,7 @@ public class TreadmillController extends PApplet {
         }
 
         trialListener.started(fWriter.getFile());
-        
+
         timer.startTimer();
         JSONObject valve_json = open_valve_json(
             settings_json.getInt("sync_pin"), 100);
@@ -261,7 +261,7 @@ public class TreadmillController extends PApplet {
             JSONObject setting = fields.getJSONObject(i);
             String key = setting.getString("key");
             String type = setting.getString("type");
-            
+
             if (type.equals("String")) {
                 value.setString(key, setting.getString("value"));
             } else if (type.equals("int")) {
@@ -282,7 +282,7 @@ public class TreadmillController extends PApplet {
             JSONObject setting = update_fields.getJSONObject(i);
             String key = setting.getString("key");
             String type = setting.getString("type");
-            
+
             if (type.equals("String")) {
                 orig.setString(key, setting.getString("value"));
             } else if (type.equals("int")) {
@@ -304,14 +304,14 @@ public class TreadmillController extends PApplet {
 
         return orig;
     }
-    
+
     public void addSettings(String settings) throws Exception {
         JSONArray new_settings = parseJSONArray(settings);
         for (int i=0; i<new_settings.size(); i++) {
             JSONObject setting = new_settings.getJSONObject(i);
             String key = setting.getString("key");
             String type = setting.getString("type");
-            
+
             if (type.equals("String")) {
                 settings_json.setString(key, setting.getString("value"));
             } else if (type.equals("int")) {
@@ -467,7 +467,7 @@ public class TreadmillController extends PApplet {
             delay(150);
         }
     }
-    
+
 
     protected ContextList configure_vr(int color_val) throws Exception {
         VrContextList context = new VrContextList(display, color_val);
@@ -501,7 +501,7 @@ public class TreadmillController extends PApplet {
             JSONArray disp_color = context_info.getJSONArray("display_color");
             color_val = color(disp_color.getInt(0),
                 disp_color.getInt(1), disp_color.getInt(2));
-        } 
+        }
 
         ContextList context = null;
         if (context_info.getString("type", "").equals("vr")) {
@@ -524,7 +524,7 @@ public class TreadmillController extends PApplet {
             }
             context.setShuffle(false);
         } else {
-            int num_contexts = context_info.getInt("locations", 
+            int num_contexts = context_info.getInt("locations",
                     context_info.getInt("number", 0));
             if (num_contexts == 0) {
                 context.add((int)(track_length/2.0));
@@ -559,11 +559,17 @@ public class TreadmillController extends PApplet {
         }
 
         context.setId(context_info.getString("id"));
-        context_info.setString("action", "create");
 
-        JSONObject context_setup_json = new JSONObject();
-        context_setup_json.setJSONObject("contexts", context_info);
-        behavior_comm.sendMessage(context_setup_json.toString());
+        if ((context_info.getString("type", "").equals("vr")) &&
+                (!context_info.isNull("cues"))) {
+            ((VrContextList)context).setCues(context_info.getJSONArray("cues"));
+        } else {
+            context_info.setString("action", "create");
+
+            JSONObject context_setup_json = new JSONObject();
+            context_setup_json.setJSONObject("contexts", context_info);
+            behavior_comm.sendMessage(context_setup_json.toString());
+        }
 
         contexts.add(context);
     }
@@ -633,7 +639,7 @@ public class TreadmillController extends PApplet {
                     return;
                 }
             }
-        } 
+        }
 
         reward_info.setString("id", "reward");
         reward_valve = reward_info.getInt("pin");
@@ -720,7 +726,7 @@ public class TreadmillController extends PApplet {
             .getInt("send_port"), position_json.getInt("receive_port"));
         position_json.setString("address", position_comm.address);
         settings_json.setJSONObject("position_controller", position_json);
-      
+
         configure_sensors();
 
         JSONObject valve_json = setup_valve_json(settings_json.getInt("sync_pin"));
@@ -782,7 +788,7 @@ public class TreadmillController extends PApplet {
         PGraphics img = createGraphics(100,100);
         display = new Display();
         display.prepGraphics(this);
-        
+
         position_comm = null;
         behavior_comm = null;
         prepareExitHandler();
@@ -858,7 +864,7 @@ public class TreadmillController extends PApplet {
 
         if (position > track_length*(1 + lap_tolerance)) {
             position = track_length*lap_tolerance;
-            resetLap("", time); 
+            resetLap("", time);
             distance = position;
         }
 
@@ -883,7 +889,7 @@ public class TreadmillController extends PApplet {
         //        ((behavior_comm.receiveMessage(json_buffer)))) {
             JSONObject behavior_json =
                 json_buffer.json.getJSONObject(behavior_comm.address);
-            
+
             if (!behavior_json.isNull("lick")) {
                 if (behavior_json.getJSONObject("lick")
                         .getString("action", "stop").equals("start")) {
@@ -969,7 +975,7 @@ public class TreadmillController extends PApplet {
         }
 
         updateBehavior(time);
-        
+
         int t = millis();
         int display_check = t-display_update;
         if (display_check > display_rate) {
@@ -997,7 +1003,7 @@ public class TreadmillController extends PApplet {
                 msg_buffer[0] = null;
             }
         }
-        
+
         JSONObject end_log = new JSONObject();
         end_log.setFloat("time", timer.getTime());
         end_log.setString("stop", dateFormat.format(stopDate));
