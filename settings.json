@@ -61,6 +61,24 @@
                 "pin": 22  // pin is the reset pin on the ID-12LA breakout
             }
         ],
+         "trial_startup": [
+            {
+                "ip": "127.0.0.1",
+                "port": 5010,
+                "message": {
+                    "action": "start"
+                }
+            }
+        ],
+         "trial_shutdown": [
+            {
+                "ip": "127.0.0.1",
+                "port": 5010,
+                "message": {
+                    "action": "stop"
+                }
+            }
+        ],
         // "contexts" are time/space localized events that can be configure to
         // occur along the track. See Context Manager in the behavior arduino
         // code for more information
@@ -85,7 +103,7 @@
                 "sensor": 2, // pin number associated with the sensor to trigger
                              // operant context.
                 "locations": [2500, 4500], // integer or list. list - list of
-                                           // locations to place context 
+                                           // locations to place context
                                            // centroids. integer - number of
                                            // locations to randomly shuffle
                                            // context to. absent - context is
@@ -94,11 +112,44 @@
                                            // the location of this context
             },
             {
-                "id": "fond_dock", // for vr_contexts the name matches the 
+                "id": "vivid_stamp", // for vr_contexts the name matches the
                                    // scene name in Unity program
-                "type": "vr"       // vr contexts are a specialized type of
+                "type": "vr",      // vr contexts are a specialized type of
                                    // conext which are not handeled by the
                                    // behavior arduino.
+                "cues": [
+                    {
+                        "type": "Arch",
+                        "z": [400, 1000, 2560, 5000],
+                    },
+                    {
+                        "type": "Cube",
+                        "z": [3450, 4560],
+                        "x": [30,    -30]
+                    },
+                    {
+                        "type": "TreeNew",
+                        "z": [150, 250, 350, 500, 750, 1150, 1500, 2120, 3000,
+                                3325, 3500, 3900, 4200, 4400, 5000, 5200],
+                        "x": [-80, -70,  80, -80,  70,   80,  -80,   80,   70,
+                                  70,  -70,  -80,  -80,   80,  -70,   80]
+                    },
+                    {
+                        "type": "Toadstools",
+                        "z": [175, 2150, 3690, 4000],
+                        "x": [25,   -25,  -25,   25]
+                    },
+                    {
+                        "type": "Rock",
+                        "z": [550, 1450, 1690, 2300],
+                        "x": [ 35,   27,  -35,  -30]
+                    },
+                    {
+                        "type": "Rock2",
+                        "z": [2450, 4200, 5500],
+                        "x": [ 40,   -40,   40],
+                    },
+                ]
             },
             {
                 "id": "light_context",
@@ -126,26 +177,11 @@
                                  // play a tone.
             }
         ],
-        "trial_startup": [
-            {
-                "ip": "127.0.0.1",
-                "port": 5010,
-                "message": "test"
-            }
-        ],
-        "trial_shutdown": [
-            {
-                "ip": "127.0.0.1",
-                "port": 5010,
-                "message": "test"
-            }
-        ],
-
         // trial attrs allow for a custom form to overwrite settings or add
         // attitional attributes to the settings field in the .tdml file.
         // Remove this field to stop the form from popping up. Trials will
         // not be allowed to start without completed attribute forms.
-        "trial_attrs": {
+        "_trial_attrs": {
             "fields": [
                 {
                     "key": "trial_length", // if this key matches a field in the
@@ -154,11 +190,11 @@
                                            // trial.
                     "type": "int"
                 },
-                { 
+                {
                     "key": "drugCondition",
                     "type": "JSONArray",
                     "fields": [
-                        { 
+                        {
                             "key": "drug",
                             "type": "JSONObject",
                             "fields": [
@@ -187,13 +223,13 @@
                              // rfid tag signaling lap resets
         "lap_tolerance": 0.05 // compensates for missed lap resets tags. i.e.
                               // if 5, the lap will be resarted at 5% of the
-                              // belt length if the position reads 
+                              // belt length if the position reads
                               // 1.05*track_length
     },
     // the _system holde the data directory field. this does not get saved each
     // trial and needs to be set to a directory where the program can write
     // and store files. if windows, ensure to escape backslashes i.e. \\
     "_system": {
-        "data_directory":"/Users/jbowler/Desktop/pMateData"
+        "data_directory":"C:\\Users\\admin\\Desktop\\behaviorData"
     }
 }

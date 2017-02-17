@@ -1,5 +1,6 @@
 import processing.core.PApplet;
 import processing.data.JSONObject;
+import processing.data.JSONArray;
 import java.util.ArrayList;
 
 public class VrContextList extends ContextList {
@@ -49,6 +50,26 @@ public class VrContextList extends ContextList {
         log_json.getJSONObject("context").setString("id", this.id);
     }
 
+    public void setCues(JSONArray cues) {
+        sendMessage(this.startString);
+
+        JSONObject clearMessage = new JSONObject();
+        clearMessage.setString("type", "cues");
+        clearMessage.setString("action", "clear");
+        sendMessage(clearMessage.toString());
+
+        JSONObject createMessage = new JSONObject();
+        createMessage.setString("type", "cues");
+        createMessage.setString("action", "create");
+        createMessage.setJSONArray("cues", cues);
+        sendMessage(createMessage.toString());
+
+        if (this.active == -1) {
+            sendMessage(this.stopString);
+        }
+
+    }
+
     public boolean check(float position, float time, String[] msg_buffer) {
         boolean inZone = false;
         int i=0;
@@ -62,11 +83,11 @@ public class VrContextList extends ContextList {
         if ((this.active != -1) && (position != previous_location)) {
             position_data.setFloat("y", position);
             position_json.setString("data", position_data.toString().replace("\n",""));
-            
+
             sendMessage(position_json.toString());
             previous_location = position;
         }
-        
+
         if ((!inZone) && (this.active != -1)) {
             this.active = -1;
             this.status = "off";
