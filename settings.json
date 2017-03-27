@@ -167,7 +167,6 @@
                                  // play a tone.
             }
         ],
-<<<<<<< HEAD
         "trial_startup": [
             {
                 "ip": "127.0.0.1",
@@ -186,9 +185,6 @@
                 }
             }
         ],
-
-=======
->>>>>>> 1dcccd8ba032125337213b07d09c001808a650a7
         // trial attrs allow for a custom form to overwrite settings or add
         // attitional attributes to the settings field in the .tdml file.
         // Remove this field to stop the form from popping up. Trials will
