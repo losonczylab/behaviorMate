@@ -86,8 +86,11 @@
             // reward zones are an example of a context and can be configured
             // in this list as well.
             {
+                "class": "alternating_context",
                 "id": "large_reward", // every context is required to have a
                                       // unique id
+                "n_lap": 3, // for class alternating_context, activate this
+                            // context only every nth lap. Defaults to 2
                 "type": "operant", // specialized contexts are defined
                                    // through the type field. operant type
                                    // contexts are triggered via sensors i.e.
