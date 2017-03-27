@@ -10,20 +10,20 @@
                 "deflection": 0
             }
         },
-        "position_controller": { // address behavior arduino is posting message
+        "behavior_controller": { // address behavior arduino is posting message
             "ip": "127.0.0.1",   // to
             "send_port": 5010,
             "receive_port": 5015
         },
-        "behavior_controller": { // address arduino reading rotary encoder is
+        "position_controller": { // address arduino reading rotary encoder is
             "ip": "127.0.0.1",   // posting messages to
             "send_port": 5020,
             "receive_port": 5025
         },
         "reward": {
             "locations": [ // centroid of reward locations (for fixed rewards).
-                500,
-                1000,
+                500,       // if integer rewards instead of list, that many rewards
+                1000,      // will be placed randomly and shuffled each lap.
                 1500,
                 5000
             ],
@@ -33,8 +33,6 @@
                                // stationary)
             "type": "fixed", // moving or fixed. fixed requires a list of
                              // loctions moving requires "number" to be set
-            //"number": 3    // number of reward locations to be radomly placed
-                             // for moving type rewards
             "drop_size": 60, // time (in ms) duration for the reward water valve
                              // to be open
             "pin": 7,        // ardunio pin that the water reward solinoid is
@@ -48,37 +46,26 @@
         // the behavior arduino. See sensor manager class in behavior
         // controller. Default sensor type is to read a ttl pulse/square wave
         // input. a lickport type context  is necessary for rewarding contexts.
-        "sensors": [
-            {
-              "type": "lickport", // "lickport" type sensor is based on the
-                                  // MPR121 capacitance touch sensor.
-              "pin": 2,           // Interrupt/IRQ pin
-              "report_pin": 20    // sets up a ttl pulse to report when the
-                                  // sensor is triggered
-            },
-            {
-                "type": "rfid_reader", // rfid tag reader for ID-12LA reader
-                "pin": 22  // pin is the reset pin on the ID-12LA breakout
-            }
-        ],
-         "trial_startup": [
-            {
-                "ip": "127.0.0.1",
-                "port": 5010,
-                "message": {
-                    "action": "start"
-                }
-            }
-        ],
-         "trial_shutdown": [
-            {
-                "ip": "127.0.0.1",
-                "port": 5010,
-                "message": {
-                    "action": "stop"
-                }
-            }
-        ],
+      "sensors": [
+        {
+          "type": "lickport", // "lickport" type sensor is based on the
+                              // MPR121 capacitance touch sensor.
+          "pin": 2,           // Interrupt/IRQ pin
+          "report_pin": 20    // sets up a ttl pulse to report when the
+                              // sensor is triggered
+        },
+        // {                      // WARNING: Don't mix Piezo Style lickports with MPR121 boards
+        //                        // Here is an exmaple of setting up the piezo style lickport 
+        //   "type": "piezoport",
+        //   "pin": 0,            // Analog pin A0
+        //   "lick_duration": 10,
+        //   "lick_threshold": 5
+        // },
+        {
+          "type": "rfid_reader", // rfid tag reader for ID-12LA reader
+          "pin": 22 // pin is the reset pin on the ID-12LA breakout
+        }
+      ],
         // "contexts" are time/space localized events that can be configure to
         // occur along the track. See Context Manager in the behavior arduino
         // code for more information
@@ -111,7 +98,7 @@
                                            // locations to randomly shuffle
                                            // context to. absent - context is
                                            // active during entire trial
-                "display_color": [0,204,0] // color to make display indicating
+                "display_color": [0,104,204] // color to make display indicating
                                            // the location of this context
             },
             {
@@ -131,7 +118,7 @@
                         "x": [30,    -30]
                     },
                     {
-                        "type": "TreeNew",
+                        "type": "Tree",
                         "z": [150, 250, 350, 500, 750, 1150, 1500, 2120, 3000,
                                 3325, 3500, 3900, 4200, 4400, 5000, 5200],
                         "x": [-80, -70,  80, -80,  70,   80,  -80,   80,   70,
@@ -167,7 +154,7 @@
                 "id": "odor_context",
                 "type": "constant",
                 "valves": [3],
-                "durations": [-1], // -1 duration means this valve is open the
+                "durations": [-1]  // -1 duration means this valve is open the
                                    // whole time
             },
             {
@@ -180,11 +167,33 @@
                                  // play a tone.
             }
         ],
+<<<<<<< HEAD
+        "trial_startup": [
+            {
+                "ip": "127.0.0.1",
+                "port": 7010,
+                "message": {
+                    "action": "start"
+                }
+            }
+        ],
+        "trial_shutdown": [
+            {
+                "ip": "127.0.0.1",
+                "port": 7010,
+                "message": {
+                    "action": "stop"
+                }
+            }
+        ],
+
+=======
+>>>>>>> 1dcccd8ba032125337213b07d09c001808a650a7
         // trial attrs allow for a custom form to overwrite settings or add
         // attitional attributes to the settings field in the .tdml file.
         // Remove this field to stop the form from popping up. Trials will
         // not be allowed to start without completed attribute forms.
-        "_trial_attrs": {
+        "trial_attrs": {
             "fields": [
                 {
                     "key": "trial_length", // if this key matches a field in the
