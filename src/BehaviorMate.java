@@ -514,6 +514,35 @@ public class BehaviorMate {
         return json;
     }
 
+    public static JSONObject parseJson(String filename) {
+        String jsonData = "";
+        BufferedReader br = null;
+        try {
+            String line;
+            br = new BufferedReader(new FileReader(filename));
+            while ((line = br.readLine()) != null) {
+                if (!line.trim().startsWith("//")) {
+                    jsonData += line.split("//")[0] + "\n";
+                }
+            }
+        } catch (IOException e) {
+            String message = "Failed to parse: " + filename +
+                "\n" + e.toString();
+            JOptionPane.showMessageDialog(null, message);
+        }
+
+        JSONObject jsonObj = null;
+        try {
+            jsonObj = new JSONObject(jsonData);
+        } catch(JSONException e) {
+            String message = "Failed to parse: " + filename +
+                "\n" + e.toString();
+            JOptionPane.showMessageDialog(null, message);
+        }
+
+        return jsonObj;
+    }
+
     private static void startTreadmill(SettingsLoader settingsLoader) {
         String settingsFile = settingsLoader.getSelectedFile();
         String settingsTag = settingsLoader.getSelectedTag();

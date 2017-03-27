@@ -1,5 +1,5 @@
 public class Context {
-    
+
     int location;
     int duration;
     int radius;
@@ -23,7 +23,7 @@ public class Context {
         return this.location;
     }
 
-    private boolean checkPosition(float position) {
+    protected boolean checkPosition(float position) {
         if (this.radius == -1) {
             return true;
         }
@@ -34,7 +34,7 @@ public class Context {
 
 
     // assumes position has already been checked
-    private boolean checkTime(float time) {
+    protected boolean checkTime(float time) {
         if (this.duration == -1) {
             return true;
         }
@@ -58,6 +58,10 @@ public class Context {
         }
 
         return false;
+    }
+
+    public boolean check(float position, float time, int lap) {
+        return check(position, time);
     }
 
     public void move(int location) {

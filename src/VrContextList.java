@@ -10,17 +10,27 @@ public class VrContextList extends ContextList {
     private JSONObject position_data;
     private JSONObject log_json;
 
+    public VrContextList(Display display, JSONObject context_info,
+            float track_length, UdpClient[] comms) {
+        super(display, context_info, track_length, null);
+        this.comms = comms;
+        if (!context_info.isNull("cues")) {
+            setCues(context_info.getJSONArray("cues"));
+        }
+        this.previous_location = 0;
+    }
+
+    /*
     public VrContextList(Display display, int display_color) {
         super(display, display_color);
-
-        previous_location = 0;
+        this.previous_location = 0;
     }
 
     public VrContextList(int duration, int radius, int display_color) {
         super(duration, radius, display_color);
-
-        previous_location = 0;
+        this.previous_location = 0;
     }
+    */
 
     public void setComms(UdpClient[] comms) {
         this.comms = comms;
@@ -70,7 +80,7 @@ public class VrContextList extends ContextList {
 
     }
 
-    public boolean check(float position, float time, String[] msg_buffer) {
+    public boolean check(float position, float time, int lap, String[] msg_buffer) {
         boolean inZone = false;
         int i=0;
         for (; i < this.contexts.size(); i++) {

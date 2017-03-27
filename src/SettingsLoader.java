@@ -102,6 +102,8 @@ public class SettingsLoader extends JDialog implements ActionListener {
             fileChooser.setAcceptAllFileFilterUsed(false);
             fileChooser.addChoosableFileFilter(
                 new FileNameExtensionFilter("JSON file", "json"));
+            fileChooser.addChoosableFileFilter(
+                new FileNameExtensionFilter("behavior file", "tdml"));
             int returnVal = fileChooser.showOpenDialog(null);
             if (returnVal == JFileChooser.APPROVE_OPTION) {
                 File file = fileChooser.getSelectedFile();
