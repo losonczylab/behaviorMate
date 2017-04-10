@@ -34,6 +34,23 @@ public class ContextList extends PApplet {
     protected int active;
 
     /**
+     * stores the time the last update was sent to this context.
+     */
+    protected float sent;
+
+    /**
+     * if true a message has been sent and the ContextList is waiting for a
+     * response
+     */
+    protected boolean waiting;
+
+    /**
+     * counts the number of tries to send a message to the arduino so the
+     * context can send reset messages if nothing is getting through
+     */
+    protected int tries;
+
+    /**
      * a status string to be displayed in the UI.
      */
     protected String status;
@@ -85,6 +102,8 @@ public class ContextList extends PApplet {
      */
     protected String stopString;
 
+    protected JSONObject context_info;
+
     /**
      * Constructor.
      *
@@ -100,6 +119,9 @@ public class ContextList extends PApplet {
         this.contexts = new ArrayList<Context>();
         this.display = display;
         this.comm = comm;
+        this.sent = -1;
+        this.tries = 0;
+        this.waiting = false;
 
         // sets startString and stopString as well as the id field
         setId(context_info.getString("id"));
@@ -109,6 +131,7 @@ public class ContextList extends PApplet {
         this.active = -1;
         this.status = "";
         this.track_length = track_length;
+        this.context_info = context_info;
 
         // resplve the display color from rbg in the settings to an integer
         this.display_color = -1;
@@ -139,7 +162,7 @@ public class ContextList extends PApplet {
                 context_info.getInt("number", 0));
 
             if (num_contexts == 0) {
-                // if no number is assigned, then assigne this context to the
+                // if no number is assigned, then assign this context to the
                 // entire track
                 add((int)(track_length/2.0) + 2);
                 this.radius = (int)(track_length/2.0) + 2;
@@ -155,13 +178,16 @@ public class ContextList extends PApplet {
         }
         display.setContextLocations(this);
 
+        sendCreateMessages();
+    }
+
+    public void sendCreateMessages() {
         // comm may be null for certian subclasses of ContextList which to not
         // need to talk to the behavior arduino
         if (comm != null) {
             context_info.setString("action", "create");
             JSONObject context_setup_json = new JSONObject();
             context_setup_json.setJSONObject("contexts", context_info);
-            comm.sendMessage(context_setup_json.toString());
 
             // configure the valves, the pins which have devices responsible for
             // controlling this context
@@ -188,6 +214,12 @@ public class ContextList extends PApplet {
                     valve_pin);
                 comm.sendMessage(close_json.toString());
             }
+
+            this.active = -1;
+            this.status = "reset";
+            this.tries = 0;
+            this.waiting = false;
+            comm.sendMessage(context_setup_json.toString());
         }
     }
 
@@ -270,6 +302,11 @@ public class ContextList extends PApplet {
      */
     public void setStatus(String status) {
         this.status = status;
+
+        // if the status has been updated, then the last update has reached the
+        // arduino
+        waiting = false;
+        this.tries = 0;
     }
 
     /**
@@ -423,13 +460,35 @@ public class ContextList extends PApplet {
         // Decide if the context defined by this ContextList needs to swtich
         // state and send the message to the UdpClient accordingly
         if ((!inZone) && (this.active != -1)) {
-            this.active = -1;
             this.status = "sent stop";
+            this.active = -1;
+            this.waiting = true;
+            this.sent = time;
             this.comm.sendMessage(this.stopString);
         } else if((inZone) && (this.active != i)) {
             this.active = i;
+            this.waiting = true;
+            this.sent = time;
             this.status = "sent start";
             this.comm.sendMessage(this.startString);
+        }
+
+        // Ensure that the context has actually started and reset if necessary
+        if ((this.waiting) && (time-this.sent > 2)) {
+            System.out.println("RESET CONTEXT " + this.tries);
+            this.tries++;
+            if (this.tries > 3) {
+                this.tries = 0;
+                sendCreateMessages();
+            } else {
+                if (!inZone) {
+                    this.sent = time;
+                    this.comm.sendMessage(this.stopString);
+                } else if(inZone) {
+                    this.sent = time;
+                    this.comm.sendMessage(this.startString);
+                }
+            }
         }
 
         return (this.active != -1);
@@ -442,6 +501,7 @@ public class ContextList extends PApplet {
     public void stop(float time, String[] msg_buffer) {
         this.active = -1;
         this.status = "sent stop";
+        this.waiting = false;
         this.comm.sendMessage(this.stopString);
     }
 }

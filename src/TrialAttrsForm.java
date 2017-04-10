@@ -301,21 +301,21 @@ public class TrialAttrsForm extends JDialog implements ActionListener {
         setSize(550, 300);
     }
 
-    public void loadForm(String settingsFile, String tag) {
-        File file = new File(settingsFile);
-        JSONObject jsonObj = BehaviorMate.parseJsonFile(settingsFile);
+    public void loadForm(JSONObject jsonObj) {
         JSONArray fields = null;
         fieldsInput = null;
         input_container.removeAll();
         try {
-            jsonObj = jsonObj.getJSONObject(tag);
             if (jsonObj.isNull("trial_attrs")) {
                 hide();
                 return;
             }
             jsonObj = jsonObj.getJSONObject("trial_attrs");
             fields = jsonObj.getJSONArray("fields");
-        } catch (JSONException e) {}
+        } catch (JSONException e) {
+            hide();
+            return;
+        }
 
         try {
             fieldsInput = new JSONObjectInput(fields);

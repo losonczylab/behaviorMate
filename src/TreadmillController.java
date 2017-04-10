@@ -433,7 +433,7 @@ public class TreadmillController extends PApplet {
      * @return          the JSONOBject which will open the valve when sent to
      *                  arduino
      */
-    JSONObject open_valve_json(int pin, int duration) {
+    static JSONObject open_valve_json(int pin, int duration) {
         JSONObject valve_json = new JSONObject();
         JSONObject valve_subjson = new JSONObject();
 
@@ -470,47 +470,6 @@ public class TreadmillController extends PApplet {
         }
     }
 
-
-    protected ContextList configure_vr(JSONObject context_info)
-            throws Exception {
-        JSONObject displays = settings_json.getJSONObject("display_controllers");
-
-        UdpClient[] comms = new UdpClient[displays.size()];
-        Iterator<String> itr = displays.keyIterator();
-        for (int i=0; itr.hasNext(); i++) {
-            JSONObject display_json = displays.getJSONObject(itr.next());
-            UdpClient vr_client = new UdpClient(display_json.getString("ip"),
-                display_json.getInt("port"));
-
-            JSONObject view_json = new JSONObject();
-            view_json.setInt("viewAngle", display_json.getInt("view_angle"));
-            view_json.setInt("deflection", display_json.getInt("deflection"));
-            JSONObject msg_json = new JSONObject();
-            msg_json.setString("data", view_json.toString().replace("\n",""));
-            msg_json.setString("type", "cameraSetup");
-
-            vr_client.sendMessage(msg_json.toString());
-            comms[i] = vr_client;
-        }
-
-        VrContextList context = new VrContextList(display, context_info,
-            track_length, comms);
-        return context;
-    }
-
-    void configure_context_list(JSONObject context_info) throws Exception {
-        ContextList context = null;
-        if (context_info.getString("type", "").equals("vr")) {
-            context = configure_vr(context_info);
-        } else {
-            context = ContextsFactory.Create(display, context_info,
-                track_length, behavior_comm,
-                context_info.getString("class", "context"));
-        }
-
-        contexts.add(context);
-    }
-
     /**
      * Configures the settings to trigger an opto-laser around the reward zone.
      * reward centered laser zone options is NOT currenly supported (TODO: build
@@ -542,7 +501,14 @@ public class TreadmillController extends PApplet {
             throw new Exception("reward centered not currently supported");
         }
 
-        configure_context_list(laser_info);
+        JSONArray context_array;
+        if (settings_json.isNull("contexts")) {
+            settings_json.setJSONArray("contexts", new JSONArray());
+        }
+
+        context_array = settings_json.getJSONArray("contexts");
+
+        context_array.append(laser_info);
     }
 
 
@@ -555,22 +521,32 @@ public class TreadmillController extends PApplet {
      */
     void configure_rewards() throws Exception {
         JSONObject reward_info = settings_json.getJSONObject("reward");
+        
+        JSONArray contexts_array;
+        if (settings_json.isNull("contexts")) {
+            settings_json.setJSONArray("contexts", new JSONArray());
+        }
+
+        contexts_array = settings_json.getJSONArray("contexts");
+
         if (!reward_info.isNull("id")) {
             String reward_context = reward_info.getString("id");
-            JSONArray contexts = settings_json.getJSONArray("contexts");
-            for (int i=0; i < contexts.size(); i++) {
-                JSONObject context = contexts.getJSONObject(i);
+            for (int i=0; i < contexts_array.size(); i++) {
+                JSONObject context = contexts_array.getJSONObject(i);
                 if (context.getString("id").equals(reward_context)) {
                     JSONArray valve_list = context.getJSONArray("valves");
-                    reward_valve = valve_list.getInt(i);
+                    reward_valve = valve_list.getInt(0);
                     return;
                 }
             }
         }
 
         reward_info.setString("id", "reward");
-        reward_valve = reward_info.getInt("pin");
+        JSONObject reward_id = new JSONObject();
+        reward_id.setString("id", "reward");
+        settings_json.setJSONObject("reward", reward_id);
 
+        reward_valve = reward_info.getInt("pin");
         JSONArray context_valves = new JSONArray();
         context_valves.append(reward_valve);
         reward_info.setJSONArray("valves", context_valves);
@@ -601,7 +577,7 @@ public class TreadmillController extends PApplet {
             reward_info.setJSONArray("display_color", acolor);
         }
 
-        configure_context_list(reward_info);
+        contexts_array.append(reward_info);
     }
 
 
@@ -624,6 +600,7 @@ public class TreadmillController extends PApplet {
         contexts = new ArrayList<ContextList>();
         if (display != null) {
             display.resetContexts();
+            display.setSchedule("");
         }
         if (!settings_json.getString("lap_reset_tag", "").equals("")) {
             if (!settings_json.getString("lap_reset_tag").equals(lap_tag)) {
@@ -633,7 +610,7 @@ public class TreadmillController extends PApplet {
             position = 0;
         }
 
-        trial_duration = settings_json.getInt("trial_length");
+        trial_duration = settings_json.getInt("trial_length", -1);
         position_scale = settings_json.getFloat("position_scale");
         track_length = settings_json.getFloat("track_length");
         lap_tag = settings_json.getString("lap_reset_tag", "");
@@ -642,6 +619,9 @@ public class TreadmillController extends PApplet {
         } else {
             lap_tolerance = 0;
         }
+
+        trialListener.setArduinoController(
+            system_json.getString("arduino_controller", null));
 
         JSONObject behavior_json = settings_json.getJSONObject("behavior_controller");
         behavior_comm = new UdpClient(behavior_json
@@ -660,13 +640,6 @@ public class TreadmillController extends PApplet {
         behavior_comm.sendMessage(valve_json.toString());
         display.setTrackLength(track_length);
 
-        if (!settings_json.isNull("contexts")) {
-            JSONArray contexts_array = settings_json.getJSONArray("contexts");
-            for (int i=0; i < contexts_array.size(); i++) {
-                configure_context_list(contexts_array.getJSONObject(i));
-            }
-        }
-
         if (!settings_json.isNull("reward")) {
             configure_rewards();
         }
@@ -675,10 +648,16 @@ public class TreadmillController extends PApplet {
             configure_laser();
         }
 
-        createSchedule();
+        if (!settings_json.isNull("contexts")) {
+            JSONArray contexts_array = settings_json.getJSONArray("contexts");
+            for (int i=0; i < contexts_array.size(); i++) {
+                JSONObject context_info = contexts_array.getJSONObject(i);
+                contexts.add(ContextsFactory.Create(this, display, context_info,
+                    track_length, behavior_comm,
+                    context_info.getString("class", "context")));
+            }
+        }
     }
-
-    void createSchedule() { }
 
     void reload_settings() throws Exception {
         reconfigureExperiment();
@@ -710,7 +689,7 @@ public class TreadmillController extends PApplet {
         frameRate(120);
 
         started = false;
-        trial_duration = 0;
+        trial_duration = -1;
         position = -1;
         distance = 0;
         lap_count = 0;
@@ -875,6 +854,33 @@ public class TreadmillController extends PApplet {
                 }
             }
 
+            if (!behavior_json.isNull("starting")) {
+                System.out.println("RESETTING COMMS");
+                try {
+                    //contexts = new ArrayList<ContextList>();
+                    //if (display != null) {
+                    //    display.resetContexts();
+                    //}
+                    configure_sensors();
+                    JSONObject valve_json = setup_valve_json(
+                        settings_json.getInt("sync_pin"));
+                    behavior_comm.sendMessage(valve_json.toString());
+                    //if (!settings_json.isNull("contexts")) {
+                        //JSONArray contexts_array = settings_json.getJSONArray(
+                        //    "contexts");
+                        //for (int j=0; j < contexts_array.size(); j++) {
+                            //JSONObject context_info = contexts_array.getJSONObject(j);
+                            //contexts.add(ContextsFactory.Create(this, display,
+                            //    context_info, track_length, behavior_comm,
+                            //    context_info.getString("class", "context")));
+                        //}
+                        for (int j=0; j<contexts.size(); j++) {
+                            contexts.get(j).sendCreateMessages();
+                        }
+                    //}
+                } catch (Exception e) {}
+            }
+
             if (started) {
                 json_buffer.json.setFloat("time", time);
                 fWriter.write(json_buffer.json.toString());
@@ -891,7 +897,7 @@ public class TreadmillController extends PApplet {
     String[] msg_buffer = {null};
     public void draw() {
         float time = timer.checkTime();;
-        if (time > trial_duration) {
+        if ((trial_duration != -1) && (time > trial_duration)) {
             endExperiment();
         }
 
@@ -901,7 +907,7 @@ public class TreadmillController extends PApplet {
             for (int i=0; i < contexts.size(); i++) {
                 contexts.get(i).check(position, time, lap_count, msg_buffer);
                 if (msg_buffer[0] != null) {
-                    fWriter.write(msg_buffer[0]);
+                    fWriter.write(msg_buffer[0].replace("\n", ""));
                     msg_buffer[0] = null;
                 }
             }
@@ -917,6 +923,17 @@ public class TreadmillController extends PApplet {
         }
     }
 
+    public void resetArduino() {
+        JSONObject resetArduino = new JSONObject();
+        resetArduino.setJSONObject("communicator", new JSONObject());
+        resetArduino.getJSONObject("communicator").setString("action", "reset");
+        behavior_comm.sendMessage(resetArduino.toString());
+    }
+
+    public void resetComms() {
+        trialListener.resetComms();
+    }
+
     /**
      * End the current experiment, reset the state to await the next trial
      */
@@ -926,7 +943,9 @@ public class TreadmillController extends PApplet {
         }
 
         Date stopDate = Calendar.getInstance().getTime();
+        display.setMouseName("");
         trialListener.ended();
+        started = false;
         for (int i=0; i < contexts.size(); i++) {
             contexts.get(i).stop(timer.getTime(), msg_buffer);
             contexts.get(i).reset();
@@ -941,9 +960,7 @@ public class TreadmillController extends PApplet {
         end_log.setFloat("time", timer.getTime());
         end_log.setString("stop", dateFormat.format(stopDate));
         fWriter.write(end_log.toString());
-        display.setMouseName("");
 
-        started = false;
         lap_count = 0;
 
         if (!settings_json.isNull("trial_shutdown")) {
@@ -955,7 +972,7 @@ public class TreadmillController extends PApplet {
         }
 
         timer = new ExperimentTimer();
-        createSchedule();
+        resetArduino();
     }
 
     /**
@@ -966,6 +983,7 @@ public class TreadmillController extends PApplet {
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             public void run () {
                 Date stopDate = Calendar.getInstance().getTime();
+                started = false;
                 for (int i=0; i < contexts.size(); i++) {
                     contexts.get(i).stop(timer.getTime(), msg_buffer);
                     contexts.get(i).reset();
@@ -975,6 +993,7 @@ public class TreadmillController extends PApplet {
                         msg_buffer[0] = null;
                     }
                 }
+                contexts = new ArrayList<ContextList>();
 
                 if (started) {
                     JSONObject end_log = new JSONObject();
@@ -986,6 +1005,7 @@ public class TreadmillController extends PApplet {
                     }
                 }
 
+                trialListener.shutdown();
                 println("closing");
             }
       }));

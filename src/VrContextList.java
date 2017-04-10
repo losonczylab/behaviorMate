@@ -1,4 +1,5 @@
 import processing.core.PApplet;
+import java.util.Iterator;
 import processing.data.JSONObject;
 import processing.data.JSONArray;
 import java.util.ArrayList;
@@ -11,9 +12,28 @@ public class VrContextList extends ContextList {
     private JSONObject log_json;
 
     public VrContextList(Display display, JSONObject context_info,
-            float track_length, UdpClient[] comms) {
+            float track_length) throws Exception {
         super(display, context_info, track_length, null);
-        this.comms = comms;
+        JSONObject displays = context_info.getJSONObject("display_controllers");
+
+        this.comms = new UdpClient[displays.size()];
+        Iterator<String> itr = displays.keyIterator();
+        for (int i=0; itr.hasNext(); i++) {
+            JSONObject display_json = displays.getJSONObject(itr.next());
+            UdpClient vr_client = new UdpClient(display_json.getString("ip"),
+                display_json.getInt("port"));
+
+            JSONObject view_json = new JSONObject();
+            view_json.setInt("viewAngle", display_json.getInt("view_angle"));
+            view_json.setInt("deflection", display_json.getInt("deflection"));
+            JSONObject msg_json = new JSONObject();
+            msg_json.setString("data", view_json.toString().replace("\n",""));
+            msg_json.setString("type", "cameraSetup");
+
+            vr_client.sendMessage(msg_json.toString());
+            comms[i] = vr_client;
+        }
+
         if (!context_info.isNull("cues")) {
             setCues(context_info.getJSONArray("cues"));
         }

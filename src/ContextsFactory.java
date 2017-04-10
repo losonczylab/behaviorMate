@@ -9,6 +9,7 @@ public final class ContextsFactory {
     /**
      * Creates a ContextList based on the "class" field in context_info field.
      *
+     * @param tc           TreadmillController running the experiment
      * @param display      display object which controlls the UI
      * @param context_info json object containing the configureation information
      *                     for this context from the settings.json file
@@ -20,10 +21,17 @@ public final class ContextsFactory {
      *         context_info.
      */
 
-    public static ContextList Create(Display display, JSONObject context_info,
-            float track_length, UdpClient comm, String class_name) {
+    public static ContextList Create(TreadmillController tc, Display display,
+            JSONObject context_info, float track_length, UdpClient comm,
+            String class_name) throws Exception {
         if (class_name.equals( "alternating_context")) {
-            return new AlternatingContextList(display, context_info, track_length, comm);
+            return new AlternatingContextList(display, context_info,
+                track_length, comm);
+        } else if (class_name.equals("vr")) {
+            return new VrContextList(display, context_info, track_length);
+        } else if (class_name.equals("salience")) {
+            return new SalienceContextList(tc, display, context_info,
+                track_length, comm);
         } else {
             return new ContextList(display, context_info, track_length, comm);
         }

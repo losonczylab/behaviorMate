@@ -18,8 +18,12 @@ import java.awt.GridLayout;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Dimension;
+import java.util.Iterator;
+import java.util.ArrayList;
+import java.lang.StringBuilder;
 
 import org.json.JSONObject;
+import org.json.JSONArray;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -59,6 +63,10 @@ class LabeledTextField extends JPanel {
         return this.textField.getText();
     }
 
+    public void setText(String text) {
+        this.textField.setText(text);
+    }
+
     public int getInt() {
         try {
             return Integer.parseInt(this.getText());
@@ -74,7 +82,8 @@ class ValveTestForm extends JPanel implements ActionListener {
     private LabeledTextField valveText;
     private LabeledTextField durationText;
     private JButton testValveButton;
-    
+    private boolean blocked;
+
     public ValveTestForm(TreadmillController treadmillController) {
         super(new FlowLayout());
         this.treadmillController = treadmillController;
@@ -87,7 +96,7 @@ class ValveTestForm extends JPanel implements ActionListener {
         center_panel.add(durationText);
         add(center_panel);
 
-        testValveButton = new JButton("Test Valve");
+        testValveButton = new JButton("Open Valve");
         testValveButton.addActionListener(this);
         JPanel button_container = new JPanel(new GridLayout(0,1));
         button_container.add(testValveButton);
@@ -95,17 +104,30 @@ class ValveTestForm extends JPanel implements ActionListener {
     }
 
     public void setEnabled(boolean enabled) {
-        testValveButton.setEnabled(enabled);
+        if (!enabled) {
+            this.blocked = true;
+            testValveButton.setText("Enable");
+        } else {
+            this.blocked = false;
+            testValveButton.setText("Open Valve");
+        }
+        //testValveButton.setEnabled(enabled);
     }
 
     public void actionPerformed(ActionEvent e) {
         int valve = valveText.getInt();
         int duration = durationText.getInt();
 
-        if ((valve != 0) && (duration != 0)) {
+        if (blocked) {
+            setEnabled(true);
+        } else if ((valve != 0) && (duration != 0)) {
             treadmillController.TestValve(
                 valveText.getInt(), durationText.getInt());
         }
+    }
+
+    public void setPin(int pin_number) {
+        valveText.setText(""+pin_number);
     }
 }
 
@@ -113,10 +135,14 @@ class TrialListener {
     private ControlPanel controlPanel;
     private CommentsBox commentsBox;
     private TreadmillController controller;
-    
+    private Process arduino_controller;
+    private String arduino_controller_path;
+
     public TrialListener() {
         controlPanel = null;
         commentsBox = null;
+        arduino_controller = null;
+        arduino_controller_path = null;
     }
 
     public void setControlPanel(ControlPanel controlPanel) {
@@ -130,6 +156,33 @@ class TrialListener {
     public void setController(TreadmillController controller) {
         this.controller = controller;
     }
+
+    public void setArduinoController(String arduino_path) {
+        if ((arduino_path != null) &&
+                ((this.arduino_controller_path == null) ||
+                 (!this.arduino_controller_path.equals(arduino_path)))) {
+
+            if (this.arduino_controller != null) {
+                this.arduino_controller.destroy();
+            }
+
+            try {
+                this.arduino_controller = Runtime.getRuntime().exec(
+                    arduino_path);
+            } catch (Exception e) {
+                System.out.println(e);
+                exception(e.toString());
+            }
+
+        } else if ((arduino_path == null) &&
+                (this.arduino_controller != null)) {
+            this.arduino_controller.destroy();
+            this.arduino_controller = null;
+        }
+
+        this.arduino_controller_path = arduino_path;
+    }
+
 
     public void started(File logFile) {
         if (commentsBox != null) {
@@ -154,7 +207,32 @@ class TrialListener {
 
     public void exception(String message) {
         controller.endExperiment();
+        message = new StringBuilder(message).insert(100, "\n").toString();
         JOptionPane.showMessageDialog(null, message);
+    }
+
+    public void resetComms() {
+        if ((arduino_controller != null) && (arduino_controller.isAlive())) {
+            arduino_controller.destroy();
+            arduino_controller = null;
+            try {
+                arduino_controller = Runtime.getRuntime().exec(
+                    arduino_controller_path);
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+        } else {
+            System.out.println("SOFT RESET");
+            controller.resetArduino();
+        }
+
+    }
+
+    public void shutdown() {
+        if ((arduino_controller != null) && (arduino_controller.isAlive())) {
+            System.out.println("DESTROY ARDUINO CONTROLLER");
+            this.arduino_controller.destroy();
+        }
     }
 }
 
@@ -165,6 +243,7 @@ class ControlPanel extends JPanel implements ActionListener {
     private ValveTestForm valveTestForm;
     private JButton showAttrsButton;
     private JButton refreshButton;
+    private JButton restartCommButton;
     private JButton startButton;
     private TreadmillController treadmillController;
     private SettingsLoader settingsLoader;
@@ -189,7 +268,7 @@ class ControlPanel extends JPanel implements ActionListener {
         valveTestForm = new ValveTestForm(treadmillController);
         valveTestForm.setPreferredSize(new Dimension(200, 250));
         add(valveTestForm);
-        add(Box.createVerticalStrut(125));
+        add(Box.createVerticalStrut(75));
 
         JPanel buttonPanel = new JPanel(new GridLayout(0,1));
         showAttrsButton= new JButton("Edit Trial Attributes");
@@ -200,6 +279,10 @@ class ControlPanel extends JPanel implements ActionListener {
         refreshButton.addActionListener(this);
         buttonPanel.add(refreshButton);
 
+        restartCommButton = new JButton("Re-Start Comms");
+        restartCommButton.addActionListener(this);
+        buttonPanel.add(restartCommButton);
+
         startButton = new JButton("Start");
         startButton.addActionListener(this);
         buttonPanel.add(startButton);
@@ -208,9 +291,11 @@ class ControlPanel extends JPanel implements ActionListener {
 
         trialAttrsForm = new TrialAttrsForm(this);
         trialAttrsForm.addActionListener(this);
-        trialAttrsForm.loadForm(settingsLoader.getSelectedFile(),
-            settingsLoader.getSelectedTag());
         showAttrsForm();
+    }
+
+    public void setTestValve(int pin_number) {
+        valveTestForm.setPin(pin_number);
     }
 
     public void showAttrsForm() {
@@ -232,7 +317,6 @@ class ControlPanel extends JPanel implements ActionListener {
             return;
         }
 
-        //System.out.println(trialAttrs);
         try {
             treadmillController.addSettings(trialAttrs);
         } catch (Exception exc) {
@@ -266,10 +350,50 @@ class ControlPanel extends JPanel implements ActionListener {
         }
     }
 
+    public JSONObject findSettings(String filename, String tag)
+            throws JSONException {
+        JSONObject settings = BehaviorMate.parseJsonFile(filename, tag);
+        if (settings.isNull("uses")) {
+            return settings;
+        }
+
+        JSONArray settings_names = null;
+        try {
+            settings_names = settings.getJSONArray("uses");
+        } catch (JSONException e) { }
+
+        if (settings_names != null) {
+            for (int i = 0; i < settings_names.length(); i++) {
+                JSONObject settings_update = findSettings(filename,
+                        (String) settings_names.getString(i));
+
+                Iterator<String> key_itr = settings.keys();
+                while (key_itr.hasNext()) {
+                    String key = key_itr.next();
+                    settings_update.put(key, settings.get(key));
+                }
+                settings = settings_update;
+            }
+        } else {
+            JSONObject settings_update = findSettings(filename,
+                settings.getString("uses"));
+
+                Iterator<String> key_itr = settings.keys();
+                while (key_itr.hasNext()) {
+                    String key = key_itr.next();
+                    settings_update.put(key, settings.get(key));
+                }
+                settings = settings_update;
+        }
+
+        return settings;
+    }
+
     public void refreshSettings() {
         String version = "Behavior Mate ";
         try {
-            JSONObject version_json = BehaviorMate.parseJsonFile("version.json");
+            JSONObject version_json =
+                BehaviorMate.parseJsonFile("version.json");
             version += (" " + version_json.getString("version") + " - ");
         } catch (Exception e) {
             System.out.println(e);
@@ -279,10 +403,16 @@ class ControlPanel extends JPanel implements ActionListener {
         String filename = settingsLoader.getSelectedFile();
         String tag = settingsLoader.getSelectedTag();
 
-        JSONObject settings = BehaviorMate.parseJsonFile(filename, tag);
-        JSONObject system_settings = BehaviorMate.parseJsonFile(filename, "_system");
-
+        JSONObject settings = null;
         try {
+            settings = findSettings(filename, tag);
+            JSONObject system_settings = BehaviorMate.parseJsonFile(filename,
+                "_system");
+            if (system_settings == null) {
+                system_settings = BehaviorMate.parseJsonFile("settings.json",
+                    "_system");
+            }
+
             treadmillController.RefreshSettings(settings.toString(),
                 system_settings.toString());
         } catch (Exception exc) {
@@ -297,7 +427,8 @@ class ControlPanel extends JPanel implements ActionListener {
             return;
         }
 
-        trialAttrsForm.loadForm(filename, tag);
+        setTestValve(treadmillController.getRewardPin());
+        trialAttrsForm.loadForm(settings);
         showAttrsForm();
     }
 
@@ -344,6 +475,8 @@ class ControlPanel extends JPanel implements ActionListener {
         } else if (e.getSource() == trialAttrsForm) {
             attrsCompleted = true;
             updateAttrs();
+        } else if (e.getSource() == restartCommButton) {
+            treadmillController.resetComms();
         }
     }
 }
@@ -356,7 +489,7 @@ class CommentsBox extends JPanel implements ActionListener {
     String nextItem;
     String lastSelection;
     String savedString;
-    
+
     String nextItemText;
     String currentItemText;
 
@@ -470,6 +603,11 @@ public class BehaviorMate {
     static JFrame startFrame;
 
     public static JSONObject parseJsonFile(String filename) {
+        String extension = filename.replaceAll("^.*\\.(.*)$", "$1");
+        if (extension.equals("tdml")) {
+            return parseTdmlSettings(filename);
+        }
+
         String jsonData = "";
         BufferedReader br = null;
         try {
@@ -514,6 +652,35 @@ public class BehaviorMate {
         return json;
     }
 
+    public static JSONObject parseTdmlSettings(String filename) {
+        String jsonData = "";
+        BufferedReader br = null;
+
+        try {
+            String line;
+            br = new BufferedReader(new FileReader(filename));
+            while ((line = br.readLine()) != null) {
+                if (!line.trim().startsWith("//")) {
+                    jsonData = line.split("//")[0] + "\n";
+                    JSONObject jsonObject = null;
+                    try {
+                        jsonObject = new JSONObject(jsonData);
+                        if (!jsonObject.isNull("settings")) {
+                            return jsonObject;
+                        }
+                    } catch(JSONException e) { }
+                }
+            }
+        } catch (IOException e) {
+            String message = "Failed to parse: " + filename +
+                "\n" + e.toString();
+            JOptionPane.showMessageDialog(null, message);
+        }
+
+
+        return null;
+    }
+
     public static JSONObject parseJson(String filename) {
         String jsonData = "";
         BufferedReader br = null;
@@ -549,6 +716,9 @@ public class BehaviorMate {
 
         JSONObject settings = parseJsonFile(settingsFile, settingsTag);
         JSONObject system_settings = parseJsonFile(settingsFile, "_system");
+        if (system_settings == null) {
+            system_settings = parseJsonFile("settings.json", "_system");
+        }
 
         JFrame frame = new JFrame(settingsTag);
         JPanel frame_container = new JPanel(new BorderLayout());
@@ -557,25 +727,26 @@ public class BehaviorMate {
         TrialListener tl = new TrialListener();
 
         TreadmillController treadmillController;
-        String experimentType = "treadmill";
-        try {
-            experimentType = settings.getString("experimentType");
-        } catch (JSONException e) { }
 
-        if (experimentType.equals("salience")) {
-            treadmillController = 
-                new SalienceController(settings.toString(),
-                    system_settings.toString(), tl);
-        } else {
-            treadmillController = 
-                new TreadmillController(settings.toString(),
-                    system_settings.toString(), tl);
-        }
-        tl.setController(treadmillController);
+        treadmillController = new TreadmillController(settings.toString(),
+            system_settings.toString(), tl);
 
         ControlPanel control_panel = new ControlPanel(frame,
             treadmillController, settingsLoader);
         tl.setControlPanel(control_panel);
+        tl.setController(treadmillController);
+
+        if (!system_settings.isNull("arduino_controller")) {
+            String process_path = null;
+            try {
+                process_path = system_settings.getString("arduino_controller");
+            } catch (JSONException e) {
+                System.out.println(e);
+            }
+
+            tl.setArduinoController(process_path);
+        }
+
         frame_container.add(control_panel, BorderLayout.CENTER);
 
         JPanel container = new JPanel();
@@ -615,6 +786,7 @@ public class BehaviorMate {
             } catch (Exception e) {
                 System.out.println(e);
             }
+
         }
 
         startFrame = new JFrame("oi!");
