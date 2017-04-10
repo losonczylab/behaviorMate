@@ -25,6 +25,8 @@ public class AlternatingContextList extends ContextList {
      * the index to count to in order to suspend the context.
      */
     private int n_lap;
+    
+    private int offset_lap;
 
     /**
      * Constructor.
@@ -47,6 +49,7 @@ public class AlternatingContextList extends ContextList {
         this.display_color_active = display_color;
         this.display_color_suspended = color(100, 100, 100);
         this.n_lap = context_info.getInt("n_lap", 2);
+        this.offset_lap = context_info.getInt("offset_lap", 0);
     }
 
     /**
@@ -73,11 +76,12 @@ public class AlternatingContextList extends ContextList {
 
         // check if the lap count means that the context list should be
         // suspended or unsuspended.
-        if ((lap%this.n_lap == 0) && suspended) {
+        int adj_lap = lap - offset_lap;
+        if ((adj_lap%this.n_lap == 0) && suspended) {
             this.suspended = false;
             this.status = "stopped";
             this.display_color = this.display_color_active;
-        } else if ((lap%this.n_lap != 0) && !suspended) {
+        } else if ((adj_lap%this.n_lap != 0) && !suspended) {
             this.suspended = true;
             this.status = "suspended";
             this.display_color = this.display_color_suspended;

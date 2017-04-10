@@ -1,15 +1,7 @@
 // C++ style '//' comments are permitted to comment out the end of lines
 // but block style i.e. '/*' will not work
 {
-    "example": { // name for each profile of in this setting file
-        "display_controllers": { // display controller for virtual reality
-            "window": {
-                "port": 8025,
-                "ip": "127.0.0.1",
-                "view_angle": 40,
-                "deflection": 0
-            }
-        },
+    "_controllers": {
         "behavior_controller": { // address behavior arduino is posting message
             "ip": "127.0.0.1",   // to
             "send_port": 5010,
@@ -20,6 +12,9 @@
             "send_port": 5020,
             "receive_port": 5025
         },
+    },
+    "example": { // name for each profile of in this setting file
+        "uses": "_controllers",
         "reward": {
             "locations": [ // centroid of reward locations (for fixed rewards).
                 500,       // if integer rewards instead of list, that many rewards
@@ -46,14 +41,14 @@
         // the behavior arduino. See sensor manager class in behavior
         // controller. Default sensor type is to read a ttl pulse/square wave
         // input. a lickport type context  is necessary for rewarding contexts.
-      "sensors": [
-        {
-          "type": "lickport", // "lickport" type sensor is based on the
-                              // MPR121 capacitance touch sensor.
-          "pin": 2,           // Interrupt/IRQ pin
-          "report_pin": 20    // sets up a ttl pulse to report when the
-                              // sensor is triggered
-        },
+        "sensors": [
+            {
+                "type": "lickport", // "lickport" type sensor is based on the
+                                    // MPR121 capacitance touch sensor.
+                "pin": 2,           // Interrupt/IRQ pin
+                "report_pin": 20    // sets up a ttl pulse to report when the
+                                    // sensor is triggered
+            },
         // {                      // WARNING: Don't mix Piezo Style lickports with MPR121 boards
         //                        // Here is an exmaple of setting up the piezo style lickport 
         //   "type": "piezoport",
@@ -61,11 +56,11 @@
         //   "lick_duration": 10,
         //   "lick_threshold": 5
         // },
-        {
-          "type": "rfid_reader", // rfid tag reader for ID-12LA reader
-          "pin": 22 // pin is the reset pin on the ID-12LA breakout
-        }
-      ],
+            {
+                "type": "rfid_reader", // rfid tag reader for ID-12LA reader
+                "pin": 22 // pin is the reset pin on the ID-12LA breakout
+            }
+        ],
         // "contexts" are time/space localized events that can be configure to
         // occur along the track. See Context Manager in the behavior arduino
         // code for more information
@@ -78,6 +73,7 @@
                                       // unique id
                 "n_lap": 3, // for class alternating_context, activate this
                             // context only every nth lap. Defaults to 2
+                "offset_lap": 1,
                 "type": "operant", // specialized contexts are defined
                                    // through the type field. operant type
                                    // contexts are triggered via sensors i.e.
@@ -102,11 +98,17 @@
                                            // the location of this context
             },
             {
+                "class": "vr",
                 "id": "vivid_stamp", // for vr_contexts the name matches the
-                                   // scene name in Unity program
-                "type": "vr",      // vr contexts are a specialized type of
-                                   // conext which are not handeled by the
-                                   // behavior arduino.
+                                     // scene name in Unity program
+                "display_controllers": { // display controller for virtual reality
+                    "window": {
+                        "port": 8025,
+                        "ip": "127.0.0.1",
+                        "view_angle": 40,
+                        "deflection": 0
+                    }
+                },
                 "cues": [
                     {
                         "type": "Arch",
@@ -146,7 +148,7 @@
                 "type": "pulsed", // pulsed contexts open valves for their
                                   // indicated durations at the interval
                                   // specified
-                "valves": [13],
+                "valves": [7],
                 "durations": [500],
                 "interval": 1000
             },
@@ -160,7 +162,7 @@
             {
                 "id": "tone_context",
                 "type": "pulsed",
-                "valves": [7],
+                "valves": [17],
                 "durations": [500],
                 "interval": 1000,
                 "frequency": 262 // contexts with a frequency set up valves to
@@ -185,6 +187,83 @@
                 }
             }
         ],
+        "sync_pin": 12, // a ttl pulse is delivered at the beginning of each
+                        // trial to the sync pin.
+        "trial_length": 300, // duration (in s) of the trial.
+        "position_scale": 1.0, // scales the position updates from aritrary
+                               // unitst to mm. IMPORTANT! measure this value
+                               // on each rig or position updates will be wrong
+        "track_length": 6000, // length of the track/treadmill belt.
+        "lap_reset_tag": "", // if not an empty string, to hex code from the
+                             // rfid tag signaling lap resets
+        "lap_tolerance": 0.05 // compensates for missed lap resets tags. i.e.
+                              // if 5, the lap will be resarted at 5% of the
+                              // belt length if the position reads
+                              // 1.05*track_length
+    },
+    "piezo_example": {
+        "uses": "example",
+        "sensors": [
+            {                      // WARNING: Don't mix Piezo Style lickports with MPR121 boards
+                                   // Here is an exmaple of setting up the piezo style lickport 
+                "type": "piezoport",
+                "pin": 0,            // Analog pin A0
+                "lick_duration": 10,
+                "lick_threshold": 5
+            },
+            {
+                "type": "rfid_reader", // rfid tag reader for ID-12LA reader
+                "pin": 22 // pin is the reset pin on the ID-12LA breakout
+            }
+        ],
+    },
+    "salience_example": { // name for each profile of in this setting file
+        "uses": "example",
+        "reward": null,
+        // "contexts" are time/space localized events that can be configure to
+        // occur along the track. See Context Manager in the behavior arduino
+        // code for more information
+        "contexts": [
+            // reward zones are an example of a context and can be configured
+            // in this list as well.
+            {
+                "class": "salience",
+                "id": "salience context",
+                "num_blocks": 2,
+                "sync_pin": 12,
+                "trial_length": 9,
+                "prestim_time": 3,
+                "poststim_time": 2,
+                "stim_time": 5,
+                "stims": [
+                    {
+                        "name": "light",
+                        "address": "behavior_controller",
+                        "pin": 5,
+                        "duration": 100
+                    },
+                    {
+                        "name": "airpuff",
+                        "address": "behavior_controller",
+                        "pin": 7,
+                        "duration": 100
+                    },
+                    {
+                        "name": "tone",
+                        "pin": 15,
+                        "address": "behavior_controller",
+                        "duration": 500,
+                        "frequency": 500
+                    }
+                ]
+            },
+        ],
+        "trial_length": -1, // duration (in s) of the trial. -1 allows the
+                            // trial to run until stopped by the user or 
+                            // SalienceContext
+    },
+    "attributes_example": {
+        "uses": "example",
         // trial attrs allow for a custom form to overwrite settings or add
         // attitional attributes to the settings field in the .tdml file.
         // Remove this field to stop the form from popping up. Trials will
@@ -219,25 +298,13 @@
                     ]
                 }
             ]
-        },
-        "sync_pin": 12, // a ttl pulse is delivered at the beginning of each
-                        // trial to the sync pin.
-        "trial_length": 300, // duration (in s) of the trial.
-        "position_scale": 1.0, // scales the position updates from aritrary
-                               // unitst to mm. IMPORTANT! measure this value
-                               // on each rig or position updates will be wrong
-        "track_length": 6000, // length of the track/treadmill belt.
-        "lap_reset_tag": "", // if not an empty string, to hex code from the
-                             // rfid tag signaling lap resets
-        "lap_tolerance": 0.05 // compensates for missed lap resets tags. i.e.
-                              // if 5, the lap will be resarted at 5% of the
-                              // belt length if the position reads
-                              // 1.05*track_length
+        }
     },
     // the _system holde the data directory field. this does not get saved each
     // trial and needs to be set to a directory where the program can write
     // and store files. if windows, ensure to escape backslashes i.e. \\
     "_system": {
-        "data_directory":"C:\\Users\\admin\\Desktop\\behaviorData"
+        "data_directory":"C:\\Users\\admin\\Desktop\\behaviorData",
+        "arduino_controller": "..\\arduino_controller\\arduinoController.exe"
     }
 }
