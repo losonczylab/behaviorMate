@@ -459,18 +459,20 @@ public class ContextList extends PApplet {
 
         // Decide if the context defined by this ContextList needs to swtich
         // state and send the message to the UdpClient accordingly
-        if ((!inZone) && (this.active != -1)) {
-            this.status = "sent stop";
-            this.active = -1;
-            this.waiting = true;
-            this.sent = time;
-            this.comm.sendMessage(this.stopString);
-        } else if((inZone) && (this.active != i)) {
-            this.active = i;
-            this.waiting = true;
-            this.sent = time;
-            this.status = "sent start";
-            this.comm.sendMessage(this.startString);
+        if (!waiting) {
+            if ((!inZone) && (this.active != -1)) {
+                this.status = "sent stop";
+                this.active = -1;
+                this.waiting = true;
+                this.sent = time;
+                this.comm.sendMessage(this.stopString);
+            } else if((inZone) && (this.active != i)) {
+                this.active = i;
+                this.waiting = true;
+                this.sent = time;
+                this.status = "sent start";
+                this.comm.sendMessage(this.startString);
+            }
         }
 
         // Ensure that the context has actually started and reset if necessary

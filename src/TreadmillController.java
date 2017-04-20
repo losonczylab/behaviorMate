@@ -620,15 +620,18 @@ public class TreadmillController extends PApplet {
             lap_tolerance = 0;
         }
 
+        JSONObject behavior_json = settings_json.getJSONObject(
+            "behavior_controller");
+        JSONObject position_json = settings_json.getJSONObject(
+            "position_controller");
         trialListener.setArduinoController(
-            system_json.getString("arduino_controller", null));
+            system_json.getString("arduino_controller", null),
+            position_json.toString(), behavior_json.toString());
 
-        JSONObject behavior_json = settings_json.getJSONObject("behavior_controller");
         behavior_comm = new UdpClient(behavior_json
             .getInt("send_port"), behavior_json.getInt("receive_port"));
         behavior_json.setString("address", behavior_comm.address);
         settings_json.setJSONObject("behavior_controller", behavior_json);
-        JSONObject position_json = settings_json.getJSONObject("position_controller");
         position_comm = new UdpClient(position_json
             .getInt("send_port"), position_json.getInt("receive_port"));
         position_json.setString("address", position_comm.address);
@@ -927,10 +930,16 @@ public class TreadmillController extends PApplet {
         JSONObject resetArduino = new JSONObject();
         resetArduino.setJSONObject("communicator", new JSONObject());
         resetArduino.getJSONObject("communicator").setString("action", "reset");
+        for (int i=0; i < contexts.size(); i++) {
+            contexts.get(i).setStatus("resetting");
+        }
         behavior_comm.sendMessage(resetArduino.toString());
     }
 
     public void resetComms() {
+        for (int i=0; i < contexts.size(); i++) {
+            contexts.get(i).setStatus("resetting");
+        }
         trialListener.resetComms();
     }
 
