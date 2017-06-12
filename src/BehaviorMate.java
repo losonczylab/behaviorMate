@@ -77,6 +77,43 @@ class LabeledTextField extends JPanel {
     }
 }
 
+
+class ZeroPositionForm extends JPanel implements ActionListener {
+    private TreadmillController treadmillController;
+    private JButton testValveButton;
+    private boolean blocked;
+
+    public ZeroPositionForm(TreadmillController treadmillController) {
+        super(new FlowLayout());
+        this.treadmillController = treadmillController;
+
+        testValveButton = new JButton("Zero Position");
+        testValveButton.addActionListener(this);
+        JPanel button_container = new JPanel(new GridLayout(0,1));
+        button_container.add(testValveButton);
+        add(button_container);
+    }
+
+    public void setEnabled(boolean enabled) {
+        if (!enabled) {
+            this.blocked = true;
+            testValveButton.setText("Enable");
+        } else {
+            this.blocked = false;
+            testValveButton.setText("Zero Position");
+        }
+        //testValveButton.setEnabled(enabled);
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        if (blocked) {
+            setEnabled(true);
+        } else {
+            treadmillController.ZeroPosition();
+        }
+    }
+}
+
 class ValveTestForm extends JPanel implements ActionListener {
     private TreadmillController treadmillController;
     private LabeledTextField valveText;
@@ -305,6 +342,7 @@ class ControlPanel extends JPanel implements ActionListener {
     private LabeledTextField mouseNameBox;
     private LabeledTextField experimentGroupBox;
     private ValveTestForm valveTestForm;
+    private ZeroPositionForm zeroPositionForm;
     private JButton showAttrsButton;
     private JButton refreshButton;
     private JButton restartCommButton;
@@ -328,10 +366,16 @@ class ControlPanel extends JPanel implements ActionListener {
         mouseNameBox = new LabeledTextField("Mouse Name", 14);
         add(mouseNameBox);
 
-        add(Box.createVerticalStrut(100));
+        add(Box.createVerticalStrut(50));
+        
+        zeroPositionForm = new ZeroPositionForm(treadmillController);
+        zeroPositionForm.setPreferredSize(new Dimension(200, 50));
+        add(zeroPositionForm);
+
         valveTestForm = new ValveTestForm(treadmillController);
         valveTestForm.setPreferredSize(new Dimension(200, 250));
         add(valveTestForm);
+
         add(Box.createVerticalStrut(75));
 
         JPanel buttonPanel = new JPanel(new GridLayout(0,1));
