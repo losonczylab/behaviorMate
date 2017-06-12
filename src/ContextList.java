@@ -364,7 +364,7 @@ public class ContextList extends PApplet {
      * reactivated and allowed to be triggered again. If this list is shuffeling
      * then execute the shuffle.
      */
-    public void reset() {
+    protected void reset() {
         for (int i=0; i < this.contexts.size(); i++) {
             this.contexts.get(i).reset();
         }
