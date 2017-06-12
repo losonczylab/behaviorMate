@@ -365,6 +365,12 @@ public class TreadmillController extends PApplet {
         reload_settings();
     }
 
+    public void ZeroPosition() {
+        println("ZERO POSITION");
+
+        position = 0;
+    }
+
     /**
      * Tests the valve specified in the Box on the UI. Linked to the TestValve
      * button the UI. Both creates and then opens the valve for the amount of
@@ -546,14 +552,18 @@ public class TreadmillController extends PApplet {
         reward_id.setString("id", "reward");
         settings_json.setJSONObject("reward", reward_id);
 
-        reward_valve = reward_info.getInt("pin");
-        JSONArray context_valves = new JSONArray();
-        context_valves.append(reward_valve);
-        reward_info.setJSONArray("valves", context_valves);
+        if (!reward_info.isNull("pin")) {
+            reward_valve = reward_info.getInt("pin");
+            JSONArray context_valves = new JSONArray();
+            context_valves.append(reward_valve);
+            reward_info.setJSONArray("valves", context_valves);
+        }
 
-        JSONArray context_duration = new JSONArray();
-        context_duration.append(reward_info.getInt("drop_size"));
-        reward_info.setJSONArray("durations", context_duration);
+        if (!reward_info.isNull("drop_size")) {
+            JSONArray context_duration = new JSONArray();
+            context_duration.append(reward_info.getInt("drop_size"));
+            reward_info.setJSONArray("durations", context_duration);
+        }
 
         if (!reward_info.isNull("type")) {
             String reward_type = reward_info.getString("type");
@@ -567,6 +577,7 @@ public class TreadmillController extends PApplet {
                 reward_info.setInt("locations", reward_info.getInt("number", 1));
             }
         }
+
         reward_info.setString("type", "operant");
         reward_info.setInt("sensor", lickport_pin);
         if (reward_info.isNull("display_color")) {
