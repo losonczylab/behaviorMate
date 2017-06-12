@@ -8,25 +8,25 @@ public class AlternatingContextList extends ContextList {
     /**
      * store weither the context is currently active for this lap, or suspended
      */
-    private boolean suspended;
+    protected boolean suspended;
 
     /**
      * the color to display the context as in the UI on laps when it is not
      * suspended.
      */
-    private int display_color_active;
+    protected int display_color_active;
 
     /**
      * the color to display the context as on laps when it is suspended.
      */
-    private int display_color_suspended;
+    protected int display_color_suspended;
 
     /**
      * the index to count to in order to suspend the context.
      */
-    private int n_lap;
+    protected int n_lap;
     
-    private int offset_lap;
+    protected int offset_lap;
 
     /**
      * Constructor.
@@ -50,6 +50,18 @@ public class AlternatingContextList extends ContextList {
         this.display_color_suspended = color(100, 100, 100);
         this.n_lap = context_info.getInt("n_lap", 2);
         this.offset_lap = context_info.getInt("offset_lap", 0);
+    }
+
+
+    protected void suspend() {
+        this.suspended = true;
+        this.status = "suspended";
+        this.display_color = this.display_color_suspended;
+
+        if (this.active != -1) {
+            this.active = -1;
+            this.comm.sendMessage(this.stopString);
+        }
     }
 
     /**
