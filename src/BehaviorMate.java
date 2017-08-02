@@ -219,7 +219,7 @@ class TrialListener {
             JSONObject position_json = new JSONObject(position_info);
             if (position_json.isNull("serial_port")) {
                 System.out.println(
-                    "WARNING unable to confiure arduinoController");
+                    "WARNING unable to configure arduinoController");
                 return null;
             }
             send_port = position_json.getInt("send_port");
