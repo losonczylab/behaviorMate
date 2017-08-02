@@ -428,6 +428,33 @@ public class ContextList extends PApplet {
     /**
      * Check the state of the contexts contained in this list and send the
      * start/stop messages as necessary. this method gets called for each cycle
+     * of the event loop when a trial is started. written as a helper method to
+     * call check without lick_count. supports creating subclasses of
+     * ContextList with logic based on lick_count added.
+     *
+     * @param position   current position along the track
+     * @param time       time (in s) since the start of the trial
+     * @param lap        current lap number since the start of the trial
+     * @param lick_count current number of licks, this trial
+     * @param msg_buffer a Java array of type String to buffer and send messages
+     *                   to be logged in the the tdml file being written for
+     *                   this trial. messages should be placed in index 0 of the
+     *                   message buffer and must be JSON formatted strings.
+     * @return           returns true to indicate that the trial has started.
+     *                   Note: all messages to the behavior comm are sent from
+     *                   within this method returning true or false indicates
+     *                   the state of the context, but does not actually
+     *                   influence the connected arduinos or UI.
+     */
+    public boolean check(float position, float time, int lap, int lick_count,
+            String[] msg_buffer) {
+
+        check(position, time, lab, msg_buffer);
+    }
+
+    /**
+     * Check the state of the contexts contained in this list and send the
+     * start/stop messages as necessary. this method gets called for each cycle
      * of the event loop when a trial is started.
      *
      * @param position   current position along the track
