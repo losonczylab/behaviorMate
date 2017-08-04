@@ -449,7 +449,7 @@ public class ContextList extends PApplet {
     public boolean check(float position, float time, int lap, int lick_count,
             String[] msg_buffer) {
 
-        check(position, time, lab, msg_buffer);
+        return check(position, time, lap, msg_buffer);
     }
 
     /**
@@ -504,12 +504,15 @@ public class ContextList extends PApplet {
 
         // Ensure that the context has actually started and reset if necessary
         if ((this.waiting) && (time-this.sent > 2)) {
-            System.out.println("RESET CONTEXT " + this.tries);
             this.tries++;
             if (this.tries > 3) {
+                System.out.println("[" + this.id + "] RESET CONTEXT " +
+                                   this.tries);
                 this.tries = 0;
                 sendCreateMessages();
             } else {
+                System.out.println("[" + this.id + "] RESEND TO CONTEXT " +
+                                   this.tries);
                 if (!inZone) {
                     this.sent = time;
                     this.comm.sendMessage(this.stopString);
