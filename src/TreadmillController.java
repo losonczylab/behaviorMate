@@ -871,27 +871,13 @@ public class TreadmillController extends PApplet {
             if (!behavior_json.isNull("starting")) {
                 System.out.println("RESETTING COMMS");
                 try {
-                    //contexts = new ArrayList<ContextList>();
-                    //if (display != null) {
-                    //    display.resetContexts();
-                    //}
                     configure_sensors();
                     JSONObject valve_json = setup_valve_json(
                         settings_json.getInt("sync_pin"));
                     behavior_comm.sendMessage(valve_json.toString());
-                    //if (!settings_json.isNull("contexts")) {
-                        //JSONArray contexts_array = settings_json.getJSONArray(
-                        //    "contexts");
-                        //for (int j=0; j < contexts_array.size(); j++) {
-                            //JSONObject context_info = contexts_array.getJSONObject(j);
-                            //contexts.add(ContextsFactory.Create(this, display,
-                            //    context_info, track_length, behavior_comm,
-                            //    context_info.getString("class", "context")));
-                        //}
-                        for (int j=0; j<contexts.size(); j++) {
-                            contexts.get(j).sendCreateMessages();
-                        }
-                    //}
+                    for (int j=0; j<contexts.size(); j++) {
+                        contexts.get(j).sendCreateMessages();
+                    }
                 } catch (Exception e) {}
             }
 
@@ -1026,7 +1012,6 @@ public class TreadmillController extends PApplet {
                 }
 
                 trialListener.shutdown();
-                println("closing");
             }
       }));
     }
