@@ -23,11 +23,12 @@ public class VrContextList extends ContextList {
             UdpClient vr_client = new UdpClient(display_json.getString("ip"),
                 display_json.getInt("port"));
 
-            JSONObject view_json = new JSONObject();
-            view_json.setInt("viewAngle", display_json.getInt("view_angle"));
-            view_json.setInt("deflection", display_json.getInt("deflection"));
+            //JSONObject view_json = new JSONObject();
+            //view_json.setInt("viewAngle", display_json.getInt("view_angle"));
+            //view_json.setInt("deflection", display_json.getInt("deflection"));
             JSONObject msg_json = new JSONObject();
-            msg_json.setString("data", view_json.toString().replace("\n",""));
+            msg_json.setJSONObject(
+                "data", display_json.getJSONObject("cameraSetup"));
             msg_json.setString("type", "cameraSetup");
 
             vr_client.sendMessage(msg_json.toString());
