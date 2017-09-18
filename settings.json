@@ -255,7 +255,7 @@
                 "display_color": [0,104,204] // color to make display indicating
                                            // the location of this context
 
-            },
+            }
         ],
         "trial_length": -1, // duration (in s) of the trial. -1 allows the
                             // trial to run until stopped by the user or 
@@ -279,7 +279,7 @@
                 "cues": [
                     {
                         "type": "Arch",
-                        "z": [400, 1000, 2560, 5000],
+                        "z": [400, 1000, 2560, 5000]
                     },
                     {
                         "type": "Cube",
@@ -306,12 +306,12 @@
                     {
                         "type": "Rock2",
                         "z": [2450, 4200, 5500],
-                        "x": [ 40,   -40,   40],
-                    },
+                        "x": [ 40,   -40,   40]
+                    }
                 ]
-            },
+            }
         ]
-    }
+    },
     "attributes_example": {
         "uses": "example",
         // trial attrs allow for a custom form to overwrite settings or add
