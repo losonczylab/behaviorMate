@@ -23,7 +23,7 @@ public class FileWriter extends PApplet {
     String sep = "/";
     /** Date formate for appending to log file names*/
     SimpleDateFormat logNameFormat = new SimpleDateFormat("yyyyMMddHHmmss");
-  
+
     /**
      * Create a new FileWriter. Generates a new log file at a path defined by
      * the current time and the mouses name.
@@ -33,7 +33,7 @@ public class FileWriter extends PApplet {
      */
     public FileWriter(String pathname, String mouse, TrialListener tl) throws IOException {
         File directory = new File(pathname + sep + mouse);
-    
+
         println(directory);
         if (!directory.exists()) {
             directory.mkdirs();
@@ -48,7 +48,7 @@ public class FileWriter extends PApplet {
         wt = new WriterThread(logFile, tl);
         wt.start();
     }
-  
+
     public File getFile() {
         return new File(logFile.getAbsolutePath());
     }
@@ -63,7 +63,7 @@ public class FileWriter extends PApplet {
             try {
                 fos = new FileOutputStream(logFile, true);
                 osw = new OutputStreamWriter(fos);
- 
+
                 osw.write(
                     msg.replaceAll("[\r|\n]|\\s{2,}","") + "\n");
                 osw.close();
@@ -74,7 +74,7 @@ public class FileWriter extends PApplet {
         }
         */
         wt.queueMessage(msg);
-    } 
+    }
 
     public void close() {
         wt.stop_thread();
@@ -118,7 +118,7 @@ public class FileWriter extends PApplet {
                     }
                     messageBuffer = writeQueue.poll();
                 }
-                
+
                 try {
                     Thread.sleep(50);
                 } catch (InterruptedException e) {}
@@ -145,7 +145,7 @@ public class FileWriter extends PApplet {
             if (logFile != null) {
                 fos = new FileOutputStream(logFile, true);
                 osw = new OutputStreamWriter(fos);
- 
+
                 osw.write(
                     msg.replaceAll("[\r|\n]|\\s{2,}","") + "\n");
                 osw.close();

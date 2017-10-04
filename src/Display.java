@@ -87,13 +87,13 @@ public class Display extends PApplet {
     void setLapCount(int count) {
         lapCount = count;
     }
-    
+
     void setLickCount(int count) {
-        lickCount = count; 
+        lickCount = count;
     }
 
     void setRewardCount(int count) {
-        rewardCount = count; 
+        rewardCount = count;
     }
 
     void addReward() {
@@ -137,7 +137,7 @@ public class Display extends PApplet {
 
         this.pg.textSize(14);
         this.pg.text("Last Tag: ", text_offset, 80);
-        
+
         this.pg.fill(color(204,204,0));
         this.pg.rect(map_offset, 200, 300, 10);
 
@@ -165,15 +165,15 @@ public class Display extends PApplet {
         //t = app.millis();
 
         if (lickRate > 0) {
-            lickRate -= 5; 
+            lickRate -= 5;
         }
 
         if (lapRate > 0) {
-            lapRate -= 5; 
+            lapRate -= 5;
         }
 
         if (rewardRate > 0) {
-            rewardRate -= 5; 
+            rewardRate -= 5;
         }
 
         app.textSize(18);
@@ -183,9 +183,16 @@ public class Display extends PApplet {
         app.text(rewardCount, 135+text_offset, 60);
         app.text((int)time, 50+text_offset, 100);
         app.text(lapCount, 100+text_offset, 120);
+
+        if (time > 0) {
+            app.fill(color(204,0,0));
+            app.text("Recording", 20, 20);
+            app.fill(255);
+        }
+
         app.textSize(14);
         app.text(currentTag, 72+text_offset, 80);
-        
+
         app.fill(color(204,204,0));
         app.rect(map_offset, 200, 300, 10);
         int yoffset = 140;
@@ -200,7 +207,7 @@ public class Display extends PApplet {
                 app.text(list.getId() + ": "  + list.getStatus(), text_offset, yoffset+i*20);
                 continue;
             }
-            
+
             app.fill(list.displayColor());
             app.textSize(14);
             app.text(list.getId() + ": "  + list.getStatus(), text_offset, yoffset+i*20);

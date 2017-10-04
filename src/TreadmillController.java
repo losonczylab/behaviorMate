@@ -120,6 +120,8 @@ public class TreadmillController extends PApplet {
      */
     int trial_duration;
 
+    int lap_limit;
+
     /**
      * Indicates weither the trial has been started. used to evaluate if contexts
      * should be turned on as well if the file writer to be used.
@@ -646,6 +648,7 @@ public class TreadmillController extends PApplet {
         }
 
         trial_duration = settings_json.getInt("trial_length", -1);
+        lap_limit = settings_json.getInt("lap_limit", -1);
         position_scale = settings_json.getFloat("position_scale");
         track_length = settings_json.getFloat("track_length");
         lap_tag = settings_json.getString("lap_reset_tag", "");
@@ -728,6 +731,7 @@ public class TreadmillController extends PApplet {
 
         started = false;
         trial_duration = -1;
+        lap_limit = -1;
         position = -1;
         distance = 0;
         lap_count = 0;
@@ -922,6 +926,10 @@ public class TreadmillController extends PApplet {
     public void draw() {
         float time = timer.checkTime();;
         if ((trial_duration != -1) && (time > trial_duration)) {
+            endExperiment();
+        }
+
+        if ((lap_limit != -1) && (lap_count > lap_limit)) {
             endExperiment();
         }
 
