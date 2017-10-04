@@ -30,6 +30,9 @@ public final class ContextsFactory {
         } else if (class_name.equals( "timed_alt_context")) {
             return new TimedAltContextList(display, context_info,
                 track_length, comm);
+        } else if (class_name.equals( "scheduled_context")) {
+            return new ScheduledContextList(display, context_info,
+                track_length, comm);
         } else if (class_name.equals("vr")) {
             return new VrContextList(display, context_info, track_length);
         } else if (class_name.equals("salience")) {
