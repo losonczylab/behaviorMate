@@ -35,6 +35,8 @@ public final class ContextsFactory {
                 track_length, comm);
         } else if (class_name.equals("vr")) {
             return new VrContextList(display, context_info, track_length);
+        } else if (class_name.equals("vr_cues")) {
+            return new VrCueContextList(display, context_info, track_length);
         } else if (class_name.equals("salience")) {
             return new SalienceContextList(tc, display, context_info,
                 track_length, comm);

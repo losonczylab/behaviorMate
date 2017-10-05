@@ -666,12 +666,28 @@ public class TreadmillController extends PApplet {
         }
 
         if (!settings_json.isNull("contexts")) {
+            VrContextList vr_context = null;
+            ArrayList<VrCueContextList> cue_lists = new ArrayList<VrCueContextList>();;
             JSONArray contexts_array = settings_json.getJSONArray("contexts");
             for (int i=0; i < contexts_array.size(); i++) {
                 JSONObject context_info = contexts_array.getJSONObject(i);
                 contexts.add(ContextsFactory.Create(this, display, context_info,
                     track_length, behavior_comm,
                     context_info.getString("class", "context")));
+                String context_class = context_info.getString("class", "context");
+                if (context_class.equals("vr")) {
+                    vr_context = (VrContextList) contexts.get(contexts.size()-1);
+                } else if (context_class.equals("vr_cues")) {
+                    cue_lists.add((VrCueContextList) contexts.get(contexts.size()-1));
+                }
+            }
+
+            if (vr_context != null) {
+                System.out.println("VR LIST NOT NULL");
+                for (VrCueContextList cue_list : cue_lists) {
+                    cue_list.setVrContextList(vr_context);
+                    System.out.println("ADDING VR TO CUE LIST");
+                }
             }
         }
     }

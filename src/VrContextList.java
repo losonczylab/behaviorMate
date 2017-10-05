@@ -101,7 +101,39 @@ public class VrContextList extends ContextList {
 
     }
 
-    public boolean check(float position, float time, int lap, String[] msg_buffer) {
+    public void addCues(JSONArray cues, String list_name) {
+        sendMessage(this.startString);
+
+        JSONObject createMessage = new JSONObject();
+        createMessage.setString("type", "cues");
+        createMessage.setString("action", "create");
+        createMessage.setString("list_name", list_name);
+        createMessage.setJSONArray("cues", cues);
+        sendMessage(createMessage.toString());
+
+        if (this.active == -1) {
+            sendMessage(this.stopString);
+        }
+    }
+
+    public void clearCueList(String list_name) {
+        if (this.active == -1) {
+            sendMessage(this.startString);
+        }
+
+        JSONObject clearMessage = new JSONObject();
+        clearMessage.setString("type", "cues");
+        clearMessage.setString("action", "clear");
+        clearMessage.setString("list_name", list_name);
+        sendMessage(clearMessage.toString());
+
+        if (this.active == -1) {
+            sendMessage(this.stopString);
+        }
+    }
+
+    public boolean check(float position, float time, int lap,
+                         String[] msg_buffer) {
         boolean inZone = false;
         int i=0;
         for (; i < this.contexts.size(); i++) {
@@ -113,7 +145,8 @@ public class VrContextList extends ContextList {
 
         if ((this.active != -1) && (position != previous_location)) {
             position_data.setFloat("y", position);
-            position_json.setString("data", position_data.toString().replace("\n",""));
+            position_json.setString(
+                "data", position_data.toString().replace("\n",""));
 
             sendMessage(position_json.toString());
             previous_location = position;
