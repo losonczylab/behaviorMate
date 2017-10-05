@@ -27,6 +27,9 @@ public final class ContextsFactory {
         if (class_name.equals( "alternating_context")) {
             return new AlternatingContextList(display, context_info,
                 track_length, comm);
+        } else if (class_name.equals( "random_context")) {
+            return new RandomContextList(display, context_info,
+                track_length, comm);
         } else if (class_name.equals( "timed_alt_context")) {
             return new TimedAltContextList(display, context_info,
                 track_length, comm);

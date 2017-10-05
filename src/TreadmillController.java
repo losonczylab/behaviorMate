@@ -185,8 +185,8 @@ public class TreadmillController extends PApplet {
 
     /**
      * Starts a new experiment. Linked to clicking the "Start" button on the UI.
-     * Creates a New Log file, makes the initial entries, plays a tone (if specified
-     * in the settings), starts the timer, and triggers the sync pin to start
+     * Creates a New Log file, makes the initial entries,
+     * starts the timer, and triggers the sync pin to start
      * imaging.
      */
     public boolean Start(String mouse_name, String experiment_group) {
@@ -410,6 +410,7 @@ public class TreadmillController extends PApplet {
         JSONObject valve_subjson = new JSONObject();
         valve_subjson.setInt("pin", pin);
         valve_subjson.setInt("frequency", frequency);
+        valve_subjson.setString("type", "tone");
         valve_subjson.setString("action", "create");
         valve_json.setJSONObject("valves", valve_subjson);
 
@@ -448,6 +449,29 @@ public class TreadmillController extends PApplet {
         valve_subjson.setInt("pin", pin);
         valve_subjson.setString("action","open");
         valve_subjson.setInt("duration",duration);
+        valve_json.setJSONObject("valves", valve_subjson);
+
+        return valve_json;
+    }
+
+    /**
+     * Generates the JSONObject necessary to start a tone. Assumes that the
+     * tone has already been configured.
+     *
+     * @param  pin      the pin number of the valve to open
+     * @param  duration duration to keep the valve open for (milli-seconds)
+     * @param  frequency  frequency of the tone to play (in Hz)
+     * @return          the JSONOBject which will open the valve when sent to
+     *                  arduino
+     */
+    static JSONObject open_valve_json(int pin, int duration, int frequency) {
+        JSONObject valve_json = new JSONObject();
+        JSONObject valve_subjson = new JSONObject();
+
+        valve_subjson.setInt("pin", pin);
+        valve_subjson.setString("action", "open");
+        valve_subjson.setInt("duration", duration);
+        valve_subjson.setInt("frequency", frequency);
         valve_json.setJSONObject("valves", valve_subjson);
 
         return valve_json;
