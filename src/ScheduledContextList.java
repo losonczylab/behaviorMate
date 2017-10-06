@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 import processing.data.JSONObject;
 import processing.data.JSONArray;
 
@@ -25,11 +27,8 @@ public class ScheduledContextList extends ContextList {
     /**
      * the index to count to in order to suspend the context.
      */
-    protected int n_lap;
 
-    protected int lap_idx;
-
-    protected int[] lap_list;
+    protected ArrayList<Integer> lap_list;
 
     /**
      * Constructor.
@@ -58,17 +57,11 @@ public class ScheduledContextList extends ContextList {
         }
 
         if (lap_array != null) {
-            this.lap_list = new int[lap_array.size()];
+            this.lap_list = new ArrayList<Integer>();
             for (int i=0; i < lap_array.size(); i++) {
-                this.lap_list[i] = lap_array.getInt(i);
+                this.lap_list.add(lap_array.getInt(i));
             }
-
-            this.n_lap = lap_list[0];
-        } else {
-            this.n_lap = -1;
         }
-
-        this.lap_idx = 0;
     }
 
 
@@ -107,7 +100,7 @@ public class ScheduledContextList extends ContextList {
 
         // check if the lap count means that the context list should be
         // suspended or unsuspended.
-        if ((lap != this.n_lap) && !suspended) {
+        if ((this.lap_list.indexOf(lap) == -1) && !suspended) {
             this.suspended = true;
             this.status = "suspended";
             this.display_color = this.display_color_suspended;
@@ -116,15 +109,7 @@ public class ScheduledContextList extends ContextList {
                 this.active = -1;
                 this.comm.sendMessage(this.stopString);
             }
-            if ((this.n_lap != -1) && (lap > this.n_lap)) {
-                this.lap_idx++;
-                if (this.lap_idx >= this.lap_list.length) {
-                    this.n_lap = -1;
-                } else {
-                    this.n_lap = this.lap_list[this.lap_idx];
-                }
-            }
-        } else if ((lap == this.n_lap) && suspended) {
+        } else if ((this.lap_list.indexOf(lap) != -1) && suspended) {
             this.suspended = false;
             this.status = "stopped";
             this.display_color = this.display_color_active;
