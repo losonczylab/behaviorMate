@@ -809,6 +809,12 @@ public class TreadmillController extends PApplet {
             JSONObject position_json =
                 json_buffer.json.getJSONObject(position_comm.address);
 
+            if (!position_json.isNull("lap_reset")) {
+                position = 0;
+                dy=0;
+                resetLap("", time);
+            }
+
             if (!position_json.isNull("position")) {
                 dy += position_json.getJSONObject("position").getFloat("dy", 0);
             } else if (started) {
