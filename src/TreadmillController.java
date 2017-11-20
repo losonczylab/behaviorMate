@@ -122,6 +122,10 @@ public class TreadmillController extends PApplet {
 
     int lap_limit;
 
+    boolean position_reset;
+
+    int lap_offset;
+
     /**
      * Indicates weither the trial has been started. used to evaluate if contexts
      * should be turned on as well if the file writer to be used.
@@ -657,6 +661,9 @@ public class TreadmillController extends PApplet {
         } else {
             lap_tolerance = 0;
         }
+        lap_offset = settings_json.getInt("lap_offset", 0);
+        position_reset = settings_json.getBoolean(
+            "position_lap_reader", false);
 
         JSONObject behavior_json = settings_json.getJSONObject(
             "behavior_controller");
@@ -746,6 +753,8 @@ public class TreadmillController extends PApplet {
         frameRate(120);
 
         started = false;
+        lap_offset = 0;
+        position_reset = false;
         trial_duration = -1;
         lap_limit = -1;
         position = -1;
@@ -809,9 +818,10 @@ public class TreadmillController extends PApplet {
             JSONObject position_json =
                 json_buffer.json.getJSONObject(position_comm.address);
 
-            if (!position_json.isNull("lap_reset")) {
-                position = 0;
-                dy=0;
+            if (position_reset && (!position_json.isNull("lap_reset"))) {
+                display.setCurrentTag("");
+                position = lap_offset;
+                dy = 0;
                 resetLap("", time);
             }
 
