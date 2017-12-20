@@ -20,6 +20,7 @@ import java.awt.GridBagConstraints;
 import java.awt.Dimension;
 import java.util.Iterator;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.lang.StringBuilder;
 
 import org.json.JSONObject;
@@ -32,6 +33,7 @@ import java.lang.NumberFormatException;
 import org.json.JSONException;
 import java.io.IOException;
 import java.io.FileNotFoundException;
+import java.util.zip.DataFormatException;
 
 import processing.awt.PSurfaceAWT.SmoothCanvas;
 import processing.core.PApplet;
@@ -179,12 +181,79 @@ class TrialListener {
     private Process position_controller;
     private String position_settings;
 
+    class ArduinoProcess {
+        private String arduino_controller_path;
+        private Process p;
+        private String settings;
+
+        public ArduinoProcess(String arduino_controller_path, String settings)
+                throws JSONException, DataFormatException {
+            this.settings = createArduinoSettings(settings);
+            this.arduino_controller_path = arduino_controller_path;
+            startProcess();
+        }
+
+        public void destroy() {
+            if (this.p != null) {
+                if (this.p.isAlive()) {
+                    this.p.destroy();
+                }
+                this.p = null;
+            }
+        }
+
+        private String createArduinoSettings(String controller_info)
+                throws JSONException, DataFormatException {
+            JSONObject controller_json = new JSONObject(controller_info);
+
+            if (controller_json.isNull("serial_port")) {
+                throw new DataFormatException(
+                    "Serial Port needs to be specified in order to start " +
+                    "arduino controller process");
+            } else {
+                System.out.println(
+                    "configuring " + controller_json.get("serial_port"));
+            }
+
+            int send_port = controller_json.getInt("send_port");
+            controller_json.put("send_port",
+                controller_json.getInt("receive_port"));
+            controller_json.put("receive_port", send_port);
+
+            controller_info = "\"" + controller_json.toString().replace(
+                "\\", "\\\\").replace("\"", "\\\"") + "\"";
+
+            return controller_info;
+        }
+
+        public void startProcess() {
+            String[] cmd = {arduino_controller_path, "", ""};
+            if (this.settings != null) {
+                cmd[1] = "-settings";
+                cmd[2] = this.settings;
+            } else {
+                exception("unable to parse arduino controller settings");
+            }
+
+            try {
+                this.p = Runtime.getRuntime().exec(cmd);
+            } catch (Exception e) {
+                System.out.println(e);
+                exception(e.toString());
+            }
+        }
+    }
+
+    private HashMap<String, ArduinoProcess> arduino_controllers;
+
+
     public TrialListener() {
         controlPanel = null;
         commentsBox = null;
         arduino_controller = null;
         position_controller = null;
         arduino_controller_path = null;
+        arduino_controllers = null;
     }
 
     public void setControlPanel(ControlPanel controlPanel) {
@@ -199,99 +268,41 @@ class TrialListener {
         this.controller = controller;
     }
 
-    private String createArduinoSettings(String controller_info)
-            throws JSONException {
-        JSONObject controller_json = new JSONObject(controller_info);
-
-        if (controller_json.isNull("serial_port")) {
-            System.out.println(
-                "WARNING unable to confiure arduinoController");
-            return null;
-        }
-        int send_port = controller_json.getInt("send_port");
-        controller_json.put("send_port",
-            controller_json.getInt("receive_port"));
-        controller_json.put("receive_port", send_port);
-
-        controller_info = "\"" + controller_json.toString().replace(
-            "\\", "\\\\").replace("\"", "\\\"") + "\"";
-
-        return controller_info;
-    }
-
     public void setArduinoController(String arduino_path,
-            String position_controller, String behavior_controller) {
-        if ((arduino_path != null) &&
-                ((this.arduino_controller_path == null) ||
-                 (!this.arduino_controller_path.equals(arduino_path)))) {
-
-            if (this.arduino_controller != null) {
-                this.arduino_controller.destroy();
+            JSONObject controllers) {
+        if (arduino_controllers != null) {
+            for (ArduinoProcess process : arduino_controllers.values()) {
+                process.destroy();
             }
 
-            if (this.position_controller != null) {
-                this.position_controller.destroy();
-            }
-
-            this.controller_settings = null;
-            this.position_settings = null;
-            try {
-                this.controller_settings = createArduinoSettings(
-                    behavior_controller);
-            } catch (JSONException e) {
-                //TODO: alert e
-                System.out.println(e.toString());
-            }
-            try {
-                this.position_settings = createArduinoSettings(
-                    position_controller);
-            } catch (JSONException e) {
-                //TODO: alert e
-                System.out.println(e.toString());
-            }
-
-            String[] cmd = {arduino_path, "", ""};
-            if (this.controller_settings != null) {
-                cmd[1] = "-settings";
-                cmd[2] = this.controller_settings;
-            }
-
-            try {
-                this.arduino_controller = Runtime.getRuntime().exec(cmd);
-            } catch (Exception e) {
-                System.out.println(e);
-                exception(e.toString());
-            }
-
-            if (this.position_settings != null) {
-                cmd[1] = "-settings";
-                cmd[2] = this.position_settings;
-            } else {
-                cmd[1] = "";
-                cmd[2] = "";
-            }
-
-            try {
-                this.position_controller = Runtime.getRuntime().exec(cmd);
-            } catch (Exception e) {
-                System.out.println(e);
-                exception(e.toString());
-            }
-
-        } else if (arduino_path == null) {
-            if  (this.arduino_controller != null) {
-                this.arduino_controller.destroy();
-                this.arduino_controller = null;
-            }
-            if  (this.position_controller != null) {
-                this.position_controller.destroy();
-                this.position_controller = null;
+            if (arduino_path == null) {
+                arduino_controllers = null;
             }
         }
 
-        this.arduino_controller_path = arduino_path;
+        if (arduino_path != null) {
+            if (arduino_controllers == null) {
+                arduino_controllers = new HashMap<String, ArduinoProcess>();
+            }
+
+            for (Iterator<String> itr=controllers.keys(); itr.hasNext();) {
+                String controller_key = itr.next();
+                try {
+                    arduino_controllers.put(controller_key,
+                        new ArduinoProcess(arduino_path, 
+                            controllers.get(controller_key).toString()));
+                } catch (Exception e) {
+                    System.out.println(e.toString());
+                    exception(controller_key + " Exception: " + e.toString());
+                }
+            }
+        }
     }
 
+    public void setArduinoController(String arduino_path, String controllers)
+            throws JSONException {
+        setArduinoController(arduino_path, new JSONObject(controllers));
+    }
 
     public void started(File logFile) {
         if (commentsBox != null) {
@@ -315,43 +326,30 @@ class TrialListener {
     }
 
     public void exception(String message) {
-        controller.endExperiment();
-        message = new StringBuilder(message).insert(100, "\n").toString();
+        this.controller.endExperiment();
+        if (message.length() > 100) {
+            message = new StringBuilder(message).insert(100, "\n").toString();
+        }
         JOptionPane.showMessageDialog(null, message);
     }
 
     public void resetComms() {
-        if ((arduino_controller != null) && (arduino_controller.isAlive())) {
-            arduino_controller.destroy();
-            arduino_controller = null;
-
-
-            String[] cmd = {this.arduino_controller_path, "", ""};
-            if (this.controller_settings != null) {
-                cmd[1] = "-settings";
-                cmd[2] = this.controller_settings;
-            }
-
-            try {
-                arduino_controller = Runtime.getRuntime().exec(cmd);
-            } catch (Exception e) {
-                System.out.println(e);
+        if (arduino_controllers != null) {
+            for (ArduinoProcess process : arduino_controllers.values()) {
+                process.destroy();
+                process.startProcess();
             }
         } else {
             System.out.println("SOFT RESET");
-            controller.resetArduino();
+            this.controller.resetArduino();
         }
-
     }
 
     public void shutdown() {
-        if ((arduino_controller != null) && (arduino_controller.isAlive())) {
-            System.out.println("DESTROY ARDUINO CONTROLLER");
-            this.arduino_controller.destroy();
-        }
-        if ((position_controller != null) && (position_controller.isAlive())) {
-            System.out.println("DESTROY POSITION CONTROLLER");
-            this.position_controller.destroy();
+        if (arduino_controllers != null) {
+            for (ArduinoProcess process : arduino_controllers.values()) {
+                process.destroy();
+            }
         }
     }
 }
@@ -857,11 +855,12 @@ public class BehaviorMate {
         String settingsFile = settingsLoader.getSelectedFile();
         String settingsTag = settingsLoader.getSelectedTag();
         JSONObject settings = null;
+        TrialListener tl = new TrialListener();
 
         try {
             settings = ControlPanel.findSettings(settingsFile, settingsTag);
         } catch(JSONException e) {
-            //TODO: alert e
+            tl.exception(e.toString());
             System.out.println(e.toString());
         }
         JSONObject system_settings = parseJsonFile(settingsFile, "_system");
@@ -873,7 +872,6 @@ public class BehaviorMate {
         JPanel frame_container = new JPanel(new BorderLayout());
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        TrialListener tl = new TrialListener();
 
         TreadmillController treadmillController;
 
@@ -885,23 +883,55 @@ public class BehaviorMate {
         tl.setControlPanel(control_panel);
         tl.setController(treadmillController);
 
-        String position_controller = null;
-        String behavior_controller = null;
+        //TODO: remove this? ..controllers are set up from withon
+        // TredmillController this block of code appears to be starting them
+        // a second time on the initial loading.
+
+        /*
         if (!system_settings.isNull("arduino_controller")) {
+            JSONObject controllers = null;
             String process_path = null;
             try {
                 process_path = system_settings.getString("arduino_controller");
-                position_controller = settings.getJSONObject(
-                    "position_controller").toString();
-                behavior_controller = settings.getJSONObject(
-                    "behavior_controller").toString();
+
+                if (settings.isNull("controllers")) {
+                    controllers = new JSONObject();
+                } else {
+                    controllers = settings.getJSONObject("controllers");
+                }
+
+                if (controllers.isNull("position_controller")) {
+                    if (!settings.isNull("position_controller")) {
+                        controllers.put(
+                            "position_controller", settings.getJSONObject(
+                                "position_controller"));
+                    } else {
+                        tl.exception("position controller not specified");
+                    }
+                }
+
+                if (controllers.isNull("behavior_controller")) {
+                    if (!settings.isNull("behavior_controller")) {
+                        controllers.put(
+                            "behavior_controller", settings.getJSONObject(
+                                "behavior_controller"));
+                    } else {
+                        tl.exception("behavior controller not specified");
+                    }
+                }
             } catch (JSONException e) {
-                System.out.println(e);
+                System.out.println(e.toString());
+                tl.exception(e.toString());
             }
 
-            tl.setArduinoController(process_path, position_controller,
-                behavior_controller);
-        }
+            if ((process_path == null) || (controllers == null)) {
+                tl.exception("unable start arduino controller processes");
+            } else {
+                tl.setArduinoController(process_path, controllers);
+            }
+        } else {
+            tl.exception("arduino controller path not specified");
+        }*/
 
         frame_container.add(control_panel, BorderLayout.CENTER);
 

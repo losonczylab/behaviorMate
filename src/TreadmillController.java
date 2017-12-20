@@ -52,6 +52,9 @@ public class TreadmillController extends PApplet {
      */
     UdpClient behavior_comm;
 
+    //TODO: incorporate behavior_comm and position_comm into this list?
+    ArrayList<UdpClient> comms;
+
     /**
      * object showing the current state of the trial.
      */
@@ -338,6 +341,9 @@ public class TreadmillController extends PApplet {
         //TODO: diff and only reconfigure if an update is made
         behavior_comm.closeSocket();
         position_comm.closeSocket();
+        for (UdpClient c : comms) {
+            c.closeSocket();
+        }
         delay(500);
 
         reconfigureExperiment();
@@ -366,6 +372,11 @@ public class TreadmillController extends PApplet {
         if (position_comm != null) {
             position_comm.closeSocket();
         }
+
+        for (UdpClient c: comms) {
+            c.closeSocket();
+        }
+
         delay(500);
 
         reload_settings();
@@ -622,7 +633,8 @@ public class TreadmillController extends PApplet {
     }
 
 
-    void reload_settings(JSONObject settings_json, JSONObject system_json) throws Exception {
+    void reload_settings(JSONObject settings_json, JSONObject system_json)
+            throws Exception {
         this.settings_json = settings_json;
         system_json = this.system_json;
         reconfigureExperiment();
@@ -665,26 +677,74 @@ public class TreadmillController extends PApplet {
         position_reset = settings_json.getBoolean(
             "position_lap_reader", false);
 
-        JSONObject behavior_json = settings_json.getJSONObject(
-            "behavior_controller");
-        JSONObject position_json = settings_json.getJSONObject(
-            "position_controller");
+        JSONObject controllers;
+        if (!settings_json.isNull("controllers")) {
+            controllers = settings_json.getJSONObject("controllers");
+        } else {
+            controllers = new JSONObject();
+        }
+
+        if (controllers.isNull("behavior_controller")) {
+            controllers.setJSONObject(
+                "behavior_controller", settings_json.getJSONObject(
+                    "behavior_controller"));
+            settings_json.remove("behavior_controller");
+        }
+
+        if (controllers.isNull("position_controller")) {
+            controllers.setJSONObject(
+                "position_controller", settings_json.getJSONObject(
+                    "position_controller"));
+            settings_json.remove("position_controller");
+        }
+
         trialListener.setArduinoController(
             system_json.getString("arduino_controller", null),
-            position_json.toString(), behavior_json.toString());
+            controllers.toString());
 
-        behavior_comm = new UdpClient(behavior_json
-            .getInt("send_port"), behavior_json.getInt("receive_port"));
-        behavior_json.setString("address", behavior_comm.address);
-        settings_json.setJSONObject("behavior_controller", behavior_json);
-        position_comm = new UdpClient(position_json
-            .getInt("send_port"), position_json.getInt("receive_port"));
-        position_json.setString("address", position_comm.address);
-        settings_json.setJSONObject("position_controller", position_json);
+        /*
+        if (!controllers.isNull("behavior_controller")) {
+            JSONObject behavior_json = controllers.getJSONObject(
+                "behavior_controller");
+            behavior_comm = new UdpClient(behavior_json.getInt("send_port"),
+                                          behavior_json.getInt("receive_port"));
+            behavior_json.setString("address", behavior_comm.address);
+            settings_json.setJSONObject("behavior_controller", behavior_json);
+        }
+
+        if (!controllers.isNull("position_controller")) {
+            JSONObject position_json = controllers.getJSONObject(
+                "position_controller");
+            position_comm = new UdpClient(position_json.getInt("send_port"),
+                                          position_json.getInt("receive_port"));
+            position_json.setString("address", position_comm.address);
+            settings_json.setJSONObject("position_controller", position_json);
+        }
+        */
+
+        for (Object comm_key_o : controllers.keys()) {
+            String comm_key = (String)comm_key_o;
+            System.out.println(comm_key);
+            JSONObject controller_json = controllers.getJSONObject(comm_key);
+            UdpClient comm = new UdpClient(
+                controller_json.getInt("send_port"),
+                controller_json.getInt("receive_port"));
+            controller_json.setString("address", comm.address);
+            controllers.setJSONObject(comm_key, controller_json);
+            if (comm_key.equals("position_controller")) {
+                position_comm = comm;
+            } else if (comm_key.equals("behavior_controller")) {
+                behavior_comm = comm;
+            } else {
+                comms.add(comm);
+            }
+        }
+        settings_json.setJSONObject("controllers", controllers);
 
         configure_sensors();
 
-        JSONObject valve_json = setup_valve_json(settings_json.getInt("sync_pin"));
+        JSONObject valve_json = setup_valve_json(
+            settings_json.getInt("sync_pin"));
         behavior_comm.sendMessage(valve_json.toString());
         display.setTrackLength(track_length);
 
@@ -770,6 +830,7 @@ public class TreadmillController extends PApplet {
 
         position_comm = null;
         behavior_comm = null;
+        comms = new ArrayList<UdpClient>();
         prepareExitHandler();
         trialListener.initialized();
     }
@@ -802,6 +863,23 @@ public class TreadmillController extends PApplet {
         }
     }
 
+
+    protected void checkMessages(UdpClient comm, float time) {
+
+        for (int i=0; ((i < 10) && (comm.receiveMessage(json_buffer))); i++) {
+            JSONObject message_json =
+                json_buffer.json.getJSONObject(comm.address);
+
+            if (started) {
+                json_buffer.json.setFloat("time", time);
+                fWriter.write(json_buffer.json.toString());
+            } else {
+                System.out.println("WARNING! message received, " +
+                                   "trial not recording");
+                System.out.println(json_buffer.json.toString());
+            }
+        }
+    }
 
     protected float updatePosition(float time) {
         if (position_comm == null) {
@@ -868,11 +946,9 @@ public class TreadmillController extends PApplet {
             return;
         }
 
-        for (int i=0; ((i < 10) && (behavior_comm.receiveMessage(json_buffer)))
-                ; i++) {
+        for (int i=0; ((i < 10) && (behavior_comm.receiveMessage(json_buffer)));
+                i++) {
 
-        //if ((behavior_comm != null) &&
-        //        ((behavior_comm.receiveMessage(json_buffer)))) {
             JSONObject behavior_json =
                 json_buffer.json.getJSONObject(behavior_comm.address);
 
@@ -885,9 +961,11 @@ public class TreadmillController extends PApplet {
 
             if (!behavior_json.isNull("valve")) {
                 JSONObject valveJson = behavior_json.getJSONObject("valve");
-                if (valveJson.getString(""+reward_valve, "close").equals("open")) {
-                    display.setMouseName("ERROR!!!! arduino code is out of date");
-                } else if ((valveJson.getInt("pin", -1) == reward_valve) &&          // This check is needed for new arduino syntax
+                if (valveJson.getString(
+                        ""+reward_valve, "close").equals("open")) {
+                    display.setMouseName(
+                        "ERROR!!!! arduino code is out of date");
+                } else if ((valveJson.getInt("pin", -1) == reward_valve) &&
                         valveJson.getString("action", "close").equals("open")) {
                     display.addReward();
                 }
@@ -978,6 +1056,10 @@ public class TreadmillController extends PApplet {
         }
 
         updateBehavior(time);
+
+        for (UdpClient c: comms) {
+            checkMessages(c, time);
+        }
 
         int t = millis();
         int display_check = t-display_update;
