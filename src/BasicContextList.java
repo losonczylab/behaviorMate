@@ -471,9 +471,6 @@ public class BasicContextList extends PApplet implements ContextList {
         boolean inZone = false;
         int i=0;
 
-        //TODO: REMOVE THIS
-        this.waiting = false;
-
         // This loop checks to see if any of the individual contexts are
         // triggered to be active both in space and time
         for (; i < this.contexts.size(); i++) {
