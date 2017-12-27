@@ -3,7 +3,7 @@ import processing.data.JSONObject;
 /**
  * AlternatingContextList class. Disables contexts based on lap count.
  */
-public class AlternatingContextList extends ContextList {
+public class AlternatingContextList extends BasicContextList {
 
     /**
      * store weither the context is currently active for this lap, or suspended
@@ -14,24 +14,23 @@ public class AlternatingContextList extends ContextList {
      * the color to display the context as in the UI on laps when it is not
      * suspended.
      */
-    protected int display_color_active;
+    protected int[] display_color_active;
 
     /**
      * the color to display the context as on laps when it is suspended.
      */
-    protected int display_color_suspended;
+    protected int[] display_color_suspended;
 
     /**
      * the index to count to in order to suspend the context.
      */
     protected int n_lap;
-    
+
     protected int offset_lap;
 
     /**
      * Constructor.
      *
-     * @param display      display object which controlls the UI
      * @param context_info json object containing the configureation information
      *                     for this context from the settings.json file.
      *                     context_info should have the parameter <tt>n_lap</tt>
@@ -42,18 +41,18 @@ public class AlternatingContextList extends ContextList {
      * @param comm         client to post messages which configure as well as
      *                     starts and stop the context
      */
-    public AlternatingContextList(Display display, JSONObject context_info,
+    public AlternatingContextList(JSONObject context_info,
             float track_length, UdpClient comm) {
-        super(display, context_info, track_length, comm);
+        super(context_info, track_length, comm);
         this.suspended = false;
         this.display_color_active = display_color;
-        this.display_color_suspended = color(100, 100, 100);
+        this.display_color_suspended = new int[] {100, 100, 100};
         this.n_lap = context_info.getInt("n_lap", 2);
         this.offset_lap = context_info.getInt("offset_lap", 0);
     }
 
 
-    protected void suspend() {
+    public void suspend() {
         this.suspended = true;
         this.status = "suspended";
         this.display_color = this.display_color_suspended;

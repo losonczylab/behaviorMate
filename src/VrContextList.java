@@ -4,16 +4,16 @@ import processing.data.JSONObject;
 import processing.data.JSONArray;
 import java.util.ArrayList;
 
-public class VrContextList extends ContextList {
+public class VrContextList extends BasicContextList {
     private float previous_location;
     private UdpClient[] comms;
     private JSONObject position_json;
     private JSONObject position_data;
     private JSONObject log_json;
 
-    public VrContextList(Display display, JSONObject context_info,
+    public VrContextList(JSONObject context_info,
             float track_length) throws Exception {
-        super(display, context_info, track_length, null);
+        super(context_info, track_length, null);
         JSONObject displays = context_info.getJSONObject("display_controllers");
 
         this.comms = new UdpClient[displays.size()];
@@ -23,9 +23,6 @@ public class VrContextList extends ContextList {
             UdpClient vr_client = new UdpClient(display_json.getString("ip"),
                 display_json.getInt("port"));
 
-            //JSONObject view_json = new JSONObject();
-            //view_json.setInt("viewAngle", display_json.getInt("view_angle"));
-            //view_json.setInt("deflection", display_json.getInt("deflection"));
             JSONObject msg_json = new JSONObject();
             msg_json.setJSONObject(
                 "data", display_json.getJSONObject("cameraSetup"));
@@ -40,18 +37,6 @@ public class VrContextList extends ContextList {
         }
         this.previous_location = 0;
     }
-
-    /*
-    public VrContextList(Display display, int display_color) {
-        super(display, display_color);
-        this.previous_location = 0;
-    }
-
-    public VrContextList(int duration, int radius, int display_color) {
-        super(duration, radius, display_color);
-        this.previous_location = 0;
-    }
-    */
 
     public void setComms(UdpClient[] comms) {
         this.comms = comms;

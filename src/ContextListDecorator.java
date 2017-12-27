@@ -1,8 +1,9 @@
 
-public abstract ContextListDecorator {
+public class ContextListDecorator implements ContextList {
+
     protected ContextList context_list;
 
-    public void ContextListDecorator(ContextList context_list) {
+    public ContextListDecorator(ContextList context_list) {
         this.context_list = context_list;
     }
 
@@ -26,7 +27,7 @@ public abstract ContextListDecorator {
         return this.context_list.displayRadius();
     }
 
-    public int displayColor() {
+    public int[] displayColor() {
         return this.context_list.displayColor();
     }
 
@@ -58,17 +59,30 @@ public abstract ContextListDecorator {
         return this.context_list.toList();
     }
 
-    public boolean check(float position, float time, int lap, int lick_count,
-                         String[] msg_buffer) {
+    public boolean check(float position, float time, int lap,
+                         int lick_count, String[] msg_buffer) {
 
         return this.context_list.check(position, time, lap, lick_count,
-            msg_buffer);
+                                       msg_buffer);
     }
 
     public boolean check(float position, float time, int lap,
                          String[] msg_buffer) {
 
-        return this.context_list.check(position, time, lap, msg_buffer);
+        return this.context_list.check(position, time, lap,
+                                       msg_buffer);
+    }
+
+    public void reset() {
+        this.context_list.reset();
+    }
+
+    public boolean isActive() {
+        return this.context_list.isActive();
+    }
+
+    public void suspend() {
+        this.context_list.suspend();
     }
 
     public void stop(float time, String[] msg_buffer) {

@@ -4,7 +4,7 @@ import processing.data.JSONObject;
 import processing.data.JSONArray;
 import java.util.ArrayList;
 
-public class VrCueContextList extends ContextList {
+public class VrCueContextList extends BasicContextList {
     private JSONObject log_json;
 
     private JSONArray cues;
@@ -12,9 +12,9 @@ public class VrCueContextList extends ContextList {
 
     protected ArrayList<Integer> lap_list;
 
-    public VrCueContextList(Display display, JSONObject context_info,
+    public VrCueContextList(JSONObject context_info,
             float track_length) throws Exception {
-        super(display, context_info, track_length, null);
+        super(context_info, track_length, null);
 
         this.cues = context_info.getJSONArray("cues");
         this.vr = null;

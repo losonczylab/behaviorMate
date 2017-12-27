@@ -6,7 +6,7 @@ import processing.data.JSONArray;
 /**
  * ScheduledContextList class. Disables contexts based on lap count.
  */
-public class ScheduledContextList extends ContextList {
+public class ScheduledContextList extends BasicContextList {
 
     /**
      * store weither the context is currently active for this lap, or suspended
@@ -17,12 +17,12 @@ public class ScheduledContextList extends ContextList {
      * the color to display the context as in the UI on laps when it is not
      * suspended.
      */
-    protected int display_color_active;
+    protected int[] display_color_active;
 
     /**
      * the color to display the context as on laps when it is suspended.
      */
-    protected int display_color_suspended;
+    protected int[] display_color_suspended;
 
     /**
      * the index to count to in order to suspend the context.
@@ -44,12 +44,12 @@ public class ScheduledContextList extends ContextList {
      * @param comm         client to post messages which configure as well as
      *                     starts and stop the context
      */
-    public ScheduledContextList(Display display, JSONObject context_info,
+    public ScheduledContextList(JSONObject context_info,
             float track_length, UdpClient comm) {
-        super(display, context_info, track_length, comm);
+        super(context_info, track_length, comm);
         this.suspended = false;
         this.display_color_active = display_color;
-        this.display_color_suspended = color(100, 100, 100);
+        this.display_color_suspended = new int[] {100, 100, 100};
 
         JSONArray lap_array = null;
         if (!context_info.isNull("lap_list")) {
@@ -65,7 +65,7 @@ public class ScheduledContextList extends ContextList {
     }
 
 
-    protected void suspend() {
+    public void suspend() {
         this.suspended = true;
         this.status = "suspended";
         this.display_color = this.display_color_suspended;

@@ -26,8 +26,6 @@ public class Display extends PApplet {
     private int tag_offset;
     private String schedule;
     private ArrayList<ContextList> contextsContainer;
-    private String reward_status;
-    private String laser_status;
     private PGraphics pg;
 
     public Display() {
@@ -44,8 +42,6 @@ public class Display extends PApplet {
         currentTag = "";
         mouseName = "";
         displayScale = 300.0f/1.0f;
-        this.reward_status = "stopped";
-        this.laser_status = "stopped";
         this.laser_radius = 0;
         contextsContainer = new ArrayList<ContextList>();
 
@@ -113,14 +109,6 @@ public class Display extends PApplet {
     public void setContextLocations(ContextList contexts) {
         contexts.setDisplayScale(this.displayScale);
         contextsContainer.add(contexts);
-    }
-
-    void setContextStatus(String id, String status) {
-        if (id.equals("hidden_reward")) {
-            this.reward_status = status;
-        } else if (id.equals("laser_context")) {
-            this.laser_status = status;
-        }
     }
 
     void prepGraphics(PApplet app) {
@@ -201,16 +189,20 @@ public class Display extends PApplet {
                 yoffset += 40;
             }
             ContextList list = contextsContainer.get(i);
-            if (list.display_color == -1) {
+            if (list.displayColor() == null) {
                 app.fill(255);
                 app.textSize(14);
-                app.text(list.getId() + ": "  + list.getStatus(), text_offset, yoffset+i*20);
+                app.text(list.getId() + ": "  + list.getStatus(), text_offset,
+                         yoffset+i*20);
                 continue;
             }
 
-            app.fill(list.displayColor());
+            int[] c_ = list.displayColor();
+            int c = color(c_[0], c_[1], c_[2]);
+            app.fill(c);
             app.textSize(14);
-            app.text(list.getId() + ": "  + list.getStatus(), text_offset, yoffset+i*20);
+            app.text(list.getId() + ": "  + list.getStatus(), text_offset,
+                     yoffset+i*20);
 
             float radius = list.displayRadius();
             for (int j=0; j < list.size(); j++) {

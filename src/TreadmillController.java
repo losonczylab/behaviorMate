@@ -117,6 +117,8 @@ public class TreadmillController extends PApplet {
      */
     int lap_count;
 
+    int lick_count;
+
     /**
      * length of the trial. signals the trial to end. "trial_length" in the settings
      * file.
@@ -655,6 +657,7 @@ public class TreadmillController extends PApplet {
             display.resetContexts();
             display.setSchedule("");
         }
+
         if (!settings_json.getString("lap_reset_tag", "").equals("")) {
             if (!settings_json.getString("lap_reset_tag").equals(lap_tag)) {
                 position = -1;
@@ -685,42 +688,26 @@ public class TreadmillController extends PApplet {
         }
 
         if (controllers.isNull("behavior_controller")) {
-            controllers.setJSONObject(
-                "behavior_controller", settings_json.getJSONObject(
-                    "behavior_controller"));
-            settings_json.remove("behavior_controller");
+            if (!settings_json.isNull("behavior_controller")) {
+                controllers.setJSONObject(
+                    "behavior_controller", settings_json.getJSONObject(
+                        "behavior_controller"));
+                settings_json.remove("behavior_controller");
+            }
         }
 
         if (controllers.isNull("position_controller")) {
-            controllers.setJSONObject(
-                "position_controller", settings_json.getJSONObject(
-                    "position_controller"));
-            settings_json.remove("position_controller");
+            if (!settings_json.isNull("position_controller")) {
+                controllers.setJSONObject(
+                    "position_controller", settings_json.getJSONObject(
+                        "position_controller"));
+                settings_json.remove("position_controller");
+            }
         }
 
         trialListener.setArduinoController(
             system_json.getString("arduino_controller", null),
             controllers.toString());
-
-        /*
-        if (!controllers.isNull("behavior_controller")) {
-            JSONObject behavior_json = controllers.getJSONObject(
-                "behavior_controller");
-            behavior_comm = new UdpClient(behavior_json.getInt("send_port"),
-                                          behavior_json.getInt("receive_port"));
-            behavior_json.setString("address", behavior_comm.address);
-            settings_json.setJSONObject("behavior_controller", behavior_json);
-        }
-
-        if (!controllers.isNull("position_controller")) {
-            JSONObject position_json = controllers.getJSONObject(
-                "position_controller");
-            position_comm = new UdpClient(position_json.getInt("send_port"),
-                                          position_json.getInt("receive_port"));
-            position_json.setString("address", position_comm.address);
-            settings_json.setJSONObject("position_controller", position_json);
-        }
-        */
 
         for (Object comm_key_o : controllers.keys()) {
             String comm_key = (String)comm_key_o;
@@ -762,14 +749,25 @@ public class TreadmillController extends PApplet {
             JSONArray contexts_array = settings_json.getJSONArray("contexts");
             for (int i=0; i < contexts_array.size(); i++) {
                 JSONObject context_info = contexts_array.getJSONObject(i);
-                contexts.add(ContextsFactory.Create(this, display, context_info,
+                ContextList context_list = ContextsFactory.Create(
+                    this, display, context_info,
                     track_length, behavior_comm,
-                    context_info.getString("class", "context")));
-                String context_class = context_info.getString("class", "context");
+                    context_info.getString("class", "context"));
+                contexts.add(context_list);
+
+                //TODO: clearner way to do this
+                String context_class = context_info.getString(
+                    "class", "context");
+                if (!context_class.equals("salience")) {
+                    display.setContextLocations(context_list);
+                }
+
                 if (context_class.equals("vr")) {
-                    vr_context = (VrContextList) contexts.get(contexts.size()-1);
+                    vr_context = (VrContextList) contexts.get(
+                        contexts.size()-1);
                 } else if (context_class.equals("vr_cues")) {
-                    cue_lists.add((VrCueContextList) contexts.get(contexts.size()-1));
+                    cue_lists.add(
+                        (VrCueContextList) context_list);
                 }
             }
 
@@ -956,6 +954,7 @@ public class TreadmillController extends PApplet {
                 if (behavior_json.getJSONObject("lick")
                         .getString("action", "stop").equals("start")) {
                     display.addLick(started);
+                    lick_count++;
                 }
             }
 
@@ -1047,7 +1046,8 @@ public class TreadmillController extends PApplet {
 
         if (started) {
             for (int i=0; i < contexts.size(); i++) {
-                contexts.get(i).check(position, time, lap_count, msg_buffer);
+                contexts.get(i).check(position, time, lap_count, lick_count,
+                                      msg_buffer);
                 if (msg_buffer[0] != null) {
                     fWriter.write(msg_buffer[0].replace("\n", ""));
                     msg_buffer[0] = null;
@@ -1114,6 +1114,7 @@ public class TreadmillController extends PApplet {
         fWriter.write(end_log.toString());
 
         lap_count = 0;
+        lick_count = 0;
 
         if (!settings_json.isNull("trial_shutdown")) {
             try {

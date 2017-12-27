@@ -9,7 +9,7 @@ import java.io.IOException;
 import processing.data.JSONObject;
 import processing.data.JSONArray;
 
-public class SalienceContextList extends ContextList {
+public class SalienceContextList extends BasicContextList {
 
     private class Event {
         public float time;
@@ -21,6 +21,7 @@ public class SalienceContextList extends ContextList {
     private ArrayList<Event> schedule;
     private Event nextEvent;
     private TreadmillController tc;
+    protected Display display;
 
     float stim_time;
     float event_time;
@@ -36,8 +37,8 @@ public class SalienceContextList extends ContextList {
     public SalienceContextList(TreadmillController tc, Display display,
             JSONObject context_info, float track_length, UdpClient comm)
             throws Exception {
-        super(display, context_info, track_length, comm);
-        
+        super(context_info, track_length, comm);
+
         this.tc = tc;
         this.nblocks = context_info.getInt("num_blocks");
         this.stim_time = context_info.getFloat("stim_time");
@@ -46,8 +47,9 @@ public class SalienceContextList extends ContextList {
         this.trial_length = prestim_time + stim_time + poststim_time;
         this.display = display;
         this.event_time = -1;
+        this.display = display;
 
-        createSchedule();       
+        createSchedule();
     }
 
     public void sendCreateMessages() {
@@ -162,7 +164,7 @@ public class SalienceContextList extends ContextList {
 
         if ((this.event_time != -1) &&
                 (time > (this.event_time + this.stim_time))) {
-            this.display_color = -1;
+            this.display_color = null;
             this.status = "post-stim";
             this.event_time = -1;
         }
@@ -179,7 +181,7 @@ public class SalienceContextList extends ContextList {
             } else {
                 this.status = nextEvent.type;
                 this.event_time = time;
-                this.display_color = color(255,69,0);
+                this.display_color = new int[]{255,69,0};
                 this.comm.sendMessage(nextEvent.message);
             }
 

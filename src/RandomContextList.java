@@ -5,7 +5,7 @@ import processing.data.JSONObject;
 /**
  * RandomContextList class. Disables contexts based on lap count.
  */
-public class RandomContextList extends ContextList {
+public class RandomContextList extends BasicContextList {
 
     /**
      * store weither the context is currently active for this lap, or suspended
@@ -16,12 +16,12 @@ public class RandomContextList extends ContextList {
      * the color to display the context as in the UI on laps when it is not
      * suspended.
      */
-    protected int display_color_active;
+    protected int[] display_color_active;
 
     /**
      * the color to display the context as on laps when it is suspended.
      */
-    protected int display_color_suspended;
+    protected int[] display_color_suspended;
 
     /**
      * the index to count to in order to suspend the context.
@@ -29,13 +29,12 @@ public class RandomContextList extends ContextList {
     protected int n_lap;
     protected int min_lap;
     protected int limit_lap;
-    
+
     private Random random;
 
     /**
      * Constructor.
      *
-     * @param display      display object which controlls the UI
      * @param context_info json object containing the configureation information
      *                     for this context from the settings.json file.
      *                     context_info should have the parameter <tt>n_lap</tt>
@@ -46,11 +45,11 @@ public class RandomContextList extends ContextList {
      * @param comm         client to post messages which configure as well as
      *                     starts and stop the context
      */
-    public RandomContextList(Display display, JSONObject context_info,
+    public RandomContextList(JSONObject context_info,
             float track_length, UdpClient comm) {
-        super(display, context_info, track_length, comm);
+        super(context_info, track_length, comm);
         this.display_color_active = display_color;
-        this.display_color_suspended = color(100, 100, 100);
+        this.display_color_suspended = new int[] {100, 100, 100};
         suspend();
 
         if (!context_info.isNull("seed")) {
@@ -65,7 +64,7 @@ public class RandomContextList extends ContextList {
     }
 
 
-    protected void suspend() {
+    public void suspend() {
         this.suspended = true;
         this.status = "suspended";
         this.display_color = this.display_color_suspended;

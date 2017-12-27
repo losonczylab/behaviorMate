@@ -1,23 +1,21 @@
 import processing.data.JSONObject;
-import processing.data.JSONArray;
-
-
-//TODO: update comments
 
 /**
  * AlternatingContextList class. Disables contexts based on lap count.
  */
-public class TimedAltContextList extends AlternatingContextList {
+public class AlternatingContextDecorator extends SuspendableContextDecorator {
 
-    private int[] times;
+    /**
+     * the index to count to in order to suspend the context.
+     */
+    protected int n_lap;
 
-    private int time_idx;
-
-    private int zero_lap;
+    protected int offset_lap;
 
     /**
      * Constructor.
      *
+     * @param display      display object which controlls the UI
      * @param context_info json object containing the configureation information
      *                     for this context from the settings.json file.
      *                     context_info should have the parameter <tt>n_lap</tt>
@@ -28,32 +26,14 @@ public class TimedAltContextList extends AlternatingContextList {
      * @param comm         client to post messages which configure as well as
      *                     starts and stop the context
      */
-    public TimedAltContextList(JSONObject context_info,
-            float track_length, UdpClient comm) {
-        super(context_info, track_length, comm);
-
-        if (context_info.isNull("times")) {
-            this.time_idx = -1;
-            this.times = null;
-        } else {
-            JSONArray times_array = context_info.getJSONArray("times");
-
-            this.times = new int[2*times_array.size()];
-            for (int i = 0; i < times_array.size(); i++) {
-                JSONArray start_stop = times_array.getJSONArray(i);
-                this.times[2*i] = start_stop.getInt(0);
-                this.times[2*i+1] = start_stop.getInt(1);
-            }
-            this.time_idx = 0;
-        }
+    public AlternatingContextDecorator(ContextList context_list,
+                                       JSONObject context_info) {
+        super(context_list);
+        this.display_color_suspended = new int[] {100, 100, 100};
+        this.n_lap = context_info.getInt("n_lap", 2);
+        this.offset_lap = context_info.getInt("offset_lap", 0);
     }
 
-    public void reset() {
-        if (this.times != null) {
-            this.time_idx = 0;
-        }
-        super.reset();
-    }
 
     /**
      * Check the state of the list as well as the  contexts contained in this
@@ -74,31 +54,16 @@ public class TimedAltContextList extends AlternatingContextList {
      *                   the state of the context, but does not actually
      *                   influence the connected arduinos or UI.
      */
-    public boolean check(float position, float time, int lap,
-            String[] msg_buffer) {
+    public boolean check_suspend(float position, float time, int lap,
+                                 int lick_count, String[] msg_buffer) {
 
-        if (this.time_idx != -1) {
-            if (this.time_idx >= this.times.length) {
-                this.time_idx = -1;
-                System.out.println("here!");
-            } else if (time >= this.times[this.time_idx]) {
-                this.time_idx++;
-            }
-
-            if ((this.time_idx%2 == 0) || (this.time_idx == -1)) {
-                if (!this.suspended) {
-                    this.suspend();
-                }
-
-                return false;
-            }
-        } else {
+        // check if the lap count means that the context list should be
+        // suspended or unsuspended.
+        int adj_lap = lap - offset_lap;
+        if (adj_lap%this.n_lap == 0) {
             return false;
+        } else {
+            return true;
         }
-
-
-        // if the context list is not suspended call the check method for the
-        // default AlternatingContextList behavior.
-        return super.check(position, time, lap, msg_buffer);
     }
 }
