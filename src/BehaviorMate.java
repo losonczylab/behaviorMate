@@ -288,12 +288,14 @@ class TrialListener {
             for (Iterator<String> itr=controllers.keys(); itr.hasNext();) {
                 String controller_key = itr.next();
                 try {
-                    arduino_controllers.put(controller_key,
-                        new ArduinoProcess(arduino_path, 
-                            controllers.get(controller_key).toString()));
+                    if (!controllers.getJSONObject(controller_key).isNull("serial_port")) {
+                        arduino_controllers.put(controller_key,
+                            new ArduinoProcess(arduino_path,
+                                controllers.get(controller_key).toString()));
+                    }
                 } catch (Exception e) {
-                    System.out.println(e.toString());
-                    exception(controller_key + " Exception: " + e.toString());
+                        System.out.println(e.toString());
+                        exception(controller_key + " Exception: " + e.toString());
                 }
             }
         }
@@ -384,7 +386,7 @@ class ControlPanel extends JPanel implements ActionListener {
         add(mouseNameBox);
 
         add(Box.createVerticalStrut(50));
-        
+
         zeroPositionForm = new ZeroPositionForm(treadmillController);
         zeroPositionForm.setPreferredSize(new Dimension(200, 50));
         add(zeroPositionForm);
@@ -882,56 +884,6 @@ public class BehaviorMate {
             treadmillController, settingsLoader);
         tl.setControlPanel(control_panel);
         tl.setController(treadmillController);
-
-        //TODO: remove this? ..controllers are set up from withon
-        // TredmillController this block of code appears to be starting them
-        // a second time on the initial loading.
-
-        /*
-        if (!system_settings.isNull("arduino_controller")) {
-            JSONObject controllers = null;
-            String process_path = null;
-            try {
-                process_path = system_settings.getString("arduino_controller");
-
-                if (settings.isNull("controllers")) {
-                    controllers = new JSONObject();
-                } else {
-                    controllers = settings.getJSONObject("controllers");
-                }
-
-                if (controllers.isNull("position_controller")) {
-                    if (!settings.isNull("position_controller")) {
-                        controllers.put(
-                            "position_controller", settings.getJSONObject(
-                                "position_controller"));
-                    } else {
-                        tl.exception("position controller not specified");
-                    }
-                }
-
-                if (controllers.isNull("behavior_controller")) {
-                    if (!settings.isNull("behavior_controller")) {
-                        controllers.put(
-                            "behavior_controller", settings.getJSONObject(
-                                "behavior_controller"));
-                    } else {
-                        tl.exception("behavior controller not specified");
-                    }
-                }
-            } catch (JSONException e) {
-                System.out.println(e.toString());
-                tl.exception(e.toString());
-            }
-
-            if ((process_path == null) || (controllers == null)) {
-                tl.exception("unable start arduino controller processes");
-            } else {
-                tl.setArduinoController(process_path, controllers);
-            }
-        } else {
-            tl.exception("arduino controller path not specified");
-        }*/
 
         frame_container.add(control_panel, BorderLayout.CENTER);
 

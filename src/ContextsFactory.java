@@ -28,24 +28,28 @@ public final class ContextsFactory {
         ContextList cl;
 
         if (class_name.equals( "alternating_context")) {
-            return new AlternatingContextDecorator(
+            cl = new AlternatingContextDecorator(
                 new BasicContextList(context_info, track_length, comm),
                 context_info);
         } else if (class_name.equals( "random_context")) {
-            return new RandomContextList(context_info,
-                track_length, comm);
+            cl = new RandomContextDecorator(
+                new BasicContextList(context_info, track_length, comm),
+                context_info);
         } else if (class_name.equals( "timed_alt_context")) {
-            return new TimedAltContextList(context_info,
-                track_length, comm);
+            cl = new TimedContextDecorator(
+                new AlternatingContextDecorator(
+                    new BasicContextList(context_info, track_length, comm),
+                    context_info), context_info);
         } else if (class_name.equals( "scheduled_context")) {
-            return new ScheduledContextList(context_info,
-                track_length, comm);
+            cl = new ScheduledContextDecorator(
+                new BasicContextList(context_info, track_length, comm),
+                context_info);
         } else if (class_name.equals("vr")) {
-            return new VrContextList(context_info, track_length);
+            cl = new VrContextList(context_info, track_length);
         } else if (class_name.equals("vr_cues")) {
             return new VrCueContextList(context_info, track_length);
         } else if (class_name.equals("salience")) {
-            return new SalienceContextList(tc, display, context_info,
+            cl = new SalienceContextList(tc, display, context_info,
                 track_length, comm);
         } else {
             cl = new BasicContextList(context_info, track_length, comm);
@@ -53,14 +57,29 @@ public final class ContextsFactory {
 
         if (!context_info.isNull("decorators")) {
             JSONArray decorators = context_info.getJSONArray("decorators");
+            JSONObject timed_context = null;
             for (int i=0; i < decorators.size(); i++) {
                 JSONObject decorator = decorators.getJSONObject(i);
                 String decorator_class = decorator.getString("class", "");
                 if (decorator_class.equals("alternating_context")) {
                     cl = new AlternatingContextDecorator(cl, decorator);
                 } else if (decorator_class.equals("running_context")) {
-                    cl = new RunningContextDecorator(cl, decorator, track_length);
+                    cl = new RunningContextDecorator(cl, decorator,
+                                                     track_length);
+                } else if (decorator_class.equals("scheduled_context")) {
+                    cl = new ScheduledContextDecorator(cl, decorator);
+                } else if (decorator_class.equals("timed_context")) {
+                    timed_context = decorator;
+                } else if (decorator_class.equals("random_context")) {
+                    cl = new RandomContextDecorator(cl, decorator);
+                } else {
+                    throw new IllegalArgumentException(
+                        "Decorator " + decorator_class + " not found");
                 }
+            }
+
+            if (timed_context != null) {
+                cl = new TimedContextDecorator(cl, timed_context);
             }
         }
 

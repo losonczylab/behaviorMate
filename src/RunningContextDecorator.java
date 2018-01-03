@@ -30,7 +30,7 @@ public class RunningContextDecorator extends SuspendableContextDecorator {
         this.threshold = context_info.getFloat("threshold", 0.0f);
         this.max_dt = context_info.getFloat("max_dt", 0.1f);
 
-        this.prev_time = 0;
+        this.prev_time = -this.max_dt;
         this.prev_position = 0;
         this.prev_lap = 0;
         this.track_length = track_length;

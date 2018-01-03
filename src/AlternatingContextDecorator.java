@@ -29,7 +29,6 @@ public class AlternatingContextDecorator extends SuspendableContextDecorator {
     public AlternatingContextDecorator(ContextList context_list,
                                        JSONObject context_info) {
         super(context_list);
-        this.display_color_suspended = new int[] {100, 100, 100};
         this.n_lap = context_info.getInt("n_lap", 2);
         this.offset_lap = context_info.getInt("offset_lap", 0);
     }
