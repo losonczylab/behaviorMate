@@ -61,4 +61,8 @@ public class RunningContextDecorator extends SuspendableContextDecorator {
 
         return true;
     }
+
+    public void stop() {
+        this.prev_time = -this.max_dt;
+    }
 }
