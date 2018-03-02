@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Iterator;
 import java.util.ArrayList;
 import java.lang.NullPointerException;
+import java.lang.*;
 
 import processing.core.PApplet;
 import processing.core.PGraphics;
@@ -714,6 +715,7 @@ public class TreadmillController extends PApplet {
             System.out.println(comm_key);
             JSONObject controller_json = controllers.getJSONObject(comm_key);
             UdpClient comm = new UdpClient(
+                controller_json.getString("ip", "127.0.0.1"),
                 controller_json.getInt("send_port"),
                 controller_json.getInt("receive_port"));
             controller_json.setString("address", comm.address);
@@ -724,6 +726,12 @@ public class TreadmillController extends PApplet {
                 behavior_comm = comm;
             } else {
                 comms.add(comm);
+            }
+
+            try {
+                comm.sendMessage("{[\"test\"]}");
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
         settings_json.setJSONObject("controllers", controllers);
@@ -1080,10 +1088,28 @@ public class TreadmillController extends PApplet {
     }
 
     public void resetComms() {
-        for (int i=0; i < contexts.size(); i++) {
-            contexts.get(i).setStatus("resetting");
+        //for (int i=0; i < contexts.size(); i++) {
+        //    contexts.get(i).setStatus("resetting");
+        //}
+        //trialListener.resetComms();
+        position_comm.closeSocket();
+        try {
+            Thread.sleep(50);
+        } catch(Exception e) {
+            e.printStackTrace();
         }
-        trialListener.resetComms();
+
+        JSONObject controllers = settings_json.getJSONObject("controllers");
+        JSONObject controller_json = controllers.getJSONObject(
+            "position_controller");
+        try {
+            position_comm = new UdpClient(
+                controller_json.getString("ip", "127.0.0.1"),
+                controller_json.getInt("send_port"),
+                controller_json.getInt("receive_port"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**

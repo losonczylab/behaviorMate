@@ -26,16 +26,14 @@
     "example": { // name for each profile of in this setting file
         "controllers": {
             "behavior_controller": { // address behavior arduino is posting message
-                "ip": "127.0.0.1",   // to
+                "ip": "192.168.1.101",   // to
                 "send_port": 5010,
-                "receive_port": 5015,
-                "serial_port": "\\.\\COM3",
+                "receive_port": 5010,
             },
             "position_controller": { // address arduino reading rotary encoder is
-                "ip": "127.0.0.1",   // posting messages to
-                "send_port": 5020,
-                "receive_port": 5005,
-                "serial_port": "\\.\\COM4"
+                "ip": "169.254.0.2",   // posting messages to
+                "send_port": 5005,
+                "receive_port": 5005
             }
         },
         "reward": {
@@ -76,7 +74,7 @@
                                    // the lickport
                 "max_duration": 5, // maximum time (in s) the context is allowed
                                    // to be active
-                "radius": 120, // radius (in mm) of reward zones
+                //"radius": 120, // radius (in mm) of reward zones
                 "valves": [5], // list of arduino pints to activate when the
                                // context starts
                 "durations": [60], // list of times to open valves for
@@ -105,7 +103,7 @@
         "sync_pin": 12, // a ttl pulse is delivered at the beginning of each
                         // trial to the sync pin.
         "trial_length": 300, // duration (in s) of the trial.
-        "position_scale": 1.0, // scales the position updates from aritrary
+        "position_scale": 2.18, // scales the position updates from aritrary
                                // unitst to mm. IMPORTANT! measure this value
                                // on each rig or position updates will be wrong
         "track_length": 2000, // length of the track/treadmill belt.

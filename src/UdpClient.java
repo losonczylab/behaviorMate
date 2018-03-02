@@ -15,9 +15,8 @@ class UdpClient extends PApplet {
     DatagramSocket udpSocket;
     ReceiveThread rt;
     String address;
-    
+
     public UdpClient(int arduinoPort, int receivePort) throws IOException {
-        // configure send port 
         String ip = "127.0.0.1";
         arduinoAddress = new InetSocketAddress("127.0.0.1",arduinoPort);
         this.address = ip + ":" + receivePort;
@@ -29,12 +28,11 @@ class UdpClient extends PApplet {
             throw new IOException("error connecting to " + this.address);
         }
 
-        rt = new ReceiveThread(udpSocket);
+        rt = new ReceiveThread(udpSocket, receivePort);
         rt.start();
     }
 
     public UdpClient(String ip, int arduinoPort, int receivePort) throws IOException {
-        // configure send port 
         arduinoAddress = new InetSocketAddress(ip,arduinoPort);
         this.address = ip + ":" + receivePort;
 
@@ -45,12 +43,11 @@ class UdpClient extends PApplet {
             throw new IOException("error connecting to " + this.address);
         }
 
-        rt = new ReceiveThread(udpSocket);
+        rt = new ReceiveThread(udpSocket, receivePort);
         rt.start();
     }
 
     public UdpClient(String ip, int arduinoPort) throws IOException {
-        // configure send port 
         arduinoAddress = new InetSocketAddress(ip,arduinoPort);
         this.address = ip;
 
@@ -98,19 +95,20 @@ class UdpClient extends PApplet {
         private DatagramSocket sock;
         private DatagramPacket incomingUdp;
         private LinkedList<String> messageQueue;
-        private byte[] receiveData;
+        //private byte[] receiveData;
         private boolean run;
+        private int receivePort;
 
-        ReceiveThread(DatagramSocket sock) {
+        ReceiveThread(DatagramSocket sock, int receivePort) {
             this.run = true;
-            receiveData = new byte[1024];
+            this.receivePort = receivePort;
             this.sock = sock;
             try {
-                this.sock.setSoTimeout(250);
+                this.sock.setSoTimeout(50);
             } catch (IOException e) {
-               System.exit(0); 
+                e.printStackTrace();
+                System.exit(0);
             }
-            incomingUdp = new DatagramPacket(receiveData, receiveData.length);
             messageQueue = new LinkedList<String>();
         }
 
@@ -120,6 +118,8 @@ class UdpClient extends PApplet {
 
         public void run() {
             while (this.run) {
+                byte[] receiveData = new byte[1024];
+            incomingUdp = new DatagramPacket(receiveData, receiveData.length);
                 try {
                     sock.receive(incomingUdp);
                 } catch (IOException e) {
@@ -134,7 +134,6 @@ class UdpClient extends PApplet {
         }
 
         public void start() {
-            System.out.println("start");
             if (t == null) {
                 t = new Thread (this, "name " + System.nanoTime());
                 t.start();
