@@ -4,6 +4,7 @@ import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.LinkedList;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import processing.core.PApplet;
 import processing.data.JSONObject;
@@ -15,10 +16,11 @@ class UdpClient extends PApplet {
     DatagramSocket udpSocket;
     ReceiveThread rt;
     String address;
+    FileWriter mL;
 
     public UdpClient(int arduinoPort, int receivePort) throws IOException {
         String ip = "127.0.0.1";
-        arduinoAddress = new InetSocketAddress("127.0.0.1",arduinoPort);
+        arduinoAddress = new InetSocketAddress("127.0.0.1", arduinoPort);
         this.address = ip + ":" + receivePort;
 
         try {
@@ -28,7 +30,8 @@ class UdpClient extends PApplet {
             throw new IOException("error connecting to " + this.address);
         }
 
-        rt = new ReceiveThread(udpSocket, receivePort);
+        mL = new FileWriter("logs/" + ip + "." + receivePort + ".log");
+        rt = new ReceiveThread(udpSocket, receivePort, this.mL);
         rt.start();
     }
 
@@ -43,7 +46,8 @@ class UdpClient extends PApplet {
             throw new IOException("error connecting to " + this.address);
         }
 
-        rt = new ReceiveThread(udpSocket, receivePort);
+        mL = new FileWriter("logs/" + ip + "." + receivePort + ".log");
+        rt = new ReceiveThread(udpSocket, receivePort, this.mL);
         rt.start();
     }
 
@@ -64,6 +68,7 @@ class UdpClient extends PApplet {
       message = message.replaceAll("[\r|\n|\\s]", "");
 
       try {
+          this.mL.write("[SEND] " + message);
           byte[] sendData = message.getBytes("UTF-8");
           DatagramPacket sendPacket = new DatagramPacket(sendData, 0,
             sendData.length, arduinoAddress);
@@ -94,13 +99,17 @@ class UdpClient extends PApplet {
         private Thread t;
         private DatagramSocket sock;
         private DatagramPacket incomingUdp;
-        private LinkedList<String> messageQueue;
+        private ConcurrentLinkedQueue<String> messageQueue;
         //private byte[] receiveData;
         private boolean run;
+        private boolean debug;
         private int receivePort;
+        private FileWriter mL;
 
-        ReceiveThread(DatagramSocket sock, int receivePort) {
+        ReceiveThread(DatagramSocket sock, int receivePort, FileWriter mL) {
             this.run = true;
+            this.debug = false;
+            this.mL = mL;
             this.receivePort = receivePort;
             this.sock = sock;
             try {
@@ -109,7 +118,7 @@ class UdpClient extends PApplet {
                 e.printStackTrace();
                 System.exit(0);
             }
-            messageQueue = new LinkedList<String>();
+            messageQueue = new ConcurrentLinkedQueue<String>();
         }
 
         public String poll() {
@@ -119,7 +128,7 @@ class UdpClient extends PApplet {
         public void run() {
             while (this.run) {
                 byte[] receiveData = new byte[1024];
-            incomingUdp = new DatagramPacket(receiveData, receiveData.length);
+                incomingUdp = new DatagramPacket(receiveData, receiveData.length);
                 try {
                     sock.receive(incomingUdp);
                 } catch (IOException e) {
@@ -128,6 +137,7 @@ class UdpClient extends PApplet {
 
                 String message = new String(
                     incomingUdp.getData(), 0, incomingUdp.getLength());
+                this.mL.write("[RECEIVE] " + message);
                 messageQueue.add(message);
             }
             this.sock.close();

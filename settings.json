@@ -27,11 +27,11 @@
         "controllers": {
             "behavior_controller": { // address behavior arduino is posting message
                 "ip": "192.168.1.101",   // to
-                "send_port": 5010,
-                "receive_port": 5010,
+                "send_port": 5000,
+                "receive_port": 5000,
             },
             "position_controller": { // address arduino reading rotary encoder is
-                "ip": "169.254.0.2",   // posting messages to
+                "ip": "192.168.1.102",   // posting messages to
                 "send_port": 5005,
                 "receive_port": 5005
             }
@@ -48,13 +48,15 @@
                 "type": "lickport", // "lickport" type sensor is based on the
                                     // MPR121 capacitance touch sensor.
                 "pin": 2,           // Interrupt/IRQ pin
-                "report_pin": 20    // sets up a ttl pulse to report when the
+            //    "report_pin": 20    // sets up a ttl pulse to report when the
                                     // sensor is triggered
             },
-            {
-                "type": "rfid_reader", // rfid tag reader for ID-12LA reader
-                "pin": 22 // pin is the reset pin on the ID-12LA breakout
-            },
+            //{
+            //    "type": "piezoport", // rfid tag reader for ID-12LA reader
+            //    "pin": 0, // pin is the reset pin on the ID-12LA breakout
+            //    "lick_threshold": 10,
+            //    "lick_duration": 10
+            //},
             {
                 "pin": 15 // for a TTL pulse sensor all that is needed is pin
             }
@@ -74,12 +76,13 @@
                                    // the lickport
                 "max_duration": 5, // maximum time (in s) the context is allowed
                                    // to be active
-                //"radius": 120, // radius (in mm) of reward zones
                 "valves": [5], // list of arduino pints to activate when the
                                // context starts
                 "durations": [60], // list of times to open valves for
                 "operant_rate": 2,
-                "initial_open": 0,
+                "locations": 12,
+                "radius":50,
+                "initial_open": 1,
                 "sensor": 2, // pin number associated with the sensor to trigger
                              // operant context.
                 //"locations": [500, 1500], // integer or list. list - list of
@@ -90,14 +93,6 @@
                                            // active during entire trial
                 "display_color": [104,204,104], // color to make display indicating
                                            // the location of this context
-                "decorators": [
-                    {
-                        "class": "alternating_context"
-                    },
-                    {
-                        "class": "running_context"
-                    }
-                ]
             }
         ],
         "sync_pin": 12, // a ttl pulse is delivered at the beginning of each
@@ -107,12 +102,12 @@
                                // unitst to mm. IMPORTANT! measure this value
                                // on each rig or position updates will be wrong
         "track_length": 2000, // length of the track/treadmill belt.
+        "position_lap_reader": true
     },
     // the _system holde the data directory field. this does not get saved each
     // trial and needs to be set to a directory where the program can write
     // and store files. if windows, ensure to escape backslashes i.e. \\
     "_system": {
-        "data_directory":"behaviorData",
-        "arduino_controller": "..\\arduino_controller\\arduinoController.exe"
+        "data_directory":"behaviorData"
     }
 }

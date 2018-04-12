@@ -4,7 +4,7 @@ import java.io.FileOutputStream;
 import java.io.File;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.LinkedList;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.text.SimpleDateFormat;
 import java.lang.InterruptedException;
 
@@ -49,6 +49,17 @@ public class FileWriter extends PApplet {
         wt.start();
     }
 
+    public FileWriter(String filename) throws IOException {
+        logFile = new File(filename);
+
+        fos = new FileOutputStream(logFile, false);
+        wt = new WriterThread(logFile, null);
+        wt.start();
+        Date logDate = Calendar.getInstance().getTime();
+        this.write(logNameFormat.format(logDate));
+    }
+
+
     public File getFile() {
         return new File(logFile.getAbsolutePath());
     }
@@ -83,7 +94,7 @@ public class FileWriter extends PApplet {
     public class WriterThread extends Thread {
         private TrialListener tl;
         private boolean run;
-        private LinkedList<String> writeQueue;
+        private ConcurrentLinkedQueue<String> writeQueue;
         private Thread t;
         private String messageBuffer;
 
@@ -95,7 +106,7 @@ public class FileWriter extends PApplet {
         WriterThread(File logFile, TrialListener tl) {
             //Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
             this.run = true;
-            writeQueue = new LinkedList<String>();
+            writeQueue = new ConcurrentLinkedQueue<String>();
             messageBuffer = null;
             this.logFile = logFile;
             this.tl = tl;
@@ -113,7 +124,9 @@ public class FileWriter extends PApplet {
                         for (int i=0; ((i < 3) && (i < elements.length)); i++) {
                             alert += ("\n" + elements[i].toString());
                         }
-                        tl.exception(alert);
+                        if (tl != null) {
+                            tl.exception(alert);
+                        }
                         break;
                     }
                     messageBuffer = writeQueue.poll();

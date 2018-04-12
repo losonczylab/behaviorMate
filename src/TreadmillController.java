@@ -342,8 +342,12 @@ public class TreadmillController extends PApplet {
         }
 
         //TODO: diff and only reconfigure if an update is made
-        behavior_comm.closeSocket();
-        position_comm.closeSocket();
+        if (behavior_comm != null) {
+            behavior_comm.closeSocket();
+        }
+        if (position_comm != null) {
+            position_comm.closeSocket();
+        }
         for (UdpClient c : comms) {
             c.closeSocket();
         }
@@ -651,6 +655,36 @@ public class TreadmillController extends PApplet {
         reconfigureExperiment();
     }
 
+    void startComms() throws Exception {
+        JSONObject controllers;
+        if (!settings_json.isNull("controllers")) {
+            controllers = settings_json.getJSONObject("controllers");
+        } else {
+            controllers = new JSONObject();
+        }
+
+       
+
+        for (Object comm_key_o : controllers.keys()) {
+            String comm_key = (String)comm_key_o;
+            System.out.println(comm_key);
+            JSONObject controller_json = controllers.getJSONObject(comm_key);
+            UdpClient comm = new UdpClient(
+                controller_json.getString("ip", "127.0.0.1"),
+                controller_json.getInt("send_port"),
+                controller_json.getInt("receive_port"));
+            controller_json.setString("address", comm.address);
+            controllers.setJSONObject(comm_key, controller_json);
+            if (comm_key.equals("position_controller")) {
+                position_comm = comm;
+            } else if (comm_key.equals("behavior_controller")) {
+                behavior_comm = comm;
+            } else {
+                comms.add(comm);
+            }
+        }
+    }
+
     void reconfigureExperiment() throws Exception {
         //TODO: diff the new settings from the old and only make necessary updates
         contexts = new ArrayList<ContextList>();
@@ -688,7 +722,8 @@ public class TreadmillController extends PApplet {
             controllers = new JSONObject();
         }
 
-        if (controllers.isNull("behavior_controller")) {
+
+         if (controllers.isNull("behavior_controller")) {
             if (!settings_json.isNull("behavior_controller")) {
                 controllers.setJSONObject(
                     "behavior_controller", settings_json.getJSONObject(
@@ -706,36 +741,11 @@ public class TreadmillController extends PApplet {
             }
         }
 
+        settings_json.setJSONObject("controllers", controllers);
         trialListener.setArduinoController(
             system_json.getString("arduino_controller", null),
             controllers.toString());
-
-        for (Object comm_key_o : controllers.keys()) {
-            String comm_key = (String)comm_key_o;
-            System.out.println(comm_key);
-            JSONObject controller_json = controllers.getJSONObject(comm_key);
-            UdpClient comm = new UdpClient(
-                controller_json.getString("ip", "127.0.0.1"),
-                controller_json.getInt("send_port"),
-                controller_json.getInt("receive_port"));
-            controller_json.setString("address", comm.address);
-            controllers.setJSONObject(comm_key, controller_json);
-            if (comm_key.equals("position_controller")) {
-                position_comm = comm;
-            } else if (comm_key.equals("behavior_controller")) {
-                behavior_comm = comm;
-            } else {
-                comms.add(comm);
-            }
-
-            try {
-                comm.sendMessage("{[\"test\"]}");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        settings_json.setJSONObject("controllers", controllers);
-
+        startComms();
         configure_sensors();
 
         JSONObject valve_json = setup_valve_json(
@@ -1088,26 +1098,23 @@ public class TreadmillController extends PApplet {
     }
 
     public void resetComms() {
-        //for (int i=0; i < contexts.size(); i++) {
-        //    contexts.get(i).setStatus("resetting");
-        //}
-        //trialListener.resetComms();
-        position_comm.closeSocket();
+        if (position_comm != null) {
+            position_comm.closeSocket();
+        }
+
+        if (behavior_comm != null) {
+            behavior_comm.closeSocket();
+        }
+
         try {
             Thread.sleep(50);
         } catch(Exception e) {
             e.printStackTrace();
         }
 
-        JSONObject controllers = settings_json.getJSONObject("controllers");
-        JSONObject controller_json = controllers.getJSONObject(
-            "position_controller");
         try {
-            position_comm = new UdpClient(
-                controller_json.getString("ip", "127.0.0.1"),
-                controller_json.getInt("send_port"),
-                controller_json.getInt("receive_port"));
-        } catch (IOException e) {
+            startComms();
+        } catch(Exception e) {
             e.printStackTrace();
         }
     }
