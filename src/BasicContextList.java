@@ -526,6 +526,10 @@ public class BasicContextList extends PApplet implements ContextList {
         return (this.active != -1);
     }
 
+    public int activeIdx() {
+        return this.active;
+    }
+
     public void suspend() {
         this.active = -1;
         this.status = "sent stop";

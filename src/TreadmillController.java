@@ -184,7 +184,7 @@ public class TreadmillController extends PApplet {
         for (int i= 0; i<messages.size(); i++) {
             JSONObject messageInfo = messages.getJSONObject(i);
             UdpClient client = new UdpClient(messageInfo.getString("ip"),
-                messageInfo.getInt("port"));
+                messageInfo.getInt("port"), messageInfo.getString("id"));
             JSONObject message = messageInfo.getJSONObject("message");
             message.setString("filename", fWriter.getFile().getName());
             message.setString("mouse", mouse_name);
@@ -256,6 +256,26 @@ public class TreadmillController extends PApplet {
                 return false;
             }
         }
+
+        noLoop();
+        System.out.println("testing comms");
+        JSONObject test_arduino = new JSONObject();
+        test_arduino.setJSONObject("communicator", new JSONObject());
+        test_arduino.getJSONObject(
+            "communicator").setString("action", "test");
+        behavior_comm.sendMessage(test_arduino.toString());
+
+        int i;
+        for (i=0; i<10 && !behavior_comm.receiveMessage(json_buffer); i++) {
+            delay(10);
+        }
+
+        if (i == 10) {
+            trialListener.exception("Failed to connect to behavior controller");
+        } else {
+            System.out.println("test passed!");
+        }
+        loop();
 
         trialListener.started(fWriter.getFile());
 
@@ -351,7 +371,7 @@ public class TreadmillController extends PApplet {
         for (UdpClient c : comms) {
             c.closeSocket();
         }
-        delay(500);
+        delay(100);
 
         reconfigureExperiment();
     }
@@ -384,7 +404,7 @@ public class TreadmillController extends PApplet {
             c.closeSocket();
         }
 
-        delay(500);
+        delay(100);
 
         reload_settings();
     }
@@ -575,7 +595,7 @@ public class TreadmillController extends PApplet {
      */
     void configure_rewards() throws Exception {
         JSONObject reward_info = settings_json.getJSONObject("reward");
-        
+
         JSONArray contexts_array;
         if (settings_json.isNull("contexts")) {
             settings_json.setJSONArray("contexts", new JSONArray());
@@ -663,8 +683,6 @@ public class TreadmillController extends PApplet {
             controllers = new JSONObject();
         }
 
-       
-
         for (Object comm_key_o : controllers.keys()) {
             String comm_key = (String)comm_key_o;
             System.out.println(comm_key);
@@ -672,7 +690,8 @@ public class TreadmillController extends PApplet {
             UdpClient comm = new UdpClient(
                 controller_json.getString("ip", "127.0.0.1"),
                 controller_json.getInt("send_port"),
-                controller_json.getInt("receive_port"));
+                controller_json.getInt("receive_port"),
+                comm_key);
             controller_json.setString("address", comm.address);
             controllers.setJSONObject(comm_key, controller_json);
             if (comm_key.equals("position_controller")) {
@@ -813,6 +832,18 @@ public class TreadmillController extends PApplet {
         fWriter.write(comment_json.toString());
     }
 
+    public void writeSettingsInfo(String filename, String key) {
+        if (fWriter == null) {
+            return;
+        }
+
+        JSONObject settings_info = new JSONObject();
+        settings_info.setString("settings_file", filename);
+        settings_info.setString("key", key);
+
+        fWriter.write(settings_info.toString());
+    }
+
     public PSurface getPSurface() {
         return this.initSurface();
     }
@@ -884,7 +915,7 @@ public class TreadmillController extends PApplet {
 
         for (int i=0; ((i < 10) && (comm.receiveMessage(json_buffer))); i++) {
             JSONObject message_json =
-                json_buffer.json.getJSONObject(comm.address);
+                json_buffer.json.getJSONObject(comm.id);
 
             if (started) {
                 json_buffer.json.setFloat("time", time);
@@ -910,7 +941,7 @@ public class TreadmillController extends PApplet {
             }
 
             JSONObject position_json =
-                json_buffer.json.getJSONObject(position_comm.address);
+                json_buffer.json.getJSONObject(position_comm.id);
 
             if (position_reset && (!position_json.isNull("lap_reset"))) {
                 display.setCurrentTag("");
@@ -966,7 +997,7 @@ public class TreadmillController extends PApplet {
                 i++) {
 
             JSONObject behavior_json =
-                json_buffer.json.getJSONObject(behavior_comm.address);
+                json_buffer.json.getJSONObject(behavior_comm.id);
 
             if (!behavior_json.isNull("lick")) {
                 if (behavior_json.getJSONObject("lick")
@@ -978,18 +1009,10 @@ public class TreadmillController extends PApplet {
 
             if (!behavior_json.isNull("valve")) {
                 JSONObject valveJson = behavior_json.getJSONObject("valve");
-                if (valveJson.getString(
-                        ""+reward_valve, "close").equals("open")) {
-                    display.setMouseName(
-                        "ERROR!!!! arduino code is out of date");
-                } else if ((valveJson.getInt("pin", -1) == reward_valve) &&
+                if ((valveJson.getInt("pin", -1) == reward_valve) &&
                         valveJson.getString("action", "close").equals("open")) {
                     display.addReward();
                 }
-            }
-
-            if (!behavior_json.isNull("lap")) {
-                display.setMouseName("ERROR!!!! arduino code is out of date");
             }
 
             if (!behavior_json.isNull("tag_reader") &&

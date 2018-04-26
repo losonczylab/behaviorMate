@@ -72,6 +72,10 @@ public final class ContextsFactory {
                     timed_context = decorator;
                 } else if (decorator_class.equals("random_context")) {
                     cl = new RandomContextDecorator(cl, decorator);
+                } else if (decorator_class.equals("lickstart_context")) {
+                    cl = new LickStartContextDecorator(cl);
+                } else if (decorator_class.equals("operant_context")) {
+                    cl = new OperantContextDecorator(cl, comm);
                 } else {
                     throw new IllegalArgumentException(
                         "Decorator " + decorator_class + " not found");

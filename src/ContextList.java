@@ -37,6 +37,8 @@ public interface ContextList {
 
     public boolean isActive();
 
+    public int activeIdx();
+
     public void suspend();
 
     public abstract void stop(float time, String[] msg_buffer);

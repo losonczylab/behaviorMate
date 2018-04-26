@@ -1,39 +1,24 @@
 // C++ style '//' comments are permitted to comment out the end of lines
 // but block style i.e. '/*' will not work
 {
-    "_controllers": {
-        "behavior_controller": { // address behavior arduino is posting message
-            "ip": "127.0.0.1",   // to
-            "send_port": 5010,
-            "receive_port": 5015,
-            "serial_port": "\\.\\COM3",
-        },
-        "position_controller": { // address arduino reading rotary encoder is
-            "ip": "127.0.0.1",   // posting messages to
-            "send_port": 5020,
-            "receive_port": 5025,
-            "serial_port": "\\.\\COM4"
-        },
-        "controllers": {
-            "frame_sync": {
-                "ip": "127.0.0.1",
-                "send_port": 5030,
-                "receive_port": 5035,
-                "serial_port": "\\.\\COM8",
-            }
-        }
-    },
     "example": { // name for each profile of in this setting file
         "controllers": {
             "behavior_controller": { // address behavior arduino is posting message
                 "ip": "192.168.1.101",   // to
+                //"ip": "127.0.0.1",   // to
                 "send_port": 5000,
-                "receive_port": 5000,
+                //"send_port": 4096,
+                "receive_port": 5000
             },
             "position_controller": { // address arduino reading rotary encoder is
                 "ip": "192.168.1.102",   // posting messages to
                 "send_port": 5005,
                 "receive_port": 5005
+            },
+            "frame_sync": {
+                "ip": "192.168.1.103",
+                "send_port": 5010,
+                "receive_port": 5010
             }
         },
         "reward": {
@@ -48,12 +33,12 @@
                 "type": "lickport", // "lickport" type sensor is based on the
                                     // MPR121 capacitance touch sensor.
                 "pin": 2,           // Interrupt/IRQ pin
-            //    "report_pin": 20    // sets up a ttl pulse to report when the
+            //  "report_pin": 20    // sets up a ttl pulse to report when the
                                     // sensor is triggered
             },
             //{
             //    "type": "piezoport", // rfid tag reader for ID-12LA reader
-            //    "pin": 0, // pin is the reset pin on the ID-12LA breakout
+            //    "pin": 0,            // pin is the reset pin on the ID-12LA breakout
             //    "lick_threshold": 10,
             //    "lick_duration": 10
             //},
@@ -68,8 +53,8 @@
             // reward zones are an example of a context and can be configured
             // in this list as well.
             {
-                "id": "reward", // every context is required to have a
-                                      // unique id
+                "id": "reward",   // every context is required to have a
+                                  // unique id
                 "type": "operant", // specialized contexts are defined
                                    // through the type field. operant type
                                    // contexts are triggered via sensors i.e.
@@ -85,7 +70,7 @@
                 "initial_open": 1,
                 "sensor": 2, // pin number associated with the sensor to trigger
                              // operant context.
-                //"locations": [500, 1500], // integer or list. list - list of
+                // "locations": [500, 1500], // integer or list. list - list of
                                            // locations to place context
                                            // centroids. integer - number of
                                            // locations to randomly shuffle
@@ -93,6 +78,11 @@
                                            // active during entire trial
                 "display_color": [104,204,104], // color to make display indicating
                                            // the location of this context
+                "decorators": [
+                    {
+                        "class": "operant_context"
+                    }
+                ]
             }
         ],
         "sync_pin": 12, // a ttl pulse is delivered at the beginning of each

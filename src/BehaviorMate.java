@@ -418,6 +418,10 @@ class ControlPanel extends JPanel implements ActionListener {
 
         trialAttrsForm = new TrialAttrsForm(this);
         trialAttrsForm.addActionListener(this);
+
+        //JMenuBar menuBar = new JMenuBar();
+        //this.parent.setJMenuBar(menuBar);
+
         showAttrsForm();
     }
 
@@ -581,7 +585,6 @@ class ControlPanel extends JPanel implements ActionListener {
                 if (!attrsCompleted) {
                     JOptionPane.showMessageDialog(this,
                         "Complete Trial Attributes Form");
-
                     return;
                 }
 
@@ -602,8 +605,12 @@ class ControlPanel extends JPanel implements ActionListener {
                     setEnabled(false);
                 } else {
                     JOptionPane.showMessageDialog(this,
-                        "Unable to Start ... Scan RFID tag? or check behavior save directory");
+                        "Unable to Start ... Scan lap reset? or check behavior save directory");
                 }
+
+                treadmillController.writeSettingsInfo(
+                    settingsLoader.getSelectedFile(),
+                    settingsLoader.getSelectedTag());
             } else {
                 treadmillController.endExperiment();
                 setEnabled(true);
