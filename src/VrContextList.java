@@ -19,9 +19,12 @@ public class VrContextList extends BasicContextList {
         this.comms = new UdpClient[displays.size()];
         Iterator<String> itr = displays.keyIterator();
         for (int i=0; itr.hasNext(); i++) {
-            JSONObject display_json = displays.getJSONObject(itr.next());
-            UdpClient vr_client = new UdpClient(display_json.getString("ip"),
-                display_json.getInt("port"));
+            String display_name = (String) itr.next();
+            JSONObject display_json = displays.getJSONObject(display_name);
+            UdpClient vr_client = new UdpClient(
+                display_json.getString("ip"),
+                display_json.getInt("port"),
+                display_name);
 
             JSONObject msg_json = new JSONObject();
             msg_json.setJSONObject(
