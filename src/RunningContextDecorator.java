@@ -20,6 +20,9 @@ public class RunningContextDecorator extends SuspendableContextDecorator {
 
     protected float max_dt;
 
+    protected float min_dt;
+
+    protected float min_dy;
 
     public RunningContextDecorator(ContextList context_list,
                                    JSONObject context_info,
@@ -29,11 +32,15 @@ public class RunningContextDecorator extends SuspendableContextDecorator {
 
         this.threshold = context_info.getFloat("threshold", 0.0f);
         this.max_dt = context_info.getFloat("max_dt", 0.1f);
+        this.min_dt = context_info.getFloat("min_dt", 0.2f);
+        this.min_dy = context_info.getFloat("min_dy", 5);
 
-        this.prev_time = -this.max_dt;
+        //this.prev_time = -this.max_dt;
+        this.prev_time = 0;
         this.prev_position = 0;
         this.prev_lap = 0;
         this.track_length = track_length;
+        this.suspend();
     }
 
     public boolean check_suspend(float position, float time, int lap,
@@ -41,28 +48,37 @@ public class RunningContextDecorator extends SuspendableContextDecorator {
 
         if (lap != this.prev_lap) {
             position += (lap-this.prev_lap)*this.track_length;
-            this.prev_lap = lap;
         }
 
         float dt = time-this.prev_time;
-        float velocity = 0;
-        velocity = Math.abs(position-this.prev_position)/(dt);
+        if (dt < this.min_dt) {
+            return this.isSuspended();
+        }
+        this.prev_time = time;
 
-        if ((velocity != 0) || (dt > this.max_dt)) {
-            this.prev_position = position;
-            this.prev_time = time;
+        float dy = position - this.prev_position;
+        this.prev_position = position;
+        this.prev_lap = lap;
+        if (dy < this.min_dy) {
+            return true;
+        }
 
-            if (velocity > this.threshold) {
-                return false;
+        /*
+        float velocity = Math.abs(dy)/dt;
+        if (velocity > this.threshold) {
+            return false;
             }
         } else if (!this.isSuspended()) {
             return false;
-        }
+        }*/
 
-        return true;
+        return false;
     }
 
-    public void stop() {
-        this.prev_time = -this.max_dt;
+    public void stop(float time, String[] msg_buffer) {
+        this.prev_lap = 0;
+        this.prev_position = 0;
+        this.prev_time = 0;
+        this.suspend();
     }
 }
