@@ -4,7 +4,7 @@ import java.io.*;
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Map;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.ArrayList;
 import java.lang.NullPointerException;
@@ -129,6 +129,8 @@ public class TreadmillController extends PApplet {
     int lap_limit;
 
     boolean position_reset;
+
+    HashMap<Character, String> commentKeys;
 
     int lap_offset;
 
@@ -721,6 +723,7 @@ public class TreadmillController extends PApplet {
         }
 
         trial_duration = settings_json.getInt("trial_length", -1);
+        display.setTotalTime(trial_duration);
         lap_limit = settings_json.getInt("lap_limit", -1);
         position_scale = settings_json.getFloat("position_scale");
         track_length = settings_json.getFloat("track_length");
@@ -780,6 +783,15 @@ public class TreadmillController extends PApplet {
             configure_laser();
         }
 
+        this.commentKeys = new HashMap<Character, String>();
+        if (!settings_json.isNull("comment_keys")) {
+            JSONObject quick_comments = settings_json.getJSONObject("comment_keys");
+            for (Object key : quick_comments.keys()) {
+                Character key_char = ((String)key).charAt(0);
+                commentKeys.put(key_char, quick_comments.getString((String)key));
+            }
+        }
+
         if (!settings_json.isNull("contexts")) {
             VrContextList vr_context = null;
             ArrayList<VrCueContextList> cue_lists = new ArrayList<VrCueContextList>();;
@@ -829,9 +841,34 @@ public class TreadmillController extends PApplet {
 
         JSONObject comment_json = new JSONObject();
         comment_json.setString("comments", comment);
+        comment_json.setFloat("time", timer.getTime());
         fWriter.write(comment_json.toString());
     }
 
+    public void addComment(String key, String comment) {
+        if (fWriter == null) {
+            return;
+        }
+
+        JSONObject comment_json = new JSONObject();
+        comment_json.setString(key, comment);
+        comment_json.setFloat("time", timer.getTime());
+        fWriter.write(comment_json.toString());
+    }
+
+    public void commentKey(Character key) {
+        if (fWriter == null) {
+            return;
+        }
+
+        if (this.commentKeys.containsKey(key)) {
+            String comment = this.commentKeys.get(key);
+            JSONObject comment_json = new JSONObject();
+            comment_json.setString("_"+key, comment);
+            comment_json.setFloat("time", timer.getTime());
+            fWriter.write(comment_json.toString());
+        }
+    }
     public void writeSettingsInfo(String filename, String key) {
         if (fWriter == null) {
             return;

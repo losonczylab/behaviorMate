@@ -8,6 +8,10 @@ import javax.swing.JComboBox;
 import java.io.File;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.KeyEvent;
+import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import javax.swing.BoxLayout;
@@ -748,6 +752,36 @@ class CommentsBox extends JPanel implements ActionListener {
     }
 }
 
+
+class KeyboardListener implements KeyEventDispatcher {
+    private TreadmillController treadmillController;
+    private HashMap<Character, String> commentTable;
+    private TrialListener trialListener;
+    private final Class textfieldclass = new JTextField().getClass();
+    private final Class commentclass = new JTextArea().getClass();
+
+    public KeyboardListener(TreadmillController treadmillController) {
+        this.treadmillController = treadmillController;
+        commentTable = new HashMap<Character, String>();
+    }
+
+    public boolean dispatchKeyEvent(KeyEvent e) {
+        JTextField test = new JTextField();
+        if (e.getID() == KeyEvent.KEY_PRESSED) {
+            Class sourceClass = e.getSource().getClass();
+            if (!sourceClass.equals(textfieldclass) && !sourceClass.equals(commentclass)) {
+                Character keyChar = e.getKeyChar();
+                this.treadmillController.commentKey(keyChar);
+            }
+        }
+        return false;
+    }
+
+    public void addKeyChar(Character key, String comment) {
+        commentTable.put(key, comment);
+    }
+}
+
 public class BehaviorMate {
     static SettingsLoader settingsLoader;
     static JFrame startFrame;
@@ -827,7 +861,6 @@ public class BehaviorMate {
             JOptionPane.showMessageDialog(null, message);
         }
 
-
         return null;
     }
 
@@ -891,6 +924,10 @@ public class BehaviorMate {
             treadmillController, settingsLoader);
         tl.setControlPanel(control_panel);
         tl.setController(treadmillController);
+
+        KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+        KeyboardListener dispatcher = new KeyboardListener(treadmillController);
+        manager.addKeyEventDispatcher(dispatcher);
 
         frame_container.add(control_panel, BorderLayout.CENTER);
 
