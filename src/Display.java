@@ -27,6 +27,7 @@ public class Display extends PApplet {
     private String schedule;
     private ArrayList<ContextList> contextsContainer;
     private PGraphics pg;
+    private String totalTime;
 
     public Display() {
         lickRate = 0;
@@ -46,6 +47,7 @@ public class Display extends PApplet {
         contextsContainer = new ArrayList<ContextList>();
 
         this.schedule = "";
+        this.totalTime = "";
     }
 
     void resetContexts() {
@@ -90,6 +92,10 @@ public class Display extends PApplet {
 
     void setRewardCount(int count) {
         rewardCount = count;
+    }
+
+    void setTotalTime(int time) {
+        this.totalTime = "/"+time;
     }
 
     void addReward() {
@@ -169,7 +175,7 @@ public class Display extends PApplet {
         app.text((int)position, 75+text_offset, 20);
         app.text(lickCount, 105+text_offset, 40);
         app.text(rewardCount, 135+text_offset, 60);
-        app.text((int)time, 50+text_offset, 100);
+        app.text((int)time + this.totalTime, 50+text_offset, 100);
         app.text(lapCount, 100+text_offset, 120);
 
         if (time > 0) {
