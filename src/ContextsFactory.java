@@ -52,7 +52,18 @@ public final class ContextsFactory {
             cl = new SalienceContextList(tc, display, context_info,
                 track_length, comm);
         } else {
-            cl = new BasicContextList(context_info, track_length, comm);
+            if (context_info.getString("type", "").equals("operant")) {
+                // this is so as not to confuse the arduino
+                boolean initial_open = false;
+                if (!context_info.isNull("initial_open")) {
+                    initial_open = context_info.getBoolean("initial_open");
+                    context_info.remove("initial_open");
+                }
+                cl = new OperantContextList(
+                    context_info, track_length, initial_open, comm);
+            } else {
+                cl = new BasicContextList(context_info, track_length, comm);
+            }
         }
 
         if (!context_info.isNull("decorators")) {
@@ -74,8 +85,6 @@ public final class ContextsFactory {
                     cl = new RandomContextDecorator(cl, decorator);
                 } else if (decorator_class.equals("lickstart_context")) {
                     cl = new LickStartContextDecorator(cl);
-                } else if (decorator_class.equals("operant_context")) {
-                    cl = new OperantContextDecorator(cl, decorator, comm);
                 } else {
                     throw new IllegalArgumentException(
                         "Decorator " + decorator_class + " not found");
