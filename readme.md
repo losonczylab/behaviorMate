@@ -7,27 +7,24 @@ Windows, Linux
 
 ## Installation
 
-	* Download and install Arduino IDE <https://www.arduino.cc/en/Main/Software>
+* Download and install Arduino IDE <https://www.arduino.cc/en/Main/Software>
 
- 	Add Arduino Due to the existing boards in :
+Add Arduino Due to the existing boards in :
 
- 	```
- 	Tools > Board > Boards Manager
+```
+Tools > Board > Boards Manager
+```
 
- 	```
+Install the following library in
 
- 	Install the following library in
-
- 	```
- 	Sketch -> Include Library -> Manage Libraries...
-
- 	```
- 	:
-
- 	```
- 	ArduinoJson
- 	```
- 	Make sure you select version **5.13.2**
+```
+Sketch -> Include Library -> Manage Libraries...
+```
+:
+```
+ArduinoJson
+```
+Make sure you select version **5.13.2**
 
 # Acknowledgements
 
@@ -38,7 +35,7 @@ Special thanks to the following people
 
 # Questions, comments, issues
 
-Please use the [GitLab's issue tracer](https://gitlab.com/losonczylab/BehaviorMate/issues) for questions and comments and create an issue for any bugs you might encounter.
+Please use the [GitLab's issue tracker](https://gitlab.com/losonczylab/BehaviorMate/issues) for questions and comments and create an issue for any bugs you might encounter.
 
 
 
