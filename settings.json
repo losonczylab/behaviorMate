@@ -29,19 +29,19 @@
         // controller. Default sensor type is to read a ttl pulse/square wave
         // input. a lickport type context  is necessary for rewarding contexts.
         "sensors": [
-            {
-                "type": "lickport", // "lickport" type sensor is based on the
-                                    // MPR121 capacitance touch sensor.
-                "pin": 2,           // Interrupt/IRQ pin
-            //  "report_pin": 20    // sets up a ttl pulse to report when the
-                                    // sensor is triggered
-            },
             //{
-            //    "type": "piezoport", // rfid tag reader for ID-12LA reader
-            //    "pin": 0,            // pin is the reset pin on the ID-12LA breakout
-            //    "lick_threshold": 10,
-            //    "lick_duration": 10
+            //    "type": "lickport", // "lickport" type sensor is based on the
+                                    // MPR121 capacitance touch sensor.
+            //    "pin": 2,           // Interrupt/IRQ pin
+              //"report_pin": 20    // sets up a ttl pulse to report when the
+                                    // sensor is triggered
             //},
+            {
+                "type": "piezoport", // rfid tag reader for ID-12LA reader
+                "pin": 0,            // pin is the reset pin on the ID-12LA breakout
+                "lick_threshold": 20,
+                "lick_duration": 10
+            },
             {
                 "pin": 15 // for a TTL pulse sensor all that is needed is pin
             }
@@ -65,9 +65,9 @@
                                // context starts
                 "durations": [60], // list of times to open valves for
                 "operant_rate": 2,
-                "locations": 12,
-                "radius":50,
-                "initial_open": 1,
+                //"locations": [500, 1500],
+                //"radius": 250,
+                "initial_open": false,
                 "sensor": 2, // pin number associated with the sensor to trigger
                              // operant context.
                 // "locations": [500, 1500], // integer or list. list - list of
@@ -80,7 +80,7 @@
                                            // the location of this context
                 "decorators": [
                     {
-                        "class": "operant_context"
+                        "class": "lickstart_context"
                     }
                 ]
             }
@@ -88,11 +88,16 @@
         "sync_pin": 12, // a ttl pulse is delivered at the beginning of each
                         // trial to the sync pin.
         "trial_length": 300, // duration (in s) of the trial.
+        "position_lap_reset": true,
         "position_scale": 2.18, // scales the position updates from aritrary
                                // unitst to mm. IMPORTANT! measure this value
                                // on each rig or position updates will be wrong
         "track_length": 2000, // length of the track/treadmill belt.
-        "position_lap_reader": true
+        "position_lap_reader": true,
+        "comment_keys": {
+            "a": "testing_comment",
+            "g": "grooming"
+        }
     },
     // the _system holde the data directory field. this does not get saved each
     // trial and needs to be set to a directory where the program can write
