@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 
 public class ContextListDecorator implements ContextList {
 
@@ -11,8 +12,12 @@ public class ContextListDecorator implements ContextList {
         this.context_list.sendCreateMessages();
     }
 
-    public void setComm(UdpClient comm) {
-        this.context_list.setComm(comm);
+    public void setupComms(ArrayList<UdpClient> comms) {
+        this.context_list.setupComms(comms);
+    }
+
+    public UdpClient getComm() {
+        return this.context_list.getComm();
     }
 
     public String getId() {

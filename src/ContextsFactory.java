@@ -29,40 +29,49 @@ public final class ContextsFactory {
 
         if (class_name.equals( "alternating_context")) {
             cl = new AlternatingContextDecorator(
-                new BasicContextList(context_info, track_length, comm),
+                new BasicContextList(
+                    context_info, track_length, "beahvior_controller"),
                 context_info);
         } else if (class_name.equals( "random_context")) {
             cl = new RandomContextDecorator(
-                new BasicContextList(context_info, track_length, comm),
+                new BasicContextList(
+                    context_info, track_length, "behavior_controller"),
                 context_info);
         } else if (class_name.equals( "timed_alt_context")) {
             cl = new TimedContextDecorator(
                 new AlternatingContextDecorator(
-                    new BasicContextList(context_info, track_length, comm),
+                    new BasicContextList(
+                        context_info, track_length, "behavior_controller"),
                     context_info), context_info);
         } else if (class_name.equals( "scheduled_context")) {
             cl = new ScheduledContextDecorator(
-                new BasicContextList(context_info, track_length, comm),
+                new BasicContextList(
+                    context_info, track_length, "behavior_controller"),
                 context_info);
         } else if (class_name.equals("vr")) {
             cl = new VrContextList(context_info, track_length);
+        } else if (class_name.equals("vr2")) {
+            cl = new VrContextList2(context_info, track_length);
+        } else if (class_name.equals("vr_cue2")) {
+            cl = new VrCueContextList2(context_info, track_length);
         } else if (class_name.equals("vr_cues")) {
             return new VrCueContextList(context_info, track_length);
         } else if (class_name.equals("salience")) {
             cl = new SalienceContextList(tc, display, context_info,
-                track_length, comm);
+                track_length, "behavior_controller");
         } else {
-            if (context_info.getString("type", "").equals("operant")) {
+            if (context_info.getString("type", "").equals("operant") && false) {
                 // this is so as not to confuse the arduino
-                boolean initial_open = false;
+                /*boolean initial_open = false;
                 if (!context_info.isNull("initial_open")) {
                     initial_open = context_info.getBoolean("initial_open");
                     context_info.remove("initial_open");
                 }
                 cl = new OperantContextList(
                     context_info, track_length, initial_open, comm);
+                */
             } else {
-                cl = new BasicContextList(context_info, track_length, comm);
+                cl = new BasicContextList(context_info, track_length, "behavior_controller");
             }
         }
 

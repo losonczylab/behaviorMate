@@ -83,6 +83,8 @@ public class BasicContextList extends PApplet implements ContextList {
      */
     protected UdpClient comm;
 
+    protected String comm_id;
+
     /**
      * a String identifier to identify this context to the UI as well as in the
      * behavior file.
@@ -112,9 +114,10 @@ public class BasicContextList extends PApplet implements ContextList {
      *                     starts and stop the context
      */
     public BasicContextList(JSONObject context_info,
-            float track_length, UdpClient comm) {
+            float track_length, String comm_id) {
         this.contexts = new ArrayList<Context>();
-        this.comm = comm;
+        this.comm = null;
+        this.comm_id = comm_id;
         this.sent = -1;
         this.tries = 0;
         this.waiting = false;
@@ -174,7 +177,11 @@ public class BasicContextList extends PApplet implements ContextList {
             }
         }
 
-        sendCreateMessages();
+        //sendCreateMessages();
+    }
+
+    public UdpClient getComm() {
+        return this.comm;
     }
 
     public void sendCreateMessages() {
@@ -216,6 +223,8 @@ public class BasicContextList extends PApplet implements ContextList {
             this.tries = 0;
             this.waiting = false;
             comm.sendMessage(context_setup_json.toString());
+        } else {
+            System.out.println("[" +this.id+ " "  + this.comm_id + "] SEND CREATE MESSAGES FAILED");
         }
     }
 
@@ -225,8 +234,19 @@ public class BasicContextList extends PApplet implements ContextList {
      * @param comm channel to post messages to for configuring, starting or
      * stopping contexts.
      */
-    public void setComm(UdpClient comm) {
-        this.comm = comm;
+    public void setupComms(ArrayList<UdpClient> comms) {
+        for (UdpClient c: comms) {
+            if (c.getId().equals(this.comm_id)) {
+                this.comm = c;
+                break;
+            }
+        }
+
+        if (this.comm == null) {
+            System.out.println("FAILED TO FIND COM");
+        }
+
+        sendCreateMessages();
     }
 
     /**

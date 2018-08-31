@@ -1,11 +1,14 @@
+import java.util.ArrayList;
 
 public interface ContextList {
 
     public abstract void sendCreateMessages();
 
-    public abstract void setComm(UdpClient comm);
+    public abstract void setupComms(ArrayList<UdpClient> comms);
 
     public abstract String getId();
+
+    public abstract UdpClient getComm();
 
     public abstract void setDisplayScale(float scale);
 

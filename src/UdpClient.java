@@ -19,6 +19,7 @@ class UdpClient extends PApplet {
     String address;
     String id;
     FileWriter mL;
+    private boolean sending;
 
     public UdpClient(int arduinoPort, int receivePort, String id)
             throws IOException {
@@ -76,6 +77,9 @@ class UdpClient extends PApplet {
         }
     }
 
+    public String getId() {
+        return this.id;
+    }
 
     void sendMessage(String message) {
       message = message.replaceAll("[\r|\n|\\s]", "");
@@ -99,7 +103,7 @@ class UdpClient extends PApplet {
             try {
                 json.json.setJSONObject(this.id, JSONObject.parse(message));
             } catch (RuntimeException e) {
-                System.out.println("ERROR parsing message: " + message);
+                System.out.println("[" + this.id + "] ERROR parsing message: " + message);
                 return false;
             }
 

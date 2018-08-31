@@ -22,6 +22,7 @@ public class SalienceContextList extends BasicContextList {
     private Event nextEvent;
     private TreadmillController tc;
     protected Display display;
+    protected int[] display_color_active;
 
     float stim_time;
     float event_time;
@@ -35,21 +36,29 @@ public class SalienceContextList extends BasicContextList {
     Random random;
 
     public SalienceContextList(TreadmillController tc, Display display,
-            JSONObject context_info, float track_length, UdpClient comm)
+            JSONObject context_info, float track_length, String comm_id)
             throws Exception {
-        super(context_info, track_length, comm);
+        super(context_info, track_length, comm_id);
 
         this.tc = tc;
         this.nblocks = context_info.getInt("num_blocks");
         this.stim_time = context_info.getFloat("stim_time");
         this.prestim_time = context_info.getFloat("prestim_time");
         this.poststim_time = context_info.getFloat("poststim_time");
+        if (this.display_color != null) {
+            this.display_color_active = this.display_color;
+            this.display_color = null;
+        } else {
+            System.out.println("display_color null");
+            this.display_color_active = new int[] {150, 50, 20};
+        }
+
+
         this.trial_length = prestim_time + stim_time + poststim_time;
         this.display = display;
         this.event_time = -1;
         this.display = display;
 
-        createSchedule();
     }
 
     public void sendCreateMessages() {
@@ -70,6 +79,8 @@ public class SalienceContextList extends BasicContextList {
                 this.comm.sendMessage(valve_json.toString());
             }
         }
+
+        createSchedule();
     }
 
     public void createSchedule() {
@@ -176,12 +187,12 @@ public class SalienceContextList extends BasicContextList {
                 this.comm.sendMessage(nextEvent.message);
             } else if (nextEvent.type.equals("end")) {
                 endTrial(time, msg_buffer);
-            } else if (nextEvent.type.equals("end_experiment")) { 
+            } else if (nextEvent.type.equals("end_experiment")) {
                 tc.endExperiment();
             } else {
                 this.status = nextEvent.type;
                 this.event_time = time;
-                this.display_color = new int[]{255,69,0};
+                this.display_color = this.display_color_active;
                 this.comm.sendMessage(nextEvent.message);
             }
 

@@ -83,11 +83,15 @@ public class TreadmillController extends PApplet {
      */
     float position;
 
+    float offset_position;
+
     /**
      * distance run since last lap reset (allowed to be negative). Used to check that
      * animal is not backing over reset tag.
      */
     float distance;
+
+    float offset_distance;
 
     /**
      * scale to convert position updates from rotary encoder to mm traversed on the
@@ -133,6 +137,8 @@ public class TreadmillController extends PApplet {
     HashMap<Character, String> commentKeys;
 
     int lap_offset;
+
+    float lap_correction;
 
     /**
      * Indicates weither the trial has been started. used to evaluate if contexts
@@ -215,6 +221,7 @@ public class TreadmillController extends PApplet {
 
         if (fWriter != null) {
             fWriter.close();
+            System.out.println("FILE WRITER OPEN");
         }
 
         try {
@@ -363,17 +370,21 @@ public class TreadmillController extends PApplet {
             }
         }
 
+        delay(100);
+
         //TODO: diff and only reconfigure if an update is made
+        /*
         if (behavior_comm != null) {
             behavior_comm.closeSocket();
         }
         if (position_comm != null) {
             position_comm.closeSocket();
         }
+        */
         for (UdpClient c : comms) {
             c.closeSocket();
         }
-        delay(100);
+        delay(250);
 
         reconfigureExperiment();
     }
@@ -394,19 +405,21 @@ public class TreadmillController extends PApplet {
     }
 
     public void RefreshSettings() throws Exception {
+        delay(100);
+        /*
         if (behavior_comm != null) {
             behavior_comm.closeSocket();
         }
 
         if (position_comm != null) {
             position_comm.closeSocket();
-        }
+        }*/
 
         for (UdpClient c: comms) {
             c.closeSocket();
         }
 
-        delay(100);
+        delay(250);
 
         reload_settings();
     }
@@ -415,6 +428,9 @@ public class TreadmillController extends PApplet {
         println("ZERO POSITION");
 
         position = 0;
+        offset_position = lap_offset;
+        distance = 0;
+        offset_distance = lap_offset;
     }
 
     /**
@@ -678,12 +694,19 @@ public class TreadmillController extends PApplet {
     }
 
     void startComms() throws Exception {
+        comms = new ArrayList<UdpClient>();
+        position_comm = null;
+        behavior_comm = null;
+
         JSONObject controllers;
         if (!settings_json.isNull("controllers")) {
             controllers = settings_json.getJSONObject("controllers");
         } else {
             controllers = new JSONObject();
         }
+
+        System.out.println(controllers.toString());
+        System.out.println(controllers.getJSONObject("position_controller"));
 
         for (Object comm_key_o : controllers.keys()) {
             String comm_key = (String)comm_key_o;
@@ -696,13 +719,16 @@ public class TreadmillController extends PApplet {
                 comm_key);
             controller_json.setString("address", comm.address);
             controllers.setJSONObject(comm_key, controller_json);
+            comms.add(comm);
             if (comm_key.equals("position_controller")) {
                 position_comm = comm;
             } else if (comm_key.equals("behavior_controller")) {
                 behavior_comm = comm;
-            } else {
-                comms.add(comm);
             }
+        }
+
+        if (position_comm == null) {
+            System.out.println("position_comm null");
         }
     }
 
@@ -717,9 +743,16 @@ public class TreadmillController extends PApplet {
         if (!settings_json.getString("lap_reset_tag", "").equals("")) {
             if (!settings_json.getString("lap_reset_tag").equals(lap_tag)) {
                 position = -1;
+                offset_position = -1;
             }
+        } else if ((!position_reset) &&
+                (settings_json.getBoolean("position_lap_reader", false))) {
+            position = -1;
+            offset_position = -1;
+
         } else if (position == -1) {
             position = 0;
+            offset_position = lap_offset;
         }
 
         trial_duration = settings_json.getInt("trial_length", -1);
@@ -734,6 +767,11 @@ public class TreadmillController extends PApplet {
             lap_tolerance = 0;
         }
         lap_offset = settings_json.getInt("lap_offset", 0);
+        if (settings_json.getBoolean("delay_lap_correction", false)) {
+            lap_correction = 0;
+        } else {
+            lap_correction = -1;
+        }
         position_reset = settings_json.getBoolean(
             "position_lap_reader", false);
 
@@ -795,6 +833,7 @@ public class TreadmillController extends PApplet {
         if (!settings_json.isNull("contexts")) {
             VrContextList vr_context = null;
             ArrayList<VrCueContextList> cue_lists = new ArrayList<VrCueContextList>();;
+
             JSONArray contexts_array = settings_json.getJSONArray("contexts");
             for (int i=0; i < contexts_array.size(); i++) {
                 JSONObject context_info = contexts_array.getJSONObject(i);
@@ -805,12 +844,15 @@ public class TreadmillController extends PApplet {
                 contexts.add(context_list);
 
                 //TODO: clearner way to do this
+                //TODO: is this even necessary?
                 String context_class = context_info.getString(
                     "class", "context");
-                if (!context_class.equals("salience")) {
+                //if (!context_class.equals("salience")) {
                     display.setContextLocations(context_list);
-                }
+                //}
+                context_list.setupComms(comms);
 
+                //TODO: remove vr/vr_cues and replaced with vr2
                 if (context_class.equals("vr")) {
                     vr_context = (VrContextList) contexts.get(
                         contexts.size()-1);
@@ -876,7 +918,7 @@ public class TreadmillController extends PApplet {
 
         JSONObject settings_info = new JSONObject();
         settings_info.setString("settings_file", filename);
-        settings_info.setString("key", key);
+        settings_info.setString("settings_key", key);
 
         fWriter.write(settings_info.toString());
     }
@@ -894,7 +936,7 @@ public class TreadmillController extends PApplet {
         sketchPath("");
         textSize(12);
         background(0);
-        frameRate(120);
+        frameRate(1024);
 
         started = false;
         lap_offset = 0;
@@ -902,7 +944,9 @@ public class TreadmillController extends PApplet {
         trial_duration = -1;
         lap_limit = -1;
         position = -1;
+        offset_position = -1;
         distance = 0;
+        offset_distance = 0;
         lap_count = 0;
         lap_tag = "";
         fWriter = null;
@@ -921,11 +965,6 @@ public class TreadmillController extends PApplet {
 
 
     public void resetLap(String tag, float time) {
-        if (distance < 0.5*track_length) {
-            return;
-        }
-
-        distance = 0;
         if (started) {
             JSONObject lap_log = new JSONObject();
             lap_log.setFloat("time", time);
@@ -949,7 +988,6 @@ public class TreadmillController extends PApplet {
 
 
     protected void checkMessages(UdpClient comm, float time) {
-
         for (int i=0; ((i < 10) && (comm.receiveMessage(json_buffer))); i++) {
             JSONObject message_json =
                 json_buffer.json.getJSONObject(comm.id);
@@ -967,9 +1005,11 @@ public class TreadmillController extends PApplet {
 
     protected float updatePosition(float time) {
         if (position_comm == null) {
+            System.out.println("null pos comm");
             return 0;
         }
 
+        boolean reset_lap = false;
         float dy = 0;
         for (int i=0; ((i < 10) && (position_comm.receiveMessage(json_buffer)))
                 ;i++) {
@@ -980,11 +1020,43 @@ public class TreadmillController extends PApplet {
             JSONObject position_json =
                 json_buffer.json.getJSONObject(position_comm.id);
 
-            if (position_reset && (!position_json.isNull("lap_reset"))) {
+            if (!position_json.isNull("lap_reset")) {
                 display.setCurrentTag("");
-                position = lap_offset;
-                dy = 0;
-                resetLap("", time);
+                if (position_reset) {
+                    reset_lap = true;
+                    break;
+                    //if (distance > 0.5*track_length) {
+                    /*
+                    if (position != -1) {
+                        float _lap_correction = track_length - distance;
+                        distance = 0;
+                        System.out.println(_lap_correction);
+
+                        float per_error = _lap_correction/track_length;
+                        System.out.println(per_error);
+                        position_scale = position_scale*per_error;
+                        System.out.println(position_scale);
+                        System.out.println("");
+                        display.setCurrentTag(""+position_scale);
+                    }
+                    if (lap_correction != -1) {
+                        System.out.println(lap_correction);
+                    } else {*/
+                        //position = track_length + lap_offset;
+                        //distance = track_length + lap_offset;
+                        //}
+                   /*     dy = 0;
+                        distance = 0;
+                        if (position > 0.5*track_length) {
+                            resetLap("", time);
+                        }
+                        position = 0;
+                    } else if (position == -1) {
+                        position = 0;
+                        distance = 0;
+                        dy = 0;
+                    }*/
+                }
             }
 
             if (!position_json.isNull("position")) {
@@ -998,30 +1070,63 @@ public class TreadmillController extends PApplet {
         dy /= position_scale;
         display.setPositionRate(dy);
 
-        if (dy == 0) {
+        if ((dy == 0) && (!reset_lap)) {
             return 0;
         }
 
         distance += dy;
+        offset_distance += dy;
         if (position != -1) {
             if ((position + dy) < 0) {
                 position += track_length;
             }
             position += dy;
+            //offset_position = position + lap_offset;
+            offset_position += dy;
+            if (offset_position >= track_length) {
+                offset_position -= track_length;
+                if (offset_distance > track_length/2) {
+                    resetLap("", time);
+                    offset_distance = 0;
+                }
+            } else if (offset_position < 0 ) {
+                offset_position += track_length;
+            }
         }
 
-        if (position > track_length*(1 + lap_tolerance)) {
-            position = track_length*lap_tolerance;
-            resetLap("", time);
-            distance = position;
+        //if (distance > track_length) {
+            //distance = track_length*lap_tolerance;
+            //position = distance + lap_offset;
+        //}
+
+        if (reset_lap) {
+            if ((position == -1)||(distance > track_length/2)) {
+
+                if ((distance > 0.8*track_length) &&
+                        (distance < 1.2*track_length)) {
+                }
+
+                position = 0;
+                offset_position = lap_offset;
+                distance = 0;
+                //if (position > track_length/2) {
+                //    resetLap("", 0);
+                //}
+            }
+        } else if (position >= track_length) {
+            position -= track_length;
+            //if (distance >= track_length) {
+            //    resetLap("", time);
+            //}
         }
 
         if (started) {
-            json_buffer.json.setFloat("y", position);
+            json_buffer.json.setFloat("y", offset_position);
             json_buffer.json.setFloat("time", time);
             fWriter.write(json_buffer.json.toString());
         }
 
+        //display.setMouseName(""+distance);
         return dy;
     }
 
@@ -1059,6 +1164,7 @@ public class TreadmillController extends PApplet {
                 display.setCurrentTag(tag_id);
                 if (tag_id.equals(lap_tag)) {
                     position = 0;
+                    offset_position = lap_offset;
                     resetLap(lap_tag, time);
                 }
             }
@@ -1091,7 +1197,9 @@ public class TreadmillController extends PApplet {
                         settings_json.getInt("sync_pin"));
                     behavior_comm.sendMessage(valve_json.toString());
                     for (int j=0; j<contexts.size(); j++) {
-                        contexts.get(j).sendCreateMessages();
+                        if (contexts.get(j).getComm() == behavior_comm) {
+                            contexts.get(j).sendCreateMessages();
+                        }
                     }
                 } catch (Exception e) {}
             }
@@ -1111,7 +1219,7 @@ public class TreadmillController extends PApplet {
     int display_rate = 50;
     String[] msg_buffer = {null};
     public void draw() {
-        float time = timer.checkTime();;
+        float time = timer.checkTime();
         if ((trial_duration != -1) && (time > trial_duration)) {
             endExperiment();
         }
@@ -1124,8 +1232,8 @@ public class TreadmillController extends PApplet {
 
         if (started) {
             for (int i=0; i < contexts.size(); i++) {
-                contexts.get(i).check(position, time, lap_count, lick_count,
-                                      msg_buffer);
+                contexts.get(i).check(offset_position, time, lap_count,
+                                      lick_count, msg_buffer);
                 if (msg_buffer[0] != null) {
                     fWriter.write(msg_buffer[0].replace("\n", ""));
                     msg_buffer[0] = null;
@@ -1136,13 +1244,16 @@ public class TreadmillController extends PApplet {
         updateBehavior(time);
 
         for (UdpClient c: comms) {
-            checkMessages(c, time);
+            if ((c != behavior_comm) && (c != position_comm)) {
+                checkMessages(c, time);
+            }
+
         }
 
         int t = millis();
         int display_check = t-display_update;
         if (display_check > display_rate) {
-            display.update(this, dy, position, time);
+            display.update(this, dy, offset_position, time);
             display_update = t;
         }
     }
@@ -1158,6 +1269,9 @@ public class TreadmillController extends PApplet {
     }
 
     public void resetComms() {
+        delay(100);
+
+        /*
         if (position_comm != null) {
             position_comm.closeSocket();
         }
@@ -1165,12 +1279,18 @@ public class TreadmillController extends PApplet {
         if (behavior_comm != null) {
             behavior_comm.closeSocket();
         }
+        */
 
-        try {
+        for (UdpClient c : comms) {
+            c.closeSocket();
+        }
+
+        delay(250);
+        /*try {
             Thread.sleep(50);
         } catch(Exception e) {
             e.printStackTrace();
-        }
+        }*/
 
         try {
             startComms();
@@ -1201,10 +1321,12 @@ public class TreadmillController extends PApplet {
             }
         }
 
+        System.out.println("writing end log");
         JSONObject end_log = new JSONObject();
         end_log.setFloat("time", timer.getTime());
         end_log.setString("stop", dateFormat.format(stopDate));
         fWriter.write(end_log.toString());
+        fWriter.close();
 
         lap_count = 0;
         lick_count = 0;

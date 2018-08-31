@@ -43,7 +43,7 @@ public class FileWriter extends PApplet {
         logFile = new File(pathname + sep + mouse + sep + mouse + "_" +
             logNameFormat.format(logDate) + ".tdml");
         println(logFile);
-        fos = new FileOutputStream(logFile, false);
+        //fos = new FileOutputStream(logFile, false);
 
         wt = new WriterThread(logFile, tl);
         wt.start();
@@ -52,7 +52,7 @@ public class FileWriter extends PApplet {
     public FileWriter(String filename) throws IOException {
         logFile = new File(filename);
 
-        fos = new FileOutputStream(logFile, false);
+        //fos = new FileOutputStream(logFile, false);
         wt = new WriterThread(logFile, null);
         wt.start();
         Date logDate = Calendar.getInstance().getTime();
@@ -69,6 +69,13 @@ public class FileWriter extends PApplet {
      * @param msg message to be written to the log file
      */
     public void write(String msg) {
+        if (wt == null) {
+            wt = new WriterThread(logFile, null);
+            wt.start();
+            wt.queueMessage(msg);
+            wt.stop_thread();
+            wt = null;
+        } else {
         /*
         if (logFile != null) {
             try {
@@ -85,10 +92,14 @@ public class FileWriter extends PApplet {
         }
         */
         wt.queueMessage(msg);
+        }
     }
 
     public void close() {
-        wt.stop_thread();
+        if (wt != null) {
+            wt.stop_thread();
+            wt = null;
+        }
     }
 
     public class WriterThread extends Thread {
@@ -115,21 +126,42 @@ public class FileWriter extends PApplet {
         public void run() {
             messageBuffer = writeQueue.poll();
             while (this.run || messageBuffer != null) {
-                while (messageBuffer != null) {
+                if (messageBuffer != null) {
                     try {
-                        write(messageBuffer);
+                        fos = new FileOutputStream(logFile, true);
+                        osw = new OutputStreamWriter(fos);
                     } catch (IOException e) {
-                        String alert = e.toString();
-                        StackTraceElement[] elements = e.getStackTrace();
-                        for (int i=0; ((i < 3) && (i < elements.length)); i++) {
-                            alert += ("\n" + elements[i].toString());
-                        }
-                        if (tl != null) {
-                            tl.exception(alert);
-                        }
-                        break;
+                        System.out.println(e);
+                        tl.exception("error opening log file");
                     }
-                    messageBuffer = writeQueue.poll();
+
+                    for (int j = 0; ((messageBuffer != null) && (j < 10)); j++) {
+                        try {
+                            //write(messageBuffer);
+
+                            osw.write(
+                                messageBuffer.replaceAll("[\r|\n]|\\s{2,}","") + "\n");
+                        } catch (IOException e) {
+                            String alert = e.toString();
+                            StackTraceElement[] elements = e.getStackTrace();
+                            for (int i=0; ((i < 3) && (i < elements.length)); i++) {
+                                alert += ("\n" + elements[i].toString());
+                            }
+                            if (tl != null) {
+                                tl.exception(alert);
+                            }
+                            break;
+                        }
+                        messageBuffer = writeQueue.poll();
+                    }
+
+                    try {
+                        osw.close();
+                        fos.close();
+                    } catch (IOException e) {
+                        System.out.println(e);
+                        tl.exception("error saving log file");
+                    }
                 }
 
                 try {
@@ -156,13 +188,13 @@ public class FileWriter extends PApplet {
 
         public void write(String msg) throws IOException {
             if (logFile != null) {
-                fos = new FileOutputStream(logFile, true);
-                osw = new OutputStreamWriter(fos);
+                //fos = new FileOutputStream(logFile, true);
+                ///osw = new OutputStreamWriter(fos);
 
                 osw.write(
                     msg.replaceAll("[\r|\n]|\\s{2,}","") + "\n");
-                osw.close();
-                fos.close();
+                //osw.close();
+                //fos.close();
             }
         }
     }

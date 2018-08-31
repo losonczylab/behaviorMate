@@ -45,8 +45,8 @@ public class ScheduledContextList extends BasicContextList {
      *                     starts and stop the context
      */
     public ScheduledContextList(JSONObject context_info,
-            float track_length, UdpClient comm) {
-        super(context_info, track_length, comm);
+            float track_length, String comm_id) {
+        super(context_info, track_length, comm_id);
         this.suspended = false;
         this.display_color_active = display_color;
         this.display_color_suspended = new int[] {100, 100, 100};
