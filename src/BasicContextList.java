@@ -390,6 +390,10 @@ public class BasicContextList extends PApplet implements ContextList {
         }
     }
 
+    public void end() {
+        this.reset();
+    }
+
     /**
      * Shuffles the location of each of the contexts contained in this list.
      */
@@ -508,13 +512,13 @@ public class BasicContextList extends PApplet implements ContextList {
                 this.active = -1;
                 this.waiting = true;
                 this.sent = time;
-                this.comm.sendMessage(this.stopString);
+                this.sendMessage(this.stopString);
             } else if((inZone) && (this.active != i)) {
                 this.active = i;
                 this.waiting = true;
                 this.sent = time;
                 this.status = "sent start";
-                this.comm.sendMessage(this.startString);
+                this.sendMessage(this.startString);
             }
         }
 
@@ -531,10 +535,10 @@ public class BasicContextList extends PApplet implements ContextList {
                                    this.tries);
                 if (!inZone) {
                     this.sent = time;
-                    this.comm.sendMessage(this.stopString);
+                    this.sendMessage(this.stopString);
                 } else if(inZone) {
                     this.sent = time;
-                    this.comm.sendMessage(this.startString);
+                    this.sendMessage(this.startString);
                 }
             }
         }
@@ -553,7 +557,7 @@ public class BasicContextList extends PApplet implements ContextList {
     public void suspend() {
         this.active = -1;
         this.status = "sent stop";
-        this.comm.sendMessage(this.stopString);
+        this.sendMessage(this.stopString);
     }
 
     /**
@@ -564,6 +568,10 @@ public class BasicContextList extends PApplet implements ContextList {
         this.active = -1;
         this.status = "sent stop";
         this.waiting = false;
-        this.comm.sendMessage(this.stopString);
+        this.sendMessage(this.stopString);
+    }
+
+    protected void sendMessage(String message) {
+        this.comm.sendMessage(message);
     }
 }
