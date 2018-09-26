@@ -83,6 +83,44 @@ class LabeledTextField extends JPanel {
     }
 }
 
+class CalibrateBeltForm extends JPanel implements ActionListener {
+    private TreadmillController treadmillController;
+    private JButton jButton;
+    private boolean calibrating;
+
+    public CalibrateBeltForm(TreadmillController treadmillController) {
+        super(new FlowLayout());
+        this.treadmillController = treadmillController;
+
+        jButton = new JButton("Calibrate Position Scale");
+        jButton.addActionListener(this);
+        JPanel button_container = new JPanel(new GridLayout(0,1));
+        button_container.add(jButton);
+        add(button_container);
+        calibrating = false;
+    }
+
+    public void setEnabled(boolean enabled) {
+        jButton.setEnabled(enabled);
+    }
+
+    public void endCalibration() {
+        treadmillController.EndBeltCalibration();
+        jButton.setText("Calibrate Position Scale");
+        this.calibrating = false;
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        if (calibrating) {
+            this.endCalibration();
+        } else {
+            treadmillController.CalibrateBelt();
+            jButton.setText("End Calibration");
+            this.calibrating = true;
+        }
+    }
+}
+
 
 class ZeroPositionForm extends JPanel implements ActionListener {
     private TreadmillController treadmillController;
@@ -366,6 +404,7 @@ class ControlPanel extends JPanel implements ActionListener {
     private LabeledTextField experimentGroupBox;
     private ValveTestForm valveTestForm;
     private ZeroPositionForm zeroPositionForm;
+    private CalibrateBeltForm calibrateBeltForm;
     private JButton showAttrsButton;
     private JButton refreshButton;
     private JButton restartCommButton;
@@ -389,7 +428,11 @@ class ControlPanel extends JPanel implements ActionListener {
         mouseNameBox = new LabeledTextField("Mouse Name", 14);
         add(mouseNameBox);
 
-        add(Box.createVerticalStrut(50));
+        add(Box.createVerticalStrut(25));
+
+        calibrateBeltForm = new CalibrateBeltForm(treadmillController);
+        calibrateBeltForm.setPreferredSize(new Dimension(200, 50));
+        add(calibrateBeltForm);
 
         zeroPositionForm = new ZeroPositionForm(treadmillController);
         zeroPositionForm.setPreferredSize(new Dimension(200, 50));
@@ -399,7 +442,7 @@ class ControlPanel extends JPanel implements ActionListener {
         valveTestForm.setPreferredSize(new Dimension(200, 250));
         add(valveTestForm);
 
-        add(Box.createVerticalStrut(75));
+        add(Box.createVerticalStrut(50));
 
         JPanel buttonPanel = new JPanel(new GridLayout(0,1));
         showAttrsButton= new JButton("Edit Trial Attributes");
@@ -474,6 +517,7 @@ class ControlPanel extends JPanel implements ActionListener {
             valveTestForm.setEnabled(false);
             refreshButton.setEnabled(false);
             showAttrsButton.setEnabled(false);
+            calibrateBeltForm.setEnabled(false);
             startButton.setText("Stop");
         } else {
             startButton.setText("Start");
@@ -482,6 +526,7 @@ class ControlPanel extends JPanel implements ActionListener {
             valveTestForm.setEnabled(true);
             showAttrsButton.setEnabled(true);
             refreshButton.setEnabled(true);
+            calibrateBeltForm.setEnabled(true);
         }
     }
 
@@ -585,6 +630,8 @@ class ControlPanel extends JPanel implements ActionListener {
 
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == startButton) {
+            this.calibrateBeltForm.endCalibration();
+
             if (startButton.getText().equals("Start")) {
                 if (!attrsCompleted) {
                     JOptionPane.showMessageDialog(this,
