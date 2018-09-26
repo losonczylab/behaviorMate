@@ -134,6 +134,12 @@ public class TreadmillController extends PApplet {
 
     boolean position_reset;
 
+    boolean belt_calibration_mode;
+
+    float current_calibration;
+
+    int n_calibrations;
+
     HashMap<Character, String> commentKeys;
 
     int lap_offset;
@@ -212,6 +218,8 @@ public class TreadmillController extends PApplet {
             (experiment_group.equals(""))) {
             return false;
         }
+
+        belt_calibration_mode = false;
 
         display.setMouseName(mouse_name);
         display.setLickCount(0);
@@ -431,6 +439,18 @@ public class TreadmillController extends PApplet {
         offset_position = lap_offset;
         distance = 0;
         offset_distance = lap_offset;
+    }
+
+    public void CalibrateBelt() {
+        belt_calibration_mode = true;
+        current_calibration = 0;
+        n_calibrations = 0;
+        display.setMouseName("New Calibration: " + current_calibration);
+    }
+
+    public void EndBeltCalibration() {
+        belt_calibration_mode = false;
+        display.setMouseName("");
     }
 
     /**
@@ -681,6 +701,7 @@ public class TreadmillController extends PApplet {
     void reload_settings(JSONObject settings_json, JSONObject system_json)
             throws Exception {
         this.settings_json = settings_json;
+        current_calibration = 0;
         system_json = this.system_json;
         reconfigureExperiment();
     }
@@ -689,6 +710,7 @@ public class TreadmillController extends PApplet {
     void reload_settings(String filename, String tag) throws Exception {
         settings_json = loadJSONObject(filename).getJSONObject(tag);
         system_json = loadJSONObject(filename).getJSONObject("_system");
+        current_calibration = 0;
 
         reconfigureExperiment();
     }
@@ -758,7 +780,12 @@ public class TreadmillController extends PApplet {
         trial_duration = settings_json.getInt("trial_length", -1);
         display.setTotalTime(trial_duration);
         lap_limit = settings_json.getInt("lap_limit", -1);
-        position_scale = settings_json.getFloat("position_scale");
+        if (Math.signum(current_calibration) == 0.0) {
+            System.out.println("zero calibration");
+            position_scale = settings_json.getFloat("position_scale");
+        } else {
+            System.out.println("calibration " + current_calibration);
+        }
         track_length = settings_json.getFloat("track_length");
         lap_tag = settings_json.getString("lap_reset_tag", "");
         if (!lap_tag.equals("")) {
@@ -873,6 +900,7 @@ public class TreadmillController extends PApplet {
     }
 
     void reload_settings() throws Exception {
+        current_calibration = 0;
         reconfigureExperiment();
     }
 
@@ -939,6 +967,8 @@ public class TreadmillController extends PApplet {
         frameRate(1024);
 
         started = false;
+        belt_calibration_mode = false;
+        current_calibration = 0;
         lap_offset = 0;
         position_reset = false;
         trial_duration = -1;
@@ -1102,22 +1132,22 @@ public class TreadmillController extends PApplet {
         if (reset_lap) {
             if ((position == -1)||(distance > track_length/2)) {
 
-                if ((distance > 0.8*track_length) &&
-                        (distance < 1.2*track_length)) {
+                if ((position != -1) && (belt_calibration_mode)) {
+                    current_calibration = (
+                        (current_calibration * n_calibrations) +
+                        position_scale*(1+(distance-track_length)/track_length)
+                        )/(++n_calibrations);
+                    position_scale = current_calibration;
+                    display.setMouseName(
+                        "New Calibration: "+ current_calibration +
+                        "\nLap Error: " + (distance-track_length));
                 }
-
                 position = 0;
                 offset_position = lap_offset;
                 distance = 0;
-                //if (position > track_length/2) {
-                //    resetLap("", 0);
-                //}
             }
         } else if (position >= track_length) {
             position -= track_length;
-            //if (distance >= track_length) {
-            //    resetLap("", time);
-            //}
         }
 
         if (started) {
@@ -1126,7 +1156,6 @@ public class TreadmillController extends PApplet {
             fWriter.write(json_buffer.json.toString());
         }
 
-        //display.setMouseName(""+distance);
         return dy;
     }
 
@@ -1313,7 +1342,7 @@ public class TreadmillController extends PApplet {
         started = false;
         for (int i=0; i < contexts.size(); i++) {
             contexts.get(i).stop(timer.getTime(), msg_buffer);
-            contexts.get(i).reset();
+            contexts.get(i).end();
 
             if (msg_buffer[0] != null) {
                 fWriter.write(msg_buffer[0]);
