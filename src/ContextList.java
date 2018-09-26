@@ -38,6 +38,8 @@ public interface ContextList {
 
     public void reset();
 
+    public void end();
+
     public boolean isActive();
 
     public int activeIdx();
