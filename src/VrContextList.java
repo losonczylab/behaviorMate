@@ -174,7 +174,7 @@ public class VrContextList extends BasicContextList {
         sendMessage(this.stopString);
     }
 
-    private void sendMessage(String message) {
+    protected void sendMessage(String message) {
         for (int i=0; i < this.comms.length; i++) {
             this.comms[i].sendMessage(message);
         }

@@ -82,6 +82,10 @@ public class ContextListDecorator implements ContextList {
         this.context_list.reset();
     }
 
+    public void end() {
+        this.context_list.end();
+    }
+
     public boolean isActive() {
         return this.context_list.isActive();
     }

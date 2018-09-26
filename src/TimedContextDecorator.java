@@ -9,7 +9,7 @@ import processing.data.JSONArray;
  */
 public class TimedContextDecorator extends SuspendableContextDecorator {
 
-    private int[] times;
+    private float[] times;
 
     private int time_idx;
 
@@ -27,23 +27,31 @@ public class TimedContextDecorator extends SuspendableContextDecorator {
         } else {
             JSONArray times_array = context_info.getJSONArray("times");
 
-            this.times = new int[2*times_array.size()];
+            this.times = new float[2*times_array.size()];
             for (int i = 0; i < times_array.size(); i++) {
                 JSONArray start_stop = times_array.getJSONArray(i);
-                this.times[2*i] = start_stop.getInt(0);
-                this.times[2*i+1] = start_stop.getInt(1);
+                this.times[2*i] = start_stop.getFloat(0);
+                this.times[2*i+1] = start_stop.getFloat(1);
             }
             this.time_idx = 0;
         }
 
+        if (context_info.getBoolean("no_display", false)) {
+            this.display_color_suspended = null;
+        }
         this.zero_lap = 0;
     }
 
     public void reset() {
+        super.reset();
+    }
+
+    public void end() {
         if (this.times != null) {
             this.time_idx = 0;
         }
-        super.reset();
+        super.end();
+
     }
 
     /**
