@@ -85,6 +85,9 @@ public class TimedContextDecorator extends SuspendableContextDecorator {
 
             if ((this.time_idx%2 == 0) || (this.time_idx == -1)) {
                 this.zero_lap = this.actual_lap;
+                if (!this.isSuspended()) {
+                   this.reset();
+                }
                 return true;
             }
         } else {
