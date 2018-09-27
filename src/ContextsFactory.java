@@ -26,6 +26,13 @@ public final class ContextsFactory {
             JSONObject context_info, float track_length, UdpClient comm,
             String class_name) throws Exception {
         ContextList cl;
+        JSONArray decorators = null;
+
+        context_info = tc.parseJSONObject(context_info.toString());
+        if (!context_info.isNull("decorators")) {
+            decorators = context_info.getJSONArray("decorators");
+            context_info.remove("decorators");
+        }
 
         if (class_name.equals( "alternating_context")) {
             cl = new AlternatingContextDecorator(
@@ -75,8 +82,7 @@ public final class ContextsFactory {
             }
         }
 
-        if (!context_info.isNull("decorators")) {
-            JSONArray decorators = context_info.getJSONArray("decorators");
+        if (decorators != null) {
             JSONObject timed_context = null;
             for (int i=0; i < decorators.size(); i++) {
                 JSONObject decorator = decorators.getJSONObject(i);
