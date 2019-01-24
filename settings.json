@@ -3,15 +3,15 @@
 {
     "example": { // name for each profile of in this setting file
         "controllers": {
-            "behavior_controller": { // address behavior arduino is posting message
-                "ip": "192.168.1.101",   // to
-                //"ip": "127.0.0.1",   // to
+            "behavior_controller": {
+                "ip": "192.168.1.101",
+                //"ip": "127.0.0.1",
                 "send_port": 5000,
                 //"send_port": 4096,
                 "receive_port": 5000
             },
-            "position_controller": { // address arduino reading rotary encoder is
-                "ip": "192.168.1.102",   // posting messages to
+            "position_controller": {
+                "ip": "192.168.1.102",
                 "send_port": 5005,
                 "receive_port": 5005
             },
@@ -29,22 +29,22 @@
         // controller. Default sensor type is to read a ttl pulse/square wave
         // input. a lickport type context  is necessary for rewarding contexts.
         "sensors": [
-            //{
-            //    "type": "lickport", // "lickport" type sensor is based on the
-                                    // MPR121 capacitance touch sensor.
-            //    "pin": 2,           // Interrupt/IRQ pin
-              //"report_pin": 20    // sets up a ttl pulse to report when the
-                                    // sensor is triggered
-            //},
             {
-                "type": "piezoport", // rfid tag reader for ID-12LA reader
-                "pin": 0,            // pin is the reset pin on the ID-12LA breakout
-                "lick_threshold": 20,
-                "lick_duration": 10
+                "type": "cap1188",
+                "pin": 2,
+                "sensor": 0,
+                "lights": true,
+                "sensitivity": 6
             },
-            {
-                "pin": 15 // for a TTL pulse sensor all that is needed is pin
-            }
+            //{
+            //    "type": "piezoport", // rfid tag reader for ID-12LA reader
+            //    "pin": 0,            // pin is the reset pin on the ID-12LA breakout
+            //    "lick_threshold": 20,
+            //    "lick_duration": 10
+            //},
+            //{
+            //    "pin": 15 // for a TTL pulse sensor all that is needed is pin
+            //},
         ],
         // "contexts" are time/space localized events that can be configured to
         // occur along the track. See Context Manager in the behavior arduino
@@ -53,49 +53,53 @@
             // reward zones are an example of a context and can be configured
             // in this list as well.
             {
-                "id": "reward",   // every context is required to have a
-                                  // unique id
+                "id": "reward",    // every context is required to have a
+                                   // unique id
                 "type": "operant", // specialized contexts are defined
                                    // through the type field. operant type
                                    // contexts are triggered via sensors i.e.
                                    // the lickport
                 "max_duration": 5, // maximum time (in s) the context is allowed
                                    // to be active
-                "valves": [5], // list of arduino pints to activate when the
-                               // context starts
+                "valves": [52],    // list of arduino pints to activate when the
+                                   // context starts
                 "durations": [60], // list of times to open valves for
                 "operant_rate": 2,
-                //"locations": [500, 1500],
-                //"radius": 250,
+                "radius": 50,
+                "report_pin": 7,
                 "initial_open": false,
                 "sensor": 2, // pin number associated with the sensor to trigger
                              // operant context.
+                "locations": 10,
                 // "locations": [500, 1500], // integer or list. list - list of
-                                           // locations to place context
-                                           // centroids. integer - number of
-                                           // locations to randomly shuffle
-                                           // context to. absent - context is
-                                           // active during entire trial
-                "display_color": [104,204,104], // color to make display indicating
-                                           // the location of this context
-                "decorators": [
-                    {
-                        "class": "lickstart_context"
-                    }
-                ]
+                                             // locations to place context
+                                             // centroids. integer - number of
+                                             // locations to randomly shuffle
+                                             // context to. absent - context is
+                                             // active during entire trial
+                "display_color": [104,204,104], // color to make display
+                                                // indicating the location of
+                                                // this context
+                //"decorators": [
+                //    {
+                //        "class": "blocked_shuffle",
+                //        "locations": [[500, 1500]]
+                //    }
+                //]
             }
         ],
-        "sync_pin": 12, // a ttl pulse is delivered at the beginning of each
+        "sync_pin": 23, // a ttl pulse is delivered at the beginning of each
                         // trial to the sync pin.
         "trial_length": 300, // duration (in s) of the trial.
         "position_lap_reset": true,
-        "position_scale": 2.18, // scales the position updates from aritrary
-                               // unitst to mm. IMPORTANT! measure this value
-                               // on each rig or position updates will be wrong
+        "position_scale": -2.18, // scales the position updates from aritrary
+                                 // unitst to mm. IMPORTANT! measure this value
+                                 // on each rig or position updates will be
+                                 // wrong
         "track_length": 2000, // length of the track/treadmill belt.
         "position_lap_reader": true,
+        "lap_offset": 300,
         "comment_keys": {
-            "a": "testing_comment",
             "g": "grooming"
         }
     },

@@ -1,51 +1,79 @@
-{"default":
-{ 
-  "experimentType": "salience",
-  "position_controller":
-    { "ip": "127.0.0.1",
-      "send_port": 5020,
-      "receive_port": 5025
+{
+    "default": {
+        "experimentType": "salience",
+        "controllers": {
+            "position_controller": {
+                "ip": "192.168.1.101",
+                "send_port": 5000,
+                "receive_port": 5000
+            },
+            "behavior_controller": {
+                "ip": "192.168.1.102",
+                "send_port": 5005,
+                "receive_port": 5005
+            },
+            "frame_sync": {
+                "ip": "192.168.1.103",
+                "send_port": 5010,
+                "receive_port": 5010
+            }
+        },
+        "sensors": [
+            {
+                "pin": 2,
+                "report_pin": 20,
+                "type": "lickport"
+            }
+        ],
+        "contexts": [
+            {
+                "id":"salience",
+                "class": "salience",
+                "stims": [
+                    {
+                        "name": "light",
+                        "address": "behavior_controller",
+                        "pin": 15,
+                        "duration": 100
+                    },
+                    {
+                        "name": "water",
+                        "address": "behavior_controller",
+                        "pin": 5,
+                        "duration": 30
+                    },
+                    {
+                        "name": "odor",
+                        "pin": 17,
+                        "address": "behavior_controller",
+                        "duration": 500
+                    },
+                    {
+                        "name": "tone_1",
+                        "pin": 33,
+                        "address": "behavior_controller",
+                        "duration": 500
+                    },
+                    {
+                        "name": "tone_2",
+                        "pin": 35,
+                        "address": "behavior_controller",
+                        "duration": 500
+                    }
+                ],
+                "num_blocks": 10,
+                "trial_length": 9,
+                "prestim_time": 3,
+                "poststim_time": 5,
+                "stim_time": 5,
+                "sync_pin": 12
+            }
+        ],
+        "sync_pin": 12,
+        "position_scale": -2.18,
+        "track_length": 2000
     },
-  "behavior_controller":
-    { "ip": "127.0.0.1",
-      "send_port": 5010,
-      "receive_port": 5015
-    },
-    "sensors": [
-    { "pin": 2,
-      "report_pin": 20,
-      "type": "lickport"
-    },
-    { "pin": 22,
-      "type": "rfid_reader"
-    }],
-  "stims": [
-    { "name": "light",
-      "address": "behavior_controller",
-      "pin": 5,
-      "duration": 100 },
-    { "name": "airpuff",
-      "address": "behavior_controller",
-      "pin": 7,
-      "duration": 100 },
-    { "name": "tone",
-      "pin": 15,
-      "address": "behavior_controller",
-      "duration": 500,
-      "frequency": 500 }
-  ],
-  "num_blocks": 1,
-  "sync_pin": 12,
-  "trial_length": 9,
-  "prestim_time": 3,
-  "stim_time": 5,
-  "poststim_time": 2,
-  "position_scale": 1.0,
-  "track_length": 6000,
-  "lap_reset_tag": "",
-  "log_file": "logs/vr.log"
-},
-"_system": {
-    "data_directory":"/Users/jbowler/Desktop/pMateData"
-}
+    "_system": {
+        "data_directory":"behaviorData"
+    }
 }
