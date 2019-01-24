@@ -628,44 +628,48 @@ class ControlPanel extends JPanel implements ActionListener {
         showAttrsForm();
     }
 
+    public void startTrial() {
+        this.calibrateBeltForm.endCalibration();
+
+        if (startButton.getText().equals("Start")) {
+            if (!attrsCompleted) {
+                JOptionPane.showMessageDialog(this,
+                    "Complete Trial Attributes Form");
+                return;
+            }
+
+            if (mouseNameBox.getText().equals("")) {
+                JOptionPane.showMessageDialog(this,
+                    "Mouse Name is Blank");
+                return;
+            }
+
+            if (experimentGroupBox.getText().equals("")) {
+                JOptionPane.showMessageDialog(this,
+                    "Project Name is Blank");
+                return;
+            }
+
+            if (treadmillController.Start(mouseNameBox.getText(),
+                                          experimentGroupBox.getText())) {
+                setEnabled(false);
+            } else {
+                JOptionPane.showMessageDialog(this,
+                    "Unable to Start ... Scan lap reset? or check behavior save directory");
+            }
+
+            treadmillController.writeSettingsInfo(
+                settingsLoader.getSelectedFile(),
+                settingsLoader.getSelectedTag());
+        } else {
+            treadmillController.endExperiment();
+            setEnabled(true);
+        }
+    }
+
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == startButton) {
-            this.calibrateBeltForm.endCalibration();
-
-            if (startButton.getText().equals("Start")) {
-                if (!attrsCompleted) {
-                    JOptionPane.showMessageDialog(this,
-                        "Complete Trial Attributes Form");
-                    return;
-                }
-
-                if (mouseNameBox.getText().equals("")) {
-                    JOptionPane.showMessageDialog(this,
-                        "Mouse Name is Blank");
-                    return;
-                }
-
-                if (experimentGroupBox.getText().equals("")) {
-                    JOptionPane.showMessageDialog(this,
-                        "Project Name is Blank");
-                    return;
-                }
-
-                if (treadmillController.Start(mouseNameBox.getText(),
-                                              experimentGroupBox.getText())) {
-                    setEnabled(false);
-                } else {
-                    JOptionPane.showMessageDialog(this,
-                        "Unable to Start ... Scan lap reset? or check behavior save directory");
-                }
-
-                treadmillController.writeSettingsInfo(
-                    settingsLoader.getSelectedFile(),
-                    settingsLoader.getSelectedTag());
-            } else {
-                treadmillController.endExperiment();
-                setEnabled(true);
-            }
+            startTrial();
         } else if (e.getSource() == showAttrsButton) {
             showAttrsForm();
         } else if (e.getSource() == refreshButton) {

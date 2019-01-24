@@ -12,6 +12,10 @@ public class ScheduledContextDecorator extends SuspendableContextDecorator {
 
     protected int repeat;
 
+    protected boolean keep_on;
+
+    protected int last_lap;
+
     public ScheduledContextDecorator(ContextList context_list,
                                      JSONObject context_info) {
         super(context_list);
@@ -21,12 +25,18 @@ public class ScheduledContextDecorator extends SuspendableContextDecorator {
         if (!context_info.isNull("lap_list")) {
             lap_array = context_info.getJSONArray("lap_list");
             this.lap_list = new ArrayList<Integer>();
-            for (int i=0; i < lap_array.size(); i++) {
+
+            int i = 0;
+            for (; i < lap_array.size(); i++) {
                 this.lap_list.add(lap_array.getInt(i));
             }
+
+            last_lap = lap_array.getInt(i-1);
         }
 
         this.repeat = context_info.getInt("repeat", 0);
+
+        this.keep_on = context_info.getBoolean("keep_on", false);
     }
 
     /**
@@ -50,6 +60,11 @@ public class ScheduledContextDecorator extends SuspendableContextDecorator {
      */
     public boolean check_suspend(float position, float time, int lap,
                                  int lick_count, String[] msg_buffer) {
+
+        if ((keep_on) && (lap > last_lap)) {
+            return false;
+        }
+
         if (this.repeat == 0) {
             return (this.lap_list.indexOf(lap) == -1);
         }

@@ -5,13 +5,13 @@ import processing.data.JSONArray;
 import java.util.ArrayList;
 
 public class VrContextList2 extends BasicContextList {
-    private float previous_location;
-    private UdpClient[] comms;
-    private JSONObject position_json;
-    private JSONObject position_data;
-    private JSONObject log_json;
-    private String[] comm_ids;
-    private JSONObject context_info;
+    protected float previous_location;
+    protected UdpClient[] comms;
+    protected JSONObject position_json;
+    protected JSONObject position_data;
+    protected JSONObject log_json;
+    protected String[] comm_ids;
+    protected JSONObject context_info;
     protected String startString;
     protected String stopString;
 
@@ -37,7 +37,6 @@ public class VrContextList2 extends BasicContextList {
         JSONObject stop_msg = new JSONObject();
         stop_msg.setString("action", "stop");
         this.stopString = stop_msg.toString();
-
     }
 
     public void setupVr(String vr_file) {
@@ -54,25 +53,50 @@ public class VrContextList2 extends BasicContextList {
             sendMessage(msg_json.toString());
         }
 
-        if (!vr_config.isNull("path")) {
-            msg_json = new JSONObject();
-            msg_json.setString("path", vr_config.getString("path"));
-            sendMessage(msg_json.toString());
-            System.out.println(msg_json.toString());
+        Iterator<String> keys = vr_config.keyIterator();
+        while (keys.hasNext()) {
+            String key = keys.next();
+            System.out.println(key);
+            if (!key.equals("objects")) {
+                msg_json = new JSONObject();
+                do {
+                    try {
+                        msg_json.setInt(key, vr_config.getInt(key));
+                        break;
+                    } catch(RuntimeException e) { }
+                    try {
+                        msg_json.setFloat(key, vr_config.getFloat(key));
+                        break;
+                    } catch(RuntimeException e) { }
+                    try {
+                        msg_json.setBoolean(key, vr_config.getBoolean(key));
+                        break;
+                    } catch(RuntimeException e) { }
+                    try {
+                        msg_json.setString(key, vr_config.getString(key));
+                        break;
+                    } catch(RuntimeException e) { }
+                } while(false);
+                System.out.println(msg_json.toString());
+                sendMessage(msg_json.toString());
+            }
         }
 
+        /*
         if (!vr_config.isNull("skybox")) {
             msg_json = new JSONObject();
             msg_json.setString("skybox", vr_config.getString("skybox"));
             sendMessage(msg_json.toString());
-        }
+        }*/
     }
 
-    public void setupComms(ArrayList<UdpClient> comms) {
+    public boolean setupComms(ArrayList<UdpClient> comms) {
         this.comms = new UdpClient[comm_ids.length];
         for (int i = 0; i < comm_ids.length; i++) {
+            boolean found = false;
             for (UdpClient c : comms) {
                 if (c.getId().equals(this.comm_ids[i])) {
+                    found = true;
                     this.comms[i] = c;
                     JSONObject msg_json = new JSONObject();
                     msg_json.setJSONObject(
@@ -82,19 +106,19 @@ public class VrContextList2 extends BasicContextList {
                     c.sendMessage(msg_json.toString());
                     c.sendMessage(stopString);
                     try {
-                    Thread.sleep(10);
+                        Thread.sleep(10);
                     } catch (Exception e){}
                 }
             }
+            if (!found) {
+                return false;
+            }
         }
 
-        //if (!context_info.isNull("vr_file")) {
-            //setupVr(context_info.getString("vr_file"));
-        //} else {
-            JSONObject clear_msg = new JSONObject();
-            clear_msg.setString("action", "clear");
-            sendMessage(clear_msg.toString());
-        //}
+        JSONObject clear_msg = new JSONObject();
+        clear_msg.setString("action", "clear");
+        sendMessage(clear_msg.toString());
+        return true;
     }
 
     public void setId(String id) {

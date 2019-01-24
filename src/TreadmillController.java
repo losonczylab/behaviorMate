@@ -283,16 +283,17 @@ public class TreadmillController extends PApplet {
         behavior_comm.sendMessage(test_arduino.toString());
 
         int i;
-        for (i=0; i<10 && !behavior_comm.receiveMessage(json_buffer); i++) {
+        for (i=0; i<50 && !behavior_comm.receiveMessage(json_buffer); i++) {
             delay(10);
         }
 
-        if (i == 10) {
+        if (i == 50) {
             trialListener.exception("Failed to connect to behavior controller");
         } else {
             System.out.println("test passed!");
         }
         loop();
+        delay(100);
 
         trialListener.started(fWriter.getFile());
 
@@ -449,6 +450,7 @@ public class TreadmillController extends PApplet {
     }
 
     public void EndBeltCalibration() {
+        settings_json.setFloat("position_scale", position_scale);
         belt_calibration_mode = false;
         display.setMouseName("");
     }
@@ -484,6 +486,18 @@ public class TreadmillController extends PApplet {
         return valve_json;
     }
 
+    static JSONObject setup_valve_json(int pin, boolean inverted) {
+        JSONObject valve_json = new JSONObject();
+        JSONObject valve_subjson = new JSONObject();
+        valve_subjson.setInt("pin", pin);
+        valve_subjson.setString("action","create");
+        if (inverted) {
+            valve_subjson.setBoolean("inverted", true);
+        }
+        valve_json.setJSONObject("valves", valve_subjson);
+
+        return valve_json;
+    }
 
     static JSONObject setup_valve_json(int pin, int frequency) {
         JSONObject valve_json = new JSONObject();
@@ -562,6 +576,11 @@ public class TreadmillController extends PApplet {
      * must include pin, type, and report_pin must be specified as needed
      */
     void configure_sensors() {
+        JSONObject clear_message = new JSONObject();
+        clear_message.setJSONObject("sensors", new JSONObject());
+        clear_message.getJSONObject("sensors").setString("action", "clear");
+        behavior_comm.sendMessage(clear_message.toString());
+
         if (settings_json.isNull("sensors")) {
             return;
         }
@@ -874,10 +893,13 @@ public class TreadmillController extends PApplet {
                 //TODO: is this even necessary?
                 String context_class = context_info.getString(
                     "class", "context");
-                //if (!context_class.equals("salience")) {
-                    display.setContextLocations(context_list);
-                //}
-                context_list.setupComms(comms);
+
+                display.setContextLocations(context_list);
+                if (!context_list.setupComms(comms)) {
+                    trialListener.exception(
+                        "Context List: " + context_list.getId() +
+                        " failed to connect to comm");
+                }
 
                 //TODO: remove vr/vr_cues and replaced with vr2
                 if (context_class.equals("vr")) {
@@ -1041,17 +1063,17 @@ public class TreadmillController extends PApplet {
 
         boolean reset_lap = false;
         float dy = 0;
+        JSONObject position_json = null;
         for (int i=0; ((i < 10) && (position_comm.receiveMessage(json_buffer)))
                 ;i++) {
-            if ((dy != 0) && (started)) {
-                fWriter.write(json_buffer.json.toString());
+            if ((dy != 0) && (started) && (position_json != null)) {
+                fWriter.write(position_json.toString());
             }
 
-            JSONObject position_json =
-                json_buffer.json.getJSONObject(position_comm.id);
+            position_json = json_buffer.json.getJSONObject(position_comm.id);
 
             if (!position_json.isNull("lap_reset")) {
-                display.setCurrentTag("");
+                display.setCurrentTag("", distance-track_length);
                 if (position_reset) {
                     reset_lap = true;
                     break;
@@ -1130,9 +1152,16 @@ public class TreadmillController extends PApplet {
         //}
 
         if (reset_lap) {
-            if ((position == -1)||(distance > track_length/2)) {
+            if (position == -1) {
+                position = 0;
+                offset_position = lap_offset;
+                distance = 0;
+            // check that this is a legitimate lap reset read
+            } else if (distance > track_length/2) {
 
-                if ((position != -1) && (belt_calibration_mode)) {
+                // position == -1 means that the lap reader has been initialized
+                // since BehviorMate was started yet.
+                if (belt_calibration_mode) {
                     current_calibration = (
                         (current_calibration * n_calibrations) +
                         position_scale*(1+(distance-track_length)/track_length)
@@ -1141,6 +1170,12 @@ public class TreadmillController extends PApplet {
                     display.setMouseName(
                         "New Calibration: "+ current_calibration +
                         "\nLap Error: " + (distance-track_length));
+                }
+
+                // check to see if the lap number needs to be updated
+                if (offset_distance >= track_length/2) {
+                    resetLap("", time);
+                    offset_distance = 0;
                 }
                 position = 0;
                 offset_position = lap_offset;
@@ -1190,12 +1225,17 @@ public class TreadmillController extends PApplet {
                     !behavior_json.getJSONObject("tag_reader").isNull("tag")) {
                 JSONObject tag = behavior_json.getJSONObject("tag_reader");
                 String tag_id = tag.getString("tag");
-                display.setCurrentTag(tag_id);
+                display.setCurrentTag(tag_id, distance-track_length);
                 if (tag_id.equals(lap_tag)) {
                     position = 0;
                     offset_position = lap_offset;
                     resetLap(lap_tag, time);
                 }
+            }
+
+            if (!behavior_json.isNull("error")) {
+                trialListener.exception(
+                    "Behavior Controller: " + behavior_json.getString("error"));
             }
 
             if (!behavior_json.isNull("context")) {

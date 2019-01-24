@@ -37,7 +37,7 @@ public final class ContextsFactory {
         if (class_name.equals( "alternating_context")) {
             cl = new AlternatingContextDecorator(
                 new BasicContextList(
-                    context_info, track_length, "beahvior_controller"),
+                    context_info, track_length, "behavior_controller"),
                 context_info);
         } else if (class_name.equals( "random_context")) {
             cl = new RandomContextDecorator(
@@ -59,6 +59,8 @@ public final class ContextsFactory {
             cl = new VrContextList(context_info, track_length);
         } else if (class_name.equals("vr2")) {
             cl = new VrContextList2(context_info, track_length);
+        } else if (class_name.equals("vr_extended")) {
+            cl = new VrExtendedContextList(context_info, track_length);
         } else if (class_name.equals("vr_cue2")) {
             cl = new VrCueContextList2(context_info, track_length);
         } else if (class_name.equals("vr_cues")) {
@@ -99,7 +101,9 @@ public final class ContextsFactory {
                 } else if (decorator_class.equals("random_context")) {
                     cl = new RandomContextDecorator(cl, decorator);
                 } else if (decorator_class.equals("lickstart_context")) {
-                    cl = new LickStartContextDecorator(cl);
+                    cl = new LickStartContextDecorator(cl, decorator);
+                } else if (decorator_class.equals("blocked_shuffle")) {
+                    cl = new BlockedShuffleDecorator(cl, decorator);
                 } else {
                     throw new IllegalArgumentException(
                         "Decorator " + decorator_class + " not found");

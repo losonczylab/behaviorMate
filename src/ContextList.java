@@ -2,13 +2,17 @@ import java.util.ArrayList;
 
 public interface ContextList {
 
+    public abstract UdpClient getComm();
+
     public abstract void sendCreateMessages();
 
-    public abstract void setupComms(ArrayList<UdpClient> comms);
+    public abstract boolean setupComms(ArrayList<UdpClient> comms);
 
     public abstract String getId();
 
-    public abstract UdpClient getComm();
+    public abstract int getRadius();
+
+    public abstract float getTrackLength();
 
     public abstract void setDisplayScale(float scale);
 
@@ -24,6 +28,10 @@ public interface ContextList {
 
     public abstract int getLocation(int i);
 
+    public abstract Context getContext(int i);
+
+    public abstract void move(int index, int location);
+
     public abstract void clear();
 
     public abstract void shuffle();
@@ -36,15 +44,15 @@ public interface ContextList {
     public abstract boolean check(float position, float time, int lap,
                          String[] msg_buffer);
 
-    public void reset();
+    public abstract void reset();
 
-    public void end();
+    public abstract void end();
 
-    public boolean isActive();
+    public abstract boolean isActive();
 
-    public int activeIdx();
+    public abstract int activeIdx();
 
-    public void suspend();
+    public abstract void suspend();
 
     public abstract void stop(float time, String[] msg_buffer);
 }

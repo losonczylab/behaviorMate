@@ -10,6 +10,7 @@ import java.util.ArrayList;
 public class Display extends PApplet {
     private float lickRate;
     private float lapRate;
+    private float lapErrorRate;
     private float positionRate;
     private float rewardRate;
     private int lickCount;
@@ -103,9 +104,14 @@ public class Display extends PApplet {
         rewardCount++;
     }
 
-    void setCurrentTag(String tag) {
+    void setCurrentTag(String tag, float position_error) {
         currentTag = tag;
         lapRate = 200;
+        lapErrorRate = Math.min(200*Math.abs(position_error)/15, 200);
+    }
+
+    void setCurrentTag(String tag) {
+        setCurrentTag(tag, 0);
     }
 
     void setLastLap(float position) {
@@ -166,10 +172,17 @@ public class Display extends PApplet {
             lapRate -= 5;
         }
 
+        if (lapErrorRate > 5) {
+            lapErrorRate -= 5;
+        } else {
+            lapErrorRate = 0;
+        }
+
         if (rewardRate > 0) {
             rewardRate -= 5;
         }
 
+        app.fill(color(255, 255, 255));
         app.textSize(18);
         app.text(this.mouseName, 20, 40);
         app.text((int)position, 75+text_offset, 20);
@@ -235,5 +248,8 @@ public class Display extends PApplet {
 
         app.fill(color(255,255,255));
         app.rect(tag_offset+120,500,10,-lapRate);
+
+        app.fill(color(255,0,0));
+        app.rect(tag_offset+120,500,10,-lapErrorRate);
     }
 }

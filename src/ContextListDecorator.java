@@ -12,8 +12,8 @@ public class ContextListDecorator implements ContextList {
         this.context_list.sendCreateMessages();
     }
 
-    public void setupComms(ArrayList<UdpClient> comms) {
-        this.context_list.setupComms(comms);
+    public boolean setupComms(ArrayList<UdpClient> comms) {
+        return this.context_list.setupComms(comms);
     }
 
     public UdpClient getComm() {
@@ -22,6 +22,14 @@ public class ContextListDecorator implements ContextList {
 
     public String getId() {
         return this.context_list.getId();
+    }
+
+    public int getRadius() {
+        return this.context_list.getRadius();
+    }
+
+    public float getTrackLength() {
+        return this.context_list.getTrackLength();
     }
 
     public void setDisplayScale(float scale) {
@@ -51,6 +59,15 @@ public class ContextListDecorator implements ContextList {
     public int getLocation(int i) {
         return this.context_list.getLocation(i);
     }
+
+    public Context getContext(int i) {
+        return this.context_list.getContext(i);
+    }
+
+    public void move(int index, int location) {
+        this.context_list.move(index, location);
+    }
+
 
     public void clear() {
         this.context_list.clear();

@@ -208,6 +208,9 @@ public class BasicContextList extends PApplet implements ContextList {
                 if (!context_info.isNull("frequency")) {
                     valve_json = TreadmillController.setup_valve_json(valve_pin,
                         context_info.getInt("frequency"));
+                } else if (!context_info.isNull("inverted")) {
+                    valve_json = TreadmillController.setup_valve_json(
+                        valve_pin, context_info.getBoolean("inverted"));
                 } else {
                     valve_json = TreadmillController.setup_valve_json(
                         valve_pin);
@@ -224,7 +227,8 @@ public class BasicContextList extends PApplet implements ContextList {
             this.waiting = false;
             comm.sendMessage(context_setup_json.toString());
         } else {
-            System.out.println("[" +this.id+ " "  + this.comm_id + "] SEND CREATE MESSAGES FAILED");
+            System.out.println(
+                "[" +this.id+ " "  + this.comm_id + "] SEND CREATE MESSAGES FAILED");
         }
     }
 
@@ -234,7 +238,7 @@ public class BasicContextList extends PApplet implements ContextList {
      * @param comm channel to post messages to for configuring, starting or
      * stopping contexts.
      */
-    public void setupComms(ArrayList<UdpClient> comms) {
+    public boolean setupComms(ArrayList<UdpClient> comms) {
         for (UdpClient c: comms) {
             if (c.getId().equals(this.comm_id)) {
                 this.comm = c;
@@ -243,10 +247,13 @@ public class BasicContextList extends PApplet implements ContextList {
         }
 
         if (this.comm == null) {
-            System.out.println("FAILED TO FIND COM");
+            System.out.println(
+                "[" +this.id+ " "  + this.comm_id + "] FAILED TO FIND COMM");
+            return false;
         }
 
         sendCreateMessages();
+        return true;
     }
 
     /**
@@ -278,6 +285,14 @@ public class BasicContextList extends PApplet implements ContextList {
      */
     public String getId() {
         return this.id;
+    }
+
+    public int getRadius() {
+        return this.radius;
+    }
+
+    public float getTrackLength() {
+        return this.track_length;
     }
 
     /**
@@ -354,6 +369,10 @@ public class BasicContextList extends PApplet implements ContextList {
         return this.contexts.get(i).location();
     }
 
+    public Context getContext(int i) {
+        return this.contexts.get(i);
+    }
+
     /**
      * Push a new context on to the List of Contexts.
      *
@@ -363,6 +382,10 @@ public class BasicContextList extends PApplet implements ContextList {
     protected void add(int location) {
         this.contexts.add(new Context(location, this.duration,
             this.radius, this.contexts.size()));
+    }
+
+    public void move(int index, int location) {
+        this.contexts.get(index).move(location);
     }
 
     /**
