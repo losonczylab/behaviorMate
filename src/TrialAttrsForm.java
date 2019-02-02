@@ -77,7 +77,7 @@ public class TrialAttrsForm extends JDialog implements ActionListener {
     class JSONArrayInput extends JSONObjectInput implements JSONInputField {
         private JButton addFieldButton;
         private ActionListener al;
-       
+
         private class JSONArrayInputActionListener implements ActionListener {
             private JSONArrayInput arrayInput;
 
@@ -160,7 +160,7 @@ public class TrialAttrsForm extends JDialog implements ActionListener {
     class JSONObjectInput extends JPanel implements JSONInputField {
         protected ArrayList<JSONInputField> inputBoxes;
         protected JSONArray fields;
-        
+
         public JSONObjectInput(JSONArray json) throws JSONException {
             inputBoxes = new ArrayList<JSONInputField>();
             fields = json;
@@ -346,7 +346,7 @@ public class TrialAttrsForm extends JDialog implements ActionListener {
 
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == okayButton) {
-            hide();       
+            hide();
             if (actionListener != null) {
                 actionListener.actionPerformed(
                     new ActionEvent(this, 0, "accepted"));
@@ -356,7 +356,8 @@ public class TrialAttrsForm extends JDialog implements ActionListener {
 
     public static void main(String[] args) {
         try {
-            UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
+            UIManager.setLookAndFeel(
+                "com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
         } catch (Exception e) {}
 
         JFrame frame = new JFrame("Test Form");
