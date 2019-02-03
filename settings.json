@@ -31,10 +31,11 @@
         "sensors": [
             {
                 "type": "cap1188",
-                "pin": 2,
+                "pin": 3,
                 "sensor": 0,
                 "lights": true,
-                "sensitivity": 6
+                "sensitivity": 6,
+                "reset_pin": 5
             },
             //{
             //    "type": "piezoport", // rfid tag reader for ID-12LA reader

@@ -556,6 +556,7 @@ public class BasicContextList extends PApplet implements ContextList {
             } else {
                 System.out.println("[" + this.id + "] RESEND TO CONTEXT " +
                                    this.tries);
+                this.comm.setStatus(false);
                 if (!inZone) {
                     this.sent = time;
                     this.sendMessage(this.stopString);

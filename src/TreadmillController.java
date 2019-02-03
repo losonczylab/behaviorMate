@@ -56,6 +56,10 @@ public class TreadmillController extends PApplet {
     //TODO: incorporate behavior_comm and position_comm into this list?
     ArrayList<UdpClient> comms;
 
+    long comms_check_time;
+
+    long comms_check_interval;
+
     /**
      * object showing the current state of the trial.
      */
@@ -207,6 +211,45 @@ public class TreadmillController extends PApplet {
         }
     }
 
+
+    public boolean testComms(boolean alert) {
+        noLoop();
+        System.out.println("testing comms");
+        JSONObject test_arduino = new JSONObject();
+        test_arduino.setJSONObject("communicator", new JSONObject());
+        test_arduino.getJSONObject(
+            "communicator").setString("action", "test");
+        behavior_comm.sendMessage(test_arduino.toString());
+
+        int i;
+        for (i=0; i<50 && !behavior_comm.receiveMessage(json_buffer); i++) {
+            delay(10);
+        }
+
+        if (i == 50) {
+            if (alert) {
+                trialListener.alert("Failed to connect to behavior controller");
+            }
+            behavior_comm.setStatus(false);
+            comms_check_interval = 10000;
+            loop();
+            delay(100);
+            return false;
+        } else {
+            display.setBottomMessage("");
+            behavior_comm.setStatus(true);
+            comms_check_interval = 60000;
+            loop();
+            delay(100);
+            return true;
+        }
+
+    }
+
+    public boolean testComms() {
+        return testComms(true);
+    }
+
     /**
      * Starts a new experiment. Linked to clicking the "Start" button on the UI.
      * Creates a New Log file, makes the initial entries,
@@ -274,26 +317,7 @@ public class TreadmillController extends PApplet {
             }
         }
 
-        noLoop();
-        System.out.println("testing comms");
-        JSONObject test_arduino = new JSONObject();
-        test_arduino.setJSONObject("communicator", new JSONObject());
-        test_arduino.getJSONObject(
-            "communicator").setString("action", "test");
-        behavior_comm.sendMessage(test_arduino.toString());
-
-        int i;
-        for (i=0; i<50 && !behavior_comm.receiveMessage(json_buffer); i++) {
-            delay(10);
-        }
-
-        if (i == 50) {
-            trialListener.exception("Failed to connect to behavior controller");
-        } else {
-            System.out.println("test passed!");
-        }
-        loop();
-        delay(100);
+        testComms();
 
         trialListener.started(fWriter.getFile());
 
@@ -747,7 +771,6 @@ public class TreadmillController extends PApplet {
         }
 
         System.out.println(controllers.toString());
-        System.out.println(controllers.getJSONObject("position_controller"));
 
         for (Object comm_key_o : controllers.keys()) {
             String comm_key = (String)comm_key_o;
@@ -768,8 +791,16 @@ public class TreadmillController extends PApplet {
             }
         }
 
+        for (int i=0; i < contexts.size(); i++) {
+            contexts.get(i).setupComms(comms);
+        }
+
         if (position_comm == null) {
             System.out.println("position_comm null");
+        }
+
+        if ((behavior_comm != null) && (!started)) {
+           testComms();
         }
     }
 
@@ -828,8 +859,7 @@ public class TreadmillController extends PApplet {
             controllers = new JSONObject();
         }
 
-
-         if (controllers.isNull("behavior_controller")) {
+        if (controllers.isNull("behavior_controller")) {
             if (!settings_json.isNull("behavior_controller")) {
                 controllers.setJSONObject(
                     "behavior_controller", settings_json.getJSONObject(
@@ -896,7 +926,7 @@ public class TreadmillController extends PApplet {
 
                 display.setContextLocations(context_list);
                 if (!context_list.setupComms(comms)) {
-                    trialListener.exception(
+                    trialListener.alert(
                         "Context List: " + context_list.getId() +
                         " failed to connect to comm");
                 }
@@ -990,6 +1020,10 @@ public class TreadmillController extends PApplet {
 
         started = false;
         belt_calibration_mode = false;
+
+        comms_check_interval = 60000;
+        comms_check_time = 0;
+
         current_calibration = 0;
         lap_offset = 0;
         position_reset = false;
@@ -1202,6 +1236,11 @@ public class TreadmillController extends PApplet {
         for (int i=0; ((i < 10) && (behavior_comm.receiveMessage(json_buffer)));
                 i++) {
 
+            if (!behavior_comm.getStatus()) {
+                behavior_comm.setStatus(true);
+                display.setBottomMessage("");
+            }
+
             JSONObject behavior_json =
                 json_buffer.json.getJSONObject(behavior_comm.id);
 
@@ -1277,6 +1316,16 @@ public class TreadmillController extends PApplet {
                 json_buffer.json.setFloat("time", time);
                 fWriter.write(json_buffer.json.toString());
             }
+        }
+
+        long _millis = millis();
+        if ((!started) && (_millis > (comms_check_time + comms_check_interval))) {
+            testComms(false);
+            comms_check_time = _millis;
+        }
+
+        if (!behavior_comm.getStatus()) {
+            display.setBottomMessage("Behavior Controller Disconnected");
         }
 
     }
@@ -1410,6 +1459,8 @@ public class TreadmillController extends PApplet {
 
         timer = new ExperimentTimer();
         resetArduino();
+        trialListener.showDeleteDialog(fWriter.getFile().getPath());
+        //trialListener.alert("Trial Ended");
     }
 
     /**

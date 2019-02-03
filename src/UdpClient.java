@@ -20,17 +20,20 @@ class UdpClient extends PApplet {
     String id;
     FileWriter mL;
     private boolean sending;
+    private boolean status;
 
     public UdpClient(int arduinoPort, int receivePort, String id)
             throws IOException {
         String ip = "127.0.0.1";
         arduinoAddress = new InetSocketAddress("127.0.0.1", arduinoPort);
         this.address = ip + ":" + receivePort;
+        this.status = true;
 
         try {
             udpSocket = new DatagramSocket(receivePort);
         } catch (IOException e) {
             e.printStackTrace();
+            this.status = false;
             throw new IOException("error connecting to " + this.address);
         }
 
@@ -48,11 +51,13 @@ class UdpClient extends PApplet {
         arduinoAddress = new InetSocketAddress(ip,arduinoPort);
         this.address = ip + ":" + receivePort;
         this.id = id;
+        this.status = true;
 
         try {
             udpSocket = new DatagramSocket(receivePort);
         } catch (IOException e) {
             e.printStackTrace();
+            this.status = false;
             throw new IOException("error connecting to " + this.address);
         }
 
@@ -68,17 +73,27 @@ class UdpClient extends PApplet {
     public UdpClient(String ip, int arduinoPort, String id) throws IOException {
         arduinoAddress = new InetSocketAddress(ip,arduinoPort);
         this.address = ip;
+        this.status = true;
 
         try {
             udpSocket = new DatagramSocket(null);
         } catch (IOException e) {
             e.printStackTrace();
+            this.status = false;
             throw new IOException("error connecting to " + this.address);
         }
     }
 
     public String getId() {
         return this.id;
+    }
+
+    public boolean getStatus() {
+        return this.status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
     }
 
     void sendMessage(String message) {

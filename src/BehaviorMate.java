@@ -377,6 +377,50 @@ class TrialListener {
         JOptionPane.showMessageDialog(null, message);
     }
 
+    public void alert(String message) {
+        if (message.length() > 100) {
+            message = new StringBuilder(message).insert(100, "\n").toString();
+        }
+        final String _message = message;
+        Thread t = new Thread(new Runnable(){
+            public void run() {
+                JOptionPane.showMessageDialog(null, _message);
+            }
+        });
+        t.start();
+    }
+
+    public void showDeleteDialog(String filepath) {
+        final String _filepath = filepath;
+
+        Thread t = new Thread(new Runnable() {
+            public void run() {
+                Object[] options = {"Delete", "Save"};
+
+                int selectedValue = JOptionPane.showOptionDialog(
+                    null, "<html>Save File<br>" + _filepath + "?</html>",
+                   "Trial Ended", 0, JOptionPane.INFORMATION_MESSAGE, null,
+                   options, options[1]);
+                System.out.println(selectedValue);
+                if (selectedValue == 0) {
+                    int option_value = JOptionPane.showConfirmDialog(
+                        null, "Confirm Delete\n" + _filepath, "Delete File",
+                        JOptionPane.YES_NO_OPTION);
+                    if (option_value == 0) {
+                        File f = new File(_filepath);
+                        if (!f.delete()) {
+                            JOptionPane.showMessageDialog(
+                                null, "Failed to delete file");
+                        }
+
+                    }
+                }
+            }
+        });
+
+        t.start();
+    }
+
     public void resetComms() {
         if (arduino_controllers != null) {
             for (ArduinoProcess process : arduino_controllers.values()) {
@@ -1022,7 +1066,7 @@ public class BehaviorMate {
 
         }
 
-        startFrame = new JFrame("oi!");
+        startFrame = new JFrame("BehaviorMate");
         settingsLoader = new SettingsLoader(startFrame);
         settingsLoader.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {

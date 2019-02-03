@@ -29,6 +29,7 @@ public class Display extends PApplet {
     private ArrayList<ContextList> contextsContainer;
     private PGraphics pg;
     private String totalTime;
+    private String bottom_message;
 
     public Display() {
         lickRate = 0;
@@ -43,6 +44,7 @@ public class Display extends PApplet {
         tag_offset = 240;
         currentTag = "";
         mouseName = "";
+        bottom_message = "";
         displayScale = 300.0f/1.0f;
         this.laser_radius = 0;
         contextsContainer = new ArrayList<ContextList>();
@@ -97,6 +99,10 @@ public class Display extends PApplet {
 
     void setTotalTime(int time) {
         this.totalTime = "/"+time;
+    }
+
+    void setBottomMessage(String message) {
+        this.bottom_message = message;
     }
 
     void addReward() {
@@ -156,13 +162,42 @@ public class Display extends PApplet {
 
     void update(PApplet app, float dy, float position, float time) {
         //float t = app.millis();
-        if (this.pg != null) {
-            app.image(this.pg, 0, 0);
+        //TODO: running more slow with performance hack
+        if (true) {
+            if (this.pg != null) {
+                app.image(this.pg, 0, 0);
+            }
+        }
+        else {
+        app.background(0);
+
+        app.textSize(18);
+        app.text("Position: ", text_offset, 20);
+        app.text("Lick Count: ", text_offset, 40);
+        app.text("Reward Count: ", text_offset, 60);
+        app.text("Time: ", text_offset, 100);
+        app.text("Lap Count: ", text_offset, 120);
+
+        app.textSize(14);
+        app.text("Last Tag: ", text_offset, 80);
+
+        app.fill(color(204,204,0));
+        app.rect(map_offset, 200, 300, 10);
+
+        app.textSize(10);
+        app.fill(color(255, 0, 0));
+        app.text("velocity", tag_offset-13, 510);
+        app.fill(color(0,255,0));
+        app.text("licking", tag_offset+30, 510);
+        app.fill(color(0,0,255));
+        app.text("reward", tag_offset+70, 510);
+        app.fill(color(255,255,255));
+        app.text("lap", tag_offset+115, 510);
+
+
         }
         app.textSize(18);
-        //println("bg updates: " + (app.millis() - t));
 
-        //t = app.millis();
 
         if (lickRate > 0) {
             lickRate -= 5;
@@ -251,5 +286,10 @@ public class Display extends PApplet {
 
         app.fill(color(255,0,0));
         app.rect(tag_offset+120,500,10,-lapErrorRate);
+
+        app.fill(color(255, 255, 255));
+        app.text(this.bottom_message, 10, app.height-60);
+
+        //println("updates: " + (app.millis() - t));
     }
 }
