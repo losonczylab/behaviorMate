@@ -14,11 +14,14 @@ public class Display extends PApplet {
     private float positionRate;
     private float rewardRate;
     private int lickCount;
+    private int[] valve_ids;
+    private int[] valve_states;
     private int rewardCount;
     private float lastLap;
     private int lapCount;
     private float displayScale;
     private String currentTag;
+    private float position_scale;
     private String mouseName;
     private float reward_radius;
     private float laser_radius;
@@ -43,10 +46,13 @@ public class Display extends PApplet {
         map_offset = 150;
         tag_offset = 240;
         currentTag = "";
+        position_scale = 0;
         mouseName = "";
         bottom_message = "";
         displayScale = 300.0f/1.0f;
         this.laser_radius = 0;
+        this.valve_states = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+        this.valve_ids = new int[] { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
         contextsContainer = new ArrayList<ContextList>();
 
         this.schedule = "";
@@ -105,9 +111,31 @@ public class Display extends PApplet {
         this.bottom_message = message;
     }
 
+    void setValveState(int pin, int state) {
+        for (int i=0; i<5; i++) {
+            if (this.valve_ids[i] == pin) {
+                this.valve_states[i] = state;
+                break;
+            } else if (this.valve_ids[i] == -1) {
+                this.valve_ids[i] = pin;
+                this.valve_states[i] = state;
+                break;
+            }
+        }
+    }
+
+    void clearValveStates() {
+        this.valve_states = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+        this.valve_ids = new int[] { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+    }
+
     void addReward() {
         rewardRate = min(200, rewardRate+50);
         rewardCount++;
+    }
+
+    void setPositionScale(float scale) {
+        this.position_scale = scale;
     }
 
     void setCurrentTag(String tag, float position_error) {
@@ -142,7 +170,7 @@ public class Display extends PApplet {
         this.pg.text("Lap Count: ", text_offset, 120);
 
         this.pg.textSize(14);
-        this.pg.text("Last Tag: ", text_offset, 80);
+        this.pg.text("Position Scale: ", text_offset, 80);
 
         this.pg.fill(color(204,204,0));
         this.pg.rect(map_offset, 200, 300, 10);
@@ -163,7 +191,7 @@ public class Display extends PApplet {
     void update(PApplet app, float dy, float position, float time) {
         //float t = app.millis();
         //TODO: running more slow with performance hack
-        if (true) {
+        if (false) {
             if (this.pg != null) {
                 app.image(this.pg, 0, 0);
             }
@@ -179,7 +207,7 @@ public class Display extends PApplet {
         app.text("Lap Count: ", text_offset, 120);
 
         app.textSize(14);
-        app.text("Last Tag: ", text_offset, 80);
+        app.text("Position Scale: ", text_offset, 80);
 
         app.fill(color(204,204,0));
         app.rect(map_offset, 200, 300, 10);
@@ -233,7 +261,7 @@ public class Display extends PApplet {
         }
 
         app.textSize(14);
-        app.text(currentTag, 72+text_offset, 80);
+        app.text(String.format("%.4f", position_scale), 30+72+text_offset, 80);
 
         app.fill(color(204,204,0));
         app.rect(map_offset, 200, 300, 10);
@@ -290,6 +318,34 @@ public class Display extends PApplet {
         app.fill(color(255, 255, 255));
         app.text(this.bottom_message, 10, app.height-60);
 
+        for (int i=0; i<5; i++) {
+            if (this.valve_states[i] == 1) {
+                app.fill(color(0, 255, 0));
+            } else if(this.valve_states[i] == -1) {
+                app.fill(color(255, 0, 0));
+            } else {
+                break;
+                //app.fill(color(255, 255, 255));
+            }
+            app.rect(450 + 30*i, app.height-60-25, 25, 25);
+            app.fill(color(255, 255, 255));
+            app.text(this.valve_ids[i], 450 + 30*i + 4, app.height-60-25-5);
+        }
+
+        for (int i=0; i<5; i++) {
+            if (this.valve_states[i+5] == 1) {
+                app.fill(color(0, 255, 0));
+            } else if(this.valve_states[i+5] == -1) {
+                app.fill(color(255, 0, 0));
+            } else {
+                break;
+                //app.fill(color(255, 255, 255));
+            }
+            app.rect(450 + 30*i, app.height-60-25-50, 25, 25);
+            app.fill(color(255, 255, 255));
+            app.text(this.valve_ids[i+5], 450+30*i + 4, app.height-60-50-25-5);
+        }
+        app.fill(color(255, 255, 255));
         //println("updates: " + (app.millis() - t));
     }
 }

@@ -103,6 +103,8 @@ public class TreadmillController extends PApplet {
      */
     float position_scale;
 
+    float stored_position_scale;
+
     /**
      * length of the track in mm. "track_length" in settings.
      */
@@ -223,7 +225,7 @@ public class TreadmillController extends PApplet {
 
         int i;
         for (i=0; i<50 && !behavior_comm.receiveMessage(json_buffer); i++) {
-            delay(10);
+            delay(20);
         }
 
         if (i == 50) {
@@ -479,6 +481,14 @@ public class TreadmillController extends PApplet {
         display.setMouseName("");
     }
 
+    public void ResetCalibration() {
+        if (position_scale != stored_position_scale) {
+            position_scale = stored_position_scale;
+            settings_json.setFloat("position_scale", position_scale);
+            display.setPositionScale(position_scale);
+        }
+    }
+
     /**
      * Tests the valve specified in the Box on the UI. Linked to the TestValve
      * button the UI. Both creates and then opens the valve for the amount of
@@ -487,10 +497,10 @@ public class TreadmillController extends PApplet {
     public void TestValve(int pin, int duration) {
         println("TEST VALVE");
 
-        JSONObject valve_json = setup_valve_json(pin);
-        behavior_comm.sendMessage(valve_json.toString());
+        //JSONObject valve_json = setup_valve_json(pin);
+        //behavior_comm.sendMessage(valve_json.toString());
 
-        valve_json = open_valve_json(pin, duration);
+        JSONObject valve_json = open_valve_json(pin, duration);
         behavior_comm.sendMessage(valve_json.toString());
     }
 
@@ -504,7 +514,7 @@ public class TreadmillController extends PApplet {
         JSONObject valve_json = new JSONObject();
         JSONObject valve_subjson = new JSONObject();
         valve_subjson.setInt("pin", pin);
-        valve_subjson.setString("action","create");
+        valve_subjson.setString("action", "create");
         valve_json.setJSONObject("valves", valve_subjson);
 
         return valve_json;
@@ -810,6 +820,7 @@ public class TreadmillController extends PApplet {
         if (display != null) {
             display.resetContexts();
             display.setSchedule("");
+            display.clearValveStates();
         }
 
         if (!settings_json.getString("lap_reset_tag", "").equals("")) {
@@ -822,7 +833,8 @@ public class TreadmillController extends PApplet {
             position = -1;
             offset_position = -1;
 
-        } else if (position == -1) {
+        } else if ((position == -1) &&
+                (!settings_json.getBoolean("position_lap_reader", false))) {
             position = 0;
             offset_position = lap_offset;
         }
@@ -830,11 +842,12 @@ public class TreadmillController extends PApplet {
         trial_duration = settings_json.getInt("trial_length", -1);
         display.setTotalTime(trial_duration);
         lap_limit = settings_json.getInt("lap_limit", -1);
+        stored_position_scale = settings_json.getFloat("position_scale");
         if (Math.signum(current_calibration) == 0.0) {
-            System.out.println("zero calibration");
             position_scale = settings_json.getFloat("position_scale");
+            display.setPositionScale(position_scale);
         } else {
-            System.out.println("calibration " + current_calibration);
+            settings_json.setFloat("position_scale", position_scale);
         }
         track_length = settings_json.getFloat("track_length");
         lap_tag = settings_json.getString("lap_reset_tag", "");
@@ -907,6 +920,7 @@ public class TreadmillController extends PApplet {
         }
 
         if (!settings_json.isNull("contexts")) {
+            delay(10);
             VrContextList vr_context = null;
             ArrayList<VrCueContextList> cue_lists = new ArrayList<VrCueContextList>();;
 
@@ -1201,6 +1215,7 @@ public class TreadmillController extends PApplet {
                         position_scale*(1+(distance-track_length)/track_length)
                         )/(++n_calibrations);
                     position_scale = current_calibration;
+                    display.setPositionScale(position_scale);
                     display.setMouseName(
                         "New Calibration: "+ current_calibration +
                         "\nLap Error: " + (distance-track_length));
@@ -1254,9 +1269,17 @@ public class TreadmillController extends PApplet {
 
             if (!behavior_json.isNull("valve")) {
                 JSONObject valveJson = behavior_json.getJSONObject("valve");
-                if ((valveJson.getInt("pin", -1) == reward_valve) &&
-                        valveJson.getString("action", "close").equals("open")) {
-                    display.addReward();
+                int valve_pin = valveJson.getInt("pin", -1);
+                if (valve_pin == reward_valve) {
+                    if (valveJson.getString("action", "close").equals("open")) {
+                        display.addReward();
+                    }
+                } else if (valve_pin != -1) {
+                    if (valveJson.getString("action", "close").equals("open")) {
+                        display.setValveState(valve_pin, 1);
+                    } else {
+                        display.setValveState(valve_pin, -1);
+                    }
                 }
             }
 
@@ -1459,8 +1482,9 @@ public class TreadmillController extends PApplet {
 
         timer = new ExperimentTimer();
         resetArduino();
-        trialListener.showDeleteDialog(fWriter.getFile().getPath());
-        //trialListener.alert("Trial Ended");
+        if (!settings_json.getBoolean("disable_end_dialog", false)) {
+            trialListener.showDeleteDialog(fWriter.getFile().getPath());
+        }
     }
 
     /**

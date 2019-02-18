@@ -18,10 +18,12 @@ import javax.swing.BoxLayout;
 import javax.swing.Box;
 import javax.swing.UIManager;
 import javax.swing.JOptionPane;
+import javax.swing.SwingConstants;
 import java.awt.GridLayout;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -86,37 +88,79 @@ class LabeledTextField extends JPanel {
 class CalibrateBeltForm extends JPanel implements ActionListener {
     private TreadmillController treadmillController;
     private JButton jButton;
+    private JButton resetButton;
+    private JButton zeroButton;
     private boolean calibrating;
 
     public CalibrateBeltForm(TreadmillController treadmillController) {
         super(new FlowLayout());
         this.treadmillController = treadmillController;
 
-        jButton = new JButton("Calibrate Position Scale");
+
+        jButton = new JButton("Calibrate Position");
         jButton.addActionListener(this);
-        JPanel button_container = new JPanel(new GridLayout(0,1));
-        button_container.add(jButton);
+        jButton.setPreferredSize(new Dimension(115, 25));
+        jButton.setFont(new Font("Arial", Font.PLAIN, 10));
+        resetButton = new JButton("Reset");
+        resetButton.setFont(new Font("Arial", Font.PLAIN, 10));
+        resetButton.addActionListener(this);
+        zeroButton = new JButton("Zero Position");
+        zeroButton.setFont(new Font("Arial", Font.PLAIN, 10));
+        zeroButton.setPreferredSize(new Dimension(115, 25));
+        zeroButton.addActionListener(this);
+
+        GridBagLayout gridbag = new GridBagLayout();
+        JPanel button_container = new JPanel(gridbag);
+        GridBagConstraints c = new GridBagConstraints();
+        c.gridx = 0;
+        c.gridy = 1;
+        c.weightx = 0.8;
+        button_container.add(jButton, c);
+
+        c.gridx = 1;
+        c.weightx = 0.2;
+        button_container.add(resetButton, c);
+
+        c.gridx = 0;
+        c.gridy = 2;
+        button_container.add(zeroButton, c);
+        //button_container.setPreferredSize(new Dimension(150, 50));
+
+        JLabel formLabel = new JLabel("Position Controls", SwingConstants.LEFT);
+        formLabel.setPreferredSize(new Dimension(120, 25));
+        c.gridy = 0;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        button_container.add(formLabel, c);
+
         add(button_container);
         calibrating = false;
     }
 
     public void setEnabled(boolean enabled) {
         jButton.setEnabled(enabled);
+        resetButton.setEnabled(enabled);
+        zeroButton.setEnabled(enabled);
     }
 
     public void endCalibration() {
         treadmillController.EndBeltCalibration();
-        jButton.setText("Calibrate Position Scale");
+        jButton.setText("Calibrate Position");
         this.calibrating = false;
     }
 
     public void actionPerformed(ActionEvent e) {
-        if (calibrating) {
-            this.endCalibration();
-        } else {
-            treadmillController.CalibrateBelt();
-            jButton.setText("End Calibration");
-            this.calibrating = true;
+        if (e.getSource() == jButton) {
+            if (calibrating) {
+                this.endCalibration();
+            } else {
+                treadmillController.CalibrateBelt();
+                jButton.setText("End Calibration");
+                this.calibrating = true;
+            }
+        } else if (e.getSource() == resetButton) {
+            treadmillController.ResetCalibration();
+        } else if (e.getSource() == zeroButton) {
+            treadmillController.ZeroPosition();
         }
     }
 }
@@ -401,7 +445,6 @@ class TrialListener {
                     null, "<html>Save File<br>" + _filepath + "?</html>",
                    "Trial Ended", 0, JOptionPane.INFORMATION_MESSAGE, null,
                    options, options[1]);
-                System.out.println(selectedValue);
                 if (selectedValue == 0) {
                     int option_value = JOptionPane.showConfirmDialog(
                         null, "Confirm Delete\n" + _filepath, "Delete File",
@@ -447,7 +490,7 @@ class ControlPanel extends JPanel implements ActionListener {
     private LabeledTextField mouseNameBox;
     private LabeledTextField experimentGroupBox;
     private ValveTestForm valveTestForm;
-    private ZeroPositionForm zeroPositionForm;
+    //private ZeroPositionForm zeroPositionForm;
     private CalibrateBeltForm calibrateBeltForm;
     private JButton showAttrsButton;
     private JButton refreshButton;
@@ -475,12 +518,13 @@ class ControlPanel extends JPanel implements ActionListener {
         add(Box.createVerticalStrut(25));
 
         calibrateBeltForm = new CalibrateBeltForm(treadmillController);
-        calibrateBeltForm.setPreferredSize(new Dimension(200, 50));
+        calibrateBeltForm.setPreferredSize(new Dimension(200, 100));
         add(calibrateBeltForm);
 
-        zeroPositionForm = new ZeroPositionForm(treadmillController);
-        zeroPositionForm.setPreferredSize(new Dimension(200, 50));
-        add(zeroPositionForm);
+        //zeroPositionForm = new ZeroPositionForm(treadmillController);
+        //zeroPositionForm.setPreferredSize(new Dimension(200, 50));
+        //add(zeroPositionForm);
+        add(Box.createVerticalStrut(25));
 
         valveTestForm = new ValveTestForm(treadmillController);
         valveTestForm.setPreferredSize(new Dimension(200, 250));
