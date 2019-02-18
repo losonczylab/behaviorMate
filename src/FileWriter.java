@@ -91,7 +91,7 @@ public class FileWriter extends PApplet {
             }
         }
         */
-        wt.queueMessage(msg);
+            wt.queueMessage(msg);
         }
     }
 
@@ -135,7 +135,8 @@ public class FileWriter extends PApplet {
                         tl.exception("error opening log file");
                     }
 
-                    for (int j = 0; ((messageBuffer != null) && (j < 10)); j++) {
+                    int j = 0;
+                    for (; ((messageBuffer != null)); j++) {
                         try {
                             //write(messageBuffer);
 
@@ -162,11 +163,13 @@ public class FileWriter extends PApplet {
                         System.out.println(e);
                         tl.exception("error saving log file");
                     }
+
                 }
 
                 try {
-                    Thread.sleep(50);
+                    Thread.sleep(25);
                 } catch (InterruptedException e) {}
+
                 messageBuffer = writeQueue.poll();
             }
         }
