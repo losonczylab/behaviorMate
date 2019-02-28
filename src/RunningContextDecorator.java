@@ -1,4 +1,5 @@
 import processing.data.JSONObject;
+import processing.Math;
 
 /**
  * AlternatingContextList class. Disables contexts based on lap count.
@@ -23,6 +24,8 @@ public class RunningContextDecorator extends SuspendableContextDecorator {
     protected float min_dt;
 
     protected float min_dy;
+    
+    protected boolean use_abs_dy;
 
     public RunningContextDecorator(ContextList context_list,
                                    JSONObject context_info,
@@ -34,6 +37,7 @@ public class RunningContextDecorator extends SuspendableContextDecorator {
         this.max_dt = context_info.getFloat("max_dt", 0.1f);
         this.min_dt = context_info.getFloat("min_dt", 0.2f);
         this.min_dy = context_info.getFloat("min_dy", 5);
+        this.use_abs_dy = context_info.getBoolean("use_abs_dy", false);
 
         //this.prev_time = -this.max_dt;
         this.prev_time = 0;
@@ -59,7 +63,13 @@ public class RunningContextDecorator extends SuspendableContextDecorator {
         float dy = position - this.prev_position;
         this.prev_position = position;
         this.prev_lap = lap;
-        if (dy < this.min_dy) {
+        
+        float chk_dy = dy;
+        if (this.use_abs_dy)
+        {
+            chk_dy = Math.abs(dy);
+        }
+        if (chk_dy < this.min_dy) {
             return true;
         }
 
