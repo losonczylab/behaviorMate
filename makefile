@@ -1,10 +1,13 @@
 
 all:
-	echo "{" >version.json
-	{ echo "\t \"version\": \""; git tag | tail -n 1 | cat; echo "\","; } | tr -d "\n" >>version.json
-	echo  >>version.json
-	{ echo "\t \"git_revision\": \""; git rev-parse HEAD | cat; echo "\""; } | tr -d "\n" >>version.json
-	echo "\n}" >>version.json
+	printf "{\n" >version.json
+	printf "\t \"version\": \"" >> version.json
+	git tag | tail -n 1 | cat | tr -d "\n" >>version.json
+	printf "\",\n" >>version.json
+	printf "\t \"git_revision\": \"" >>version.json
+	git rev-parse HEAD | cat | tr -d "\n" >>version.json
+	printf "\"\n}" >>version.json
+
 	javac -cp lib/core.jar:lib/java-json.jar -d . src/*.java
 	jar cfmv BehaviorMate.jar Manifest.txt *.class
 
@@ -20,5 +23,8 @@ attrs:
 	javac -cp lib/core.jar:lib/java-json.jar -d . src/TrialAttrsForm.java
 	jar cfmv TrialAttrsForm.jar FormManifest.txt *.class
 
-clean:
-	rm BehaviorMate.jar *.class
+cleanbuild:
+	rm -f *.class
+	
+clean: cleanbuild
+	rm version.json BehaviorMate.jar
