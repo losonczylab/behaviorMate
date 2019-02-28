@@ -23,7 +23,7 @@ public class RunningContextDecorator extends SuspendableContextDecorator {
     protected float min_dt;
 
     protected float min_dy;
-    
+
     protected boolean use_abs_dy;
 
     public RunningContextDecorator(ContextList context_list,
@@ -38,7 +38,6 @@ public class RunningContextDecorator extends SuspendableContextDecorator {
         this.min_dy = context_info.getFloat("min_dy", 5);
         this.use_abs_dy = context_info.getBoolean("use_abs_dy", false);
 
-        //this.prev_time = -this.max_dt;
         this.prev_time = 0;
         this.prev_position = 0;
         this.prev_lap = 0;
@@ -62,24 +61,14 @@ public class RunningContextDecorator extends SuspendableContextDecorator {
         float dy = position - this.prev_position;
         this.prev_position = position;
         this.prev_lap = lap;
-        
+
         float chk_dy = dy;
-        if (this.use_abs_dy)
-        {
+        if (this.use_abs_dy) {
             chk_dy = Math.abs(dy);
         }
         if (chk_dy < this.min_dy) {
             return true;
         }
-
-        /*
-        float velocity = Math.abs(dy)/dt;
-        if (velocity > this.threshold) {
-            return false;
-            }
-        } else if (!this.isSuspended()) {
-            return false;
-        }*/
 
         return false;
     }
