@@ -1,5 +1,4 @@
 import processing.data.JSONObject;
-import processing.Math;
 
 /**
  * AlternatingContextList class. Disables contexts based on lap count.
