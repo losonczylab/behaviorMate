@@ -9,9 +9,10 @@ public class VrExtendedContextList extends VrContextList2 {
     protected int backtrack;
     protected float previous_position;
 
-    public VrExtendedContextList(JSONObject context_info,
+    public VrExtendedContextList(
+            TreadmillController tc, JSONObject context_info,
             float track_length) throws Exception {
-        super(context_info, track_length);
+        super(tc, context_info, track_length);
 
         this.lap_factor = 2;
         this.backtrack = 0;
@@ -64,7 +65,9 @@ public class VrExtendedContextList extends VrContextList2 {
             this.active = i;
             //this.status = ""+(int)adj_position;
             this.status = ""+(int)adj_position + " " + this.backtrack + " " + lap;
-            setupVr(context_info.getString("vr_file"));
+            if (!context_info.isNull("vr_file")) {
+                setupVr(context_info.getString("vr_file"));
+            }
             sendMessage(this.startString);
             position_data.setFloat("y", adj_position/10);
             position_json.setJSONObject(

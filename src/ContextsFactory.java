@@ -58,16 +58,19 @@ public final class ContextsFactory {
         } else if (class_name.equals("vr")) {
             cl = new VrContextList(context_info, track_length);
         } else if (class_name.equals("vr2")) {
-            cl = new VrContextList2(context_info, track_length);
+            cl = new VrContextList2(tc, context_info, track_length);
         } else if (class_name.equals("vr_extended")) {
-            cl = new VrExtendedContextList(context_info, track_length);
+            cl = new VrExtendedContextList(tc, context_info, track_length);
         } else if (class_name.equals("vr_cue2")) {
             cl = new VrCueContextList2(context_info, track_length);
         } else if (class_name.equals("vr_cues")) {
             return new VrCueContextList(context_info, track_length);
         } else if (class_name.equals("salience")) {
-            cl = new SalienceContextList(tc, display, context_info,
-                track_length, "behavior_controller");
+            cl = new SalienceContextList(
+                tc, display, context_info, track_length, "behavior_controller");
+        //} else if (class_name.equals("gain_mod")) {
+        //    cl = new GainModifiedContextList(
+        //        tc, context_info, track_length, "behavior_controller");
         } else {
             if (context_info.getString("type", "").equals("operant") && false) {
                 // this is so as not to confuse the arduino

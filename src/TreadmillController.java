@@ -459,13 +459,22 @@ public class TreadmillController extends PApplet {
         reload_settings();
     }
 
+    public void setPosition(float new_position) {
+        println("setting position");
+        position = new_position-lap_offset;
+        distance = new_position-lap_offset;
+
+        offset_position = new_position;
+        offset_distance = new_position;
+    }
+
     public void ZeroPosition() {
         println("ZERO POSITION");
-
-        position = 0;
-        offset_position = lap_offset;
-        distance = 0;
-        offset_distance = lap_offset;
+        this.setPosition(lap_offset);
+        //position = 0;
+        //offset_position = lap_offset;
+        //distance = 0;
+        //offset_distance = lap_offset;
     }
 
     public void CalibrateBelt() {
