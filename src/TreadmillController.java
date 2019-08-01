@@ -89,6 +89,8 @@ public class TreadmillController extends PApplet {
 
     float offset_position;
 
+    boolean zero_position_boundary;
+
     /**
      * distance run since last lap reset (allowed to be negative). Used to check that
      * animal is not backing over reset tag.
@@ -127,6 +129,8 @@ public class TreadmillController extends PApplet {
      * number of laps the animal has run.
      */
     int lap_count;
+
+    boolean lock_lap;
 
     int lick_count;
 
@@ -201,7 +205,7 @@ public class TreadmillController extends PApplet {
     }
 
     protected void sendMessages(JSONArray messages, String mouse_name) throws Exception {
-        for (int i= 0; i<messages.size(); i++) {
+        for (int i= 0; i < messages.size(); i++) {
             JSONObject messageInfo = messages.getJSONObject(i);
             UdpClient client = new UdpClient(messageInfo.getString("ip"),
                 messageInfo.getInt("port"), messageInfo.getString("id"));
@@ -830,6 +834,7 @@ public class TreadmillController extends PApplet {
             display.resetContexts();
             display.setSchedule("");
             display.clearValveStates();
+            display.clearSensorStates();
         }
 
         if (!settings_json.getString("lap_reset_tag", "").equals("")) {
@@ -847,6 +852,9 @@ public class TreadmillController extends PApplet {
             position = 0;
             offset_position = lap_offset;
         }
+
+        zero_position_boundary = settings_json.getBoolean(
+            "zero_position_boundary", false);
 
         trial_duration = settings_json.getInt("trial_length", -1);
         display.setTotalTime(trial_duration);
@@ -979,6 +987,15 @@ public class TreadmillController extends PApplet {
         reconfigureExperiment();
     }
 
+    public boolean writeLog(String log) {
+        if (fWriter == null) {
+            return false;
+        }
+
+        fWriter.write(log);
+        return true;
+    }
+
     public void addComment(String comment) {
         if (fWriter == null) {
             return;
@@ -1014,6 +1031,11 @@ public class TreadmillController extends PApplet {
             fWriter.write(comment_json.toString());
         }
     }
+
+    public float getTime() {
+        return timer.getTime();
+    }
+
     public void writeSettingsInfo(String filename, String key) {
         if (fWriter == null) {
             return;
@@ -1056,8 +1078,10 @@ public class TreadmillController extends PApplet {
         offset_position = -1;
         distance = 0;
         offset_distance = 0;
+        zero_position_boundary = false;
         lap_count = 0;
         lap_tag = "";
+        lock_lap = false;
         fWriter = null;
         timer = new ExperimentTimer();
 
@@ -1072,9 +1096,13 @@ public class TreadmillController extends PApplet {
         trialListener.initialized();
     }
 
+    public void setLapLock(boolean lock_status) {
+        lock_lap = lock_status;
+    }
+
 
     public void resetLap(String tag, float time) {
-        if (started) {
+        if ((started) && (!lock_lap)) {
             JSONObject lap_log = new JSONObject();
             lap_log.setFloat("time", time);
             lap_log.setInt("lap", lap_count);
@@ -1185,7 +1213,7 @@ public class TreadmillController extends PApplet {
 
         distance += dy;
         offset_distance += dy;
-        if (position != -1) {
+        if ((position != -1) && (!((zero_position_boundary) && (position + dy < 0)))) {
             if ((position + dy) < 0) {
                 position += track_length;
             }
@@ -1290,7 +1318,28 @@ public class TreadmillController extends PApplet {
                         display.setValveState(valve_pin, -1);
                     }
                 }
+            } else if (!behavior_json.isNull("tone")) {
+                JSONObject valveJson = behavior_json.getJSONObject("tone");
+                int valve_pin = valveJson.getInt("pin", -1);
+                if (valve_pin != -1) {
+                    if (valveJson.getString("action", "close").equals("open")) {
+                        display.setValveState(valve_pin, 1);
+                    } else {
+                        display.setValveState(valve_pin, -1);
+                    }
+                }
+            } else if (!behavior_json.isNull("sensor")) {
+                JSONObject sensorJson = behavior_json.getJSONObject("sensor");
+                int sensor_pin = sensorJson.getInt("pin", -1);
+                if (sensor_pin != -1) {
+                    if (sensorJson.getString("action", "stop").equals("start")) {
+                        display.setSensorState(sensor_pin, 1);
+                    } else {
+                        display.setSensorState(sensor_pin, -1);
+                    }
+                }
             }
+
 
             if (!behavior_json.isNull("tag_reader") &&
                     !behavior_json.getJSONObject("tag_reader").isNull("tag")) {

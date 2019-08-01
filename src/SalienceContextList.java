@@ -18,11 +18,32 @@ public class SalienceContextList extends BasicContextList {
         public String text;
     }
 
+    private class MultiEvent extends Event {
+        public String[] messages;
+        public float[] times;
+
+        public boolean shift() {
+            this.message = this.messages[0];
+            this.time = this.times[0];
+
+            for (int i=0; i < messages.length-1; i++) {
+                this.times[i] = this.times[i+1];
+                this.messages[i] = this.messages[i+1];
+            }
+
+            this.messages[messages.length-1] = null;
+
+            return this.message != null;
+        }
+    }
+
     private ArrayList<Event> schedule;
     private Event nextEvent;
     private TreadmillController tc;
     protected Display display;
     protected int[] display_color_active;
+    protected boolean repeat;
+    protected float repeat_interval;
 
     float stim_time;
     float event_time;
@@ -45,6 +66,12 @@ public class SalienceContextList extends BasicContextList {
         this.stim_time = context_info.getFloat("stim_time");
         this.prestim_time = context_info.getFloat("prestim_time");
         this.poststim_time = context_info.getFloat("poststim_time");
+
+        this.repeat = context_info.getBoolean("repeat", false);
+        if (this.repeat) {
+            this.repeat_interval = context_info.getFloat("repeat_interval", 0);
+        }
+
         if (this.display_color != null) {
             this.display_color_active = this.display_color;
             this.display_color = null;
@@ -67,26 +94,125 @@ public class SalienceContextList extends BasicContextList {
         for (int i=0; i < stims.size(); i++) {
             JSONObject stim = stims.getJSONObject(i);
             stim_array.add(stim);
-
             if (!stim.isNull("pin")) {
-                JSONObject valve_json;
-                if (stim.isNull("frequency")) {
-                    valve_json = TreadmillController.setup_valve_json(stim.getInt("pin"));
-                } else {
-                    valve_json = TreadmillController.setup_valve_json(
-                        stim.getInt("pin"), stim.getInt("frequency"));
+                try {
+                    JSONArray pins = stim.getJSONArray("pin");
+                    try {
+                        JSONArray frequencies = null;
+                        if (!stim.isNull("frequency")) {
+                            frequencies = stim.getJSONArray("frequency");
+                        }
+
+                        for (int j=0; j<pins.size(); j++) {
+                            JSONObject valve_json;
+                            if ((frequencies == null) ||
+                                (frequencies.getInt(j) == 0)) {
+                                valve_json = TreadmillController.setup_valve_json(
+                                    pins.getInt(j));
+                            } else {
+                                valve_json = TreadmillController.setup_valve_json(
+                                    pins.getInt(j), frequencies.getInt(j));
+                            }
+
+                            this.comm.sendMessage(valve_json.toString());
+                        }
+                    } catch (Exception e) {
+                        throw e;
+                    }
+                } catch (RuntimeException e) {
+                    JSONObject valve_json;
+                    if (stim.isNull("frequency")) {
+                        valve_json = TreadmillController.setup_valve_json(stim.getInt("pin"));
+                    } else {
+                        valve_json = TreadmillController.setup_valve_json(
+                            stim.getInt("pin"), stim.getInt("frequency"));
+                    }
+                    this.comm.sendMessage(valve_json.toString());
                 }
-                this.comm.sendMessage(valve_json.toString());
             }
         }
 
         createSchedule();
     }
 
-    public void createSchedule() {
+
+    private Event createEvent(JSONObject stim, float time_counter) {
+        Event thisEvent = new Event();
+
+        int duration = stim.getInt("duration");
+        if (stim.getString("address", "behavior_controller")
+                .equals("behavior_controller")) {
+            JSONObject open_json = TreadmillController.open_valve_json(
+                stim.getInt("pin"), duration);
+            thisEvent.message = open_json.toString();
+        } else if (stim.getString("address").equals("local_controller")) {
+            thisEvent.message = stim.toString();
+        }
+
+        thisEvent.time = time_counter + this.prestim_time;
+        thisEvent.text = thisEvent.time + " " + stim.getString("name");
+        thisEvent.type = stim.getString("name");
+
+        return thisEvent;
+    }
+
+
+    private Event createMultiEvent(JSONObject stim, float time_counter) {
+        MultiEvent thisEvent = new MultiEvent();
+
+        if (stim.getString("address", "behavior_controller")
+                .equals("behavior_controller")) {
+
+            JSONArray pins = stim.getJSONArray("pin");
+
+            int[] durations = new int[pins.size()];
+            JSONArray durations_array = null;
+            try {
+                durations_array = stim.getJSONArray("duration");
+            } catch (RuntimeException e) {}
+
+            for (int j=0; j < durations.length; j++) {
+                if (durations_array != null) {
+                    durations[j] = durations_array.getInt(j);
+                } else {
+                    durations[j] = stim.getInt("duration");
+                }
+            }
+
+            String[] messages = new String[pins.size()];
+            for (int j=0; j < pins.size(); j++) {
+                JSONObject open_json = TreadmillController.open_valve_json(
+                    pins.getInt(j), durations[j]);
+                messages[j] = open_json.toString();
+            }
+            thisEvent.messages = messages;
+
+            if (!stim.isNull("offset_times")) {
+                float time = time_counter + this.prestim_time;
+                float[] times = new float[pins.size()];
+                JSONArray offsets_array = stim.getJSONArray("offset_times");
+                for (int j=0; j < times.length; j++) {
+                    times[j] = time + offsets_array.getFloat(j)/1000;
+                }
+                thisEvent.times = times;
+                thisEvent.shift();
+            } else {
+                thisEvent.time = time_counter + this.prestim_time;
+                thisEvent.message = null;
+            }
+        }
+
+        thisEvent.text = thisEvent.time + " " + stim.getString("name");
+        thisEvent.type = stim.getString("name");
+
+        return thisEvent;
+    }
+
+
+    public void createSchedule(float start_time) {
         this.schedule = new ArrayList<Event>();
 
-        float time_counter = 0;
+        float time_counter = start_time;
         for (int j=0; j < nblocks; j++) {
             Collections.shuffle(stim_array);
 
@@ -101,8 +227,21 @@ public class SalienceContextList extends BasicContextList {
                 schedule.add(startEvent);
 
                 JSONObject stim = stim_array.get(i);
+                Event thisEvent = null;
+                try {
+                    JSONArray pins = stim.getJSONArray("pin");
+
+                    try {
+                        thisEvent = createMultiEvent(stim, time_counter);
+                    } catch (Exception e) {
+                        throw e;
+                    }
+                } catch (RuntimeException e) {
+                    thisEvent = createEvent(stim, time_counter);
+                }
+
+                /*
                 int duration = stim.getInt("duration");
-                Event thisEvent = new Event();
 
                 if (stim.getString("address", "behavior_controller")
                         .equals("behavior_controller")) {
@@ -115,6 +254,7 @@ public class SalienceContextList extends BasicContextList {
                 thisEvent.time = time_counter + prestim_time;
                 thisEvent.text = thisEvent.time + " " + stim.getString("name");
                 thisEvent.type = stim.getString("name");
+                */
 
                 schedule.add(thisEvent);
 
@@ -131,11 +271,17 @@ public class SalienceContextList extends BasicContextList {
 
         }
 
-        schedule.get(schedule.size()-1).type = "end_experiment";
+        if (!this.repeat) {
+            schedule.get(schedule.size()-1).type = "end_experiment";
+        }
         this.context_info.setFloat("trial_length", schedule.get(schedule.size()-1).time);
         displaySchedule();
 
         nextEvent = schedule.get(0);
+    }
+
+    public void createSchedule() {
+        createSchedule(0f);
     }
 
     public void displaySchedule() {
@@ -150,7 +296,12 @@ public class SalienceContextList extends BasicContextList {
         }
 
         this.display.setSchedule(result);
-        display.setMouseName("Next Trial: "+schedule.get(schedule.size()-1).time + " s");
+        if (!this.repeat) {
+            display.setMouseName(
+                "Next Trial: " +
+                schedule.get(schedule.size()-1).time +
+                "s");
+        }
     }
 
     public void startTrial(float time, String[] msg_buffer) {
@@ -181,6 +332,7 @@ public class SalienceContextList extends BasicContextList {
         }
 
         if ((nextEvent != null) && (time > nextEvent.time)) {
+            boolean removeEvent = true;
             if (nextEvent.type.equals("start")) {
                 this.status = "pre-stim";
                 startTrial(time, msg_buffer);
@@ -193,15 +345,35 @@ public class SalienceContextList extends BasicContextList {
                 this.status = nextEvent.type;
                 this.event_time = time;
                 this.display_color = this.display_color_active;
-                this.comm.sendMessage(nextEvent.message);
+
+                if (nextEvent instanceof MultiEvent) {
+                    MultiEvent m_nextEvent = (MultiEvent)nextEvent;
+                    if (m_nextEvent.message == null) {
+                        for (int i = 0; i < m_nextEvent.messages.length; i++) {
+                            this.comm.sendMessage(m_nextEvent.messages[i]);
+                        }
+                    } else {
+                        this.comm.sendMessage(m_nextEvent.message);
+                        m_nextEvent.shift();
+                        removeEvent = (m_nextEvent.message == null);
+                    }
+                } else {
+                    this.comm.sendMessage(nextEvent.message);
+                }
             }
 
-            schedule.remove(0);
-            if (schedule.size() == 0) {
-                tc.endExperiment();
-            } else {
-                nextEvent = schedule.get(0);
-                displaySchedule();
+            if (removeEvent) {
+                schedule.remove(0);
+                if (schedule.size() == 0) {
+                    if (!this.repeat) {
+                        tc.endExperiment();
+                    } else {
+                        createSchedule(Math.round(time + this.repeat_interval));
+                    }
+                } else {
+                    nextEvent = schedule.get(0);
+                    displaySchedule();
+                }
             }
 
             return true;

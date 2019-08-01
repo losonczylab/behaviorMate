@@ -8,6 +8,8 @@ public class Context {
     boolean ended;
     int id;
 
+    protected boolean enabled;
+
 
     public Context(int location, int duration, int radius, int id) {
         this.location = location;
@@ -16,7 +18,20 @@ public class Context {
         this.id = id;
 
         this.triggered = false;
+        this.enabled = true;
         this.started_time = -1;
+    }
+
+    public void setRadius(int radius) {
+        this.radius = radius;
+    }
+
+    public boolean isEnabled() {
+        return this.enabled;
+    }
+
+    public void disable() {
+        this.enabled = false;
     }
 
     public int location() {
@@ -45,6 +60,7 @@ public class Context {
         }
 
         if ((this.started_time + this.duration) < time) {
+            this.disable();
             return false;
         }
 
@@ -53,15 +69,12 @@ public class Context {
 
 
     public boolean check(float position, float time) {
-        if (checkPosition(position) && checkTime(time)) {
-            return true;
-        }
 
-        return false;
+        return (checkPosition(position) && checkTime(time));
     }
 
     public boolean check(float position, float time, int lap) {
-        return check(position, time);
+        return (enabled && check(position, time));
     }
 
     public void move(int location) {
@@ -70,5 +83,6 @@ public class Context {
 
     public void reset() {
         this.started_time = -1;
+        this.enabled = true;
     }
 }

@@ -24,14 +24,42 @@ public class ScheduledContextDecorator extends SuspendableContextDecorator {
         JSONArray lap_array = null;
         if (!context_info.isNull("lap_list")) {
             lap_array = context_info.getJSONArray("lap_list");
-            this.lap_list = new ArrayList<Integer>();
-
-            int i = 0;
-            for (; i < lap_array.size(); i++) {
-                this.lap_list.add(lap_array.getInt(i));
+            boolean lap_range;
+            try {
+                lap_array.getJSONArray(0);
+                lap_range = true;
+            } catch (RuntimeException e) {
+                lap_range = false;
             }
 
-            last_lap = lap_array.getInt(i-1);
+            this.lap_list = new ArrayList<Integer>();
+            if (!lap_range) {
+
+                int i = 0;
+                for (; i < lap_array.size(); i++) {
+                    this.lap_list.add(lap_array.getInt(i));
+                }
+
+                last_lap = lap_array.getInt(i-1);
+            } else {
+                JSONArray range = null;
+                for (int j = 0; j < lap_array.size(); j++) {
+                    range = lap_array.getJSONArray(j);
+                    for (int i = range.getInt(0); i < range.getInt(1); i++) {
+                        this.lap_list.add(i);
+                    }
+                }
+
+                if (range != null) {
+                    this.last_lap = range.getInt(1)-1;
+                } else {
+                    this.last_lap = 0;
+                }
+            }
+        }
+
+        if (context_info.getBoolean("no_display", false)) {
+            this.display_color_suspended = null;
         }
 
         this.repeat = context_info.getInt("repeat", 0);

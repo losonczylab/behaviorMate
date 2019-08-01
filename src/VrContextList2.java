@@ -28,15 +28,20 @@ public class VrContextList2 extends BasicContextList {
         this.comm_ids = context_info.getJSONArray(
             "display_controllers").getStringArray();
         this.context_info = context_info;
+        this.sceneName = context_info.getString("scene_name", "_vrMate_main");
 
         position_data = new JSONObject();
         position_json = new JSONObject();
-        log_json = new JSONObject();
-        log_json.setJSONObject("context", new JSONObject());
+        this.log_json = new JSONObject();
+        this.log_json.setJSONObject("context", new JSONObject());
+        this.log_json.setString("scene", this.sceneName);
+
+        if (this.id != null) {
+            this.log_json.setString("id", this.id);
+        }
 
         this.previous_location = -1;
 
-        this.sceneName = context_info.getString("scene_name", "_vrMate_main");
         JSONObject start_msg = new JSONObject();
         start_msg.setString("action", "start");
         start_msg.setString("scene", this.sceneName);
@@ -145,6 +150,10 @@ public class VrContextList2 extends BasicContextList {
 
     public void setId(String id) {
         this.id = id;
+
+        if (this.log_json != null) {
+            this.log_json.setString("id", this.id);
+        }
     }
 
     /*public void setCues(JSONArray cues) {
@@ -223,9 +232,9 @@ public class VrContextList2 extends BasicContextList {
             this.status = "off";
             sendMessage(this.stopString);
 
-            log_json.setFloat("time", time);
-            log_json.getJSONObject("context").setString("action", "stop");
-            msg_buffer[0] = log_json.toString().replace("\n","");
+            this.log_json.setFloat("time", time);
+            this.log_json.getJSONObject("context").setString("action", "stop");
+            msg_buffer[0] = this.log_json.toString().replace("\n","");
         } else if((inZone) && (this.active != i)) {
             this.active = i;
             this.status = "on";
@@ -250,9 +259,9 @@ public class VrContextList2 extends BasicContextList {
             sendMessage(position_json.toString());
             previous_location = position;
 
-            log_json.setFloat("time", time);
-            log_json.getJSONObject("context").setString("action", "start");
-            msg_buffer[0] = log_json.toString().replace("\n","");
+            this.log_json.setFloat("time", time);
+            this.log_json.getJSONObject("context").setString("action", "start");
+            msg_buffer[0] = this.log_json.toString().replace("\n","");
         }
 
 
@@ -264,16 +273,22 @@ public class VrContextList2 extends BasicContextList {
         this.status = "off";
         sendMessage(this.stopString);
 
-            //JSONObject clear_msg = new JSONObject();
-            //clear_msg.setString("action", "clear");
-            //sendMessage(clear_msg.toString());
+        float time = this.tc.getTime();
+        this.log_json.setFloat("time", time);
+        this.log_json.getJSONObject("context").setString("action", "stop");
+
+        this.tc.writeLog(this.log_json.toString());
+
+        //JSONObject clear_msg = new JSONObject();
+        //clear_msg.setString("action", "clear");
+        //sendMessage(clear_msg.toString());
     }
 
     public void stop(float time, String[] msg_buffer) {
         if (this.active != -1) {
-            log_json.setFloat("time", time);
-            log_json.getJSONObject("context").setString("action", "stop");
-            msg_buffer[0] = log_json.toString().replace("\n","");
+            this.log_json.setFloat("time", time);
+            this.log_json.getJSONObject("context").setString("action", "stop");
+            msg_buffer[0] = this.log_json.toString().replace("\n","");
         }
 
         this.active = -1;

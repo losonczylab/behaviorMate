@@ -16,6 +16,8 @@ public class Display extends PApplet {
     private int lickCount;
     private int[] valve_ids;
     private int[] valve_states;
+    private int[] sensor_ids;
+    private int[] sensor_states;
     private int rewardCount;
     private float lastLap;
     private int lapCount;
@@ -53,6 +55,8 @@ public class Display extends PApplet {
         this.laser_radius = 0;
         this.valve_states = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
         this.valve_ids = new int[] { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+        this.sensor_states = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+        this.sensor_ids = new int[] { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
         contextsContainer = new ArrayList<ContextList>();
 
         this.schedule = "";
@@ -112,7 +116,7 @@ public class Display extends PApplet {
     }
 
     void setValveState(int pin, int state) {
-        for (int i=0; i<5; i++) {
+        for (int i = 0; i < this.valve_ids.length; i++) {
             if (this.valve_ids[i] == pin) {
                 this.valve_states[i] = state;
                 break;
@@ -124,9 +128,27 @@ public class Display extends PApplet {
         }
     }
 
+    void setSensorState(int pin, int state) {
+        for (int i = 0; i < this.sensor_ids.length; i++) {
+            if (this.sensor_ids[i] == pin) {
+                this.sensor_states[i] = state;
+                break;
+            } else if (this.sensor_ids[i] == -1) {
+                this.sensor_ids[i] = pin;
+                this.sensor_states[i] = state;
+                break;
+            }
+        }
+    }
+
     void clearValveStates() {
         this.valve_states = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
         this.valve_ids = new int[] { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+    }
+
+    void clearSensorStates() {
+        this.sensor_states = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+        this.sensor_ids = new int[] { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
     }
 
     void addReward() {
@@ -186,6 +208,72 @@ public class Display extends PApplet {
         this.pg.text("lap", tag_offset+115, 510);
 
         this.pg.endDraw();
+    }
+
+    private void drawValveStates(PApplet app) {
+        for (int i = 0; i < 5; i++) {
+            if (this.valve_states[i] == 1) {
+                app.fill(color(0, 255, 0));
+            } else if(this.valve_states[i] == -1) {
+                app.fill(color(255, 0, 0));
+            } else {
+                break;
+                //app.fill(color(255, 255, 255));
+            }
+            app.rect(450 + 30*i, app.height-60-25, 25, 25);
+            app.fill(color(255, 255, 255));
+            app.text(this.valve_ids[i], 450 + 30*i + 4, app.height-60-25-5);
+        }
+
+        for (int i = 0; i < 5; i++) {
+            if (this.valve_states[i+5] == 1) {
+                app.fill(color(0, 255, 0));
+            } else if(this.valve_states[i+5] == -1) {
+                app.fill(color(255, 0, 0));
+            } else {
+                break;
+                //app.fill(color(255, 255, 255));
+            }
+            app.rect(450 + 30*i, app.height-60-25-50, 25, 25);
+            app.fill(color(255, 255, 255));
+            app.text(this.valve_ids[i+5], 450+30*i + 4, app.height-60-50-25-5);
+        }
+        app.fill(color(255, 255, 255));
+
+    }
+
+    private void drawSensorStates(PApplet app) {
+        for (int i = 0; i < 5; i++) {
+            if (this.sensor_states[i] == 1) {
+                app.fill(color(0, 255, 0));
+            } else if(this.sensor_states[i] == -1) {
+                app.fill(color(255, 0, 0));
+            } else {
+                break;
+                //app.fill(color(255, 255, 255));
+            }
+            app.rect(450 + 30*i, app.height-60-25-100, 25, 25);
+            app.fill(color(255, 255, 255));
+            app.text(this.sensor_ids[i], 450 + 30*i + 4,
+                     app.height-60-25-5-100);
+        }
+
+        for (int i = 0; i < 5; i++) {
+            if (this.sensor_states[i+5] == 1) {
+                app.fill(color(0, 255, 0));
+            } else if(this.sensor_states[i+5] == -1) {
+                app.fill(color(255, 0, 0));
+            } else {
+                break;
+                //app.fill(color(255, 255, 255));
+            }
+            app.rect(450 + 30*i, app.height-60-25-50-100, 25, 25);
+            app.fill(color(255, 255, 255));
+            app.text(this.sensor_ids[i+5], 450+30*i + 4,
+                     app.height-60-50-25-5-100);
+        }
+        app.fill(color(255, 255, 255));
+
     }
 
     void update(PApplet app, float dy, float position, float time) {
@@ -318,34 +406,9 @@ public class Display extends PApplet {
         app.fill(color(255, 255, 255));
         app.text(this.bottom_message, 10, app.height-60);
 
-        for (int i=0; i<5; i++) {
-            if (this.valve_states[i] == 1) {
-                app.fill(color(0, 255, 0));
-            } else if(this.valve_states[i] == -1) {
-                app.fill(color(255, 0, 0));
-            } else {
-                break;
-                //app.fill(color(255, 255, 255));
-            }
-            app.rect(450 + 30*i, app.height-60-25, 25, 25);
-            app.fill(color(255, 255, 255));
-            app.text(this.valve_ids[i], 450 + 30*i + 4, app.height-60-25-5);
-        }
+        drawValveStates(app);
+        drawSensorStates(app);
 
-        for (int i=0; i<5; i++) {
-            if (this.valve_states[i+5] == 1) {
-                app.fill(color(0, 255, 0));
-            } else if(this.valve_states[i+5] == -1) {
-                app.fill(color(255, 0, 0));
-            } else {
-                break;
-                //app.fill(color(255, 255, 255));
-            }
-            app.rect(450 + 30*i, app.height-60-25-50, 25, 25);
-            app.fill(color(255, 255, 255));
-            app.text(this.valve_ids[i+5], 450+30*i + 4, app.height-60-50-25-5);
-        }
-        app.fill(color(255, 255, 255));
         //println("updates: " + (app.millis() - t));
     }
 }

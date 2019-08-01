@@ -17,6 +17,8 @@ public class TimedContextDecorator extends SuspendableContextDecorator {
 
     private int actual_lap;
 
+    private boolean adjust_zero_lap;
+
     public TimedContextDecorator(ContextList context_list,
                                  JSONObject context_info) {
         super(context_list);
@@ -39,6 +41,9 @@ public class TimedContextDecorator extends SuspendableContextDecorator {
         if (context_info.getBoolean("no_display", false)) {
             this.display_color_suspended = null;
         }
+
+        this.adjust_zero_lap = context_info.getBoolean("adjust_zero_lap", true);
+
         this.zero_lap = 0;
     }
 
@@ -84,14 +89,20 @@ public class TimedContextDecorator extends SuspendableContextDecorator {
             }
 
             if ((this.time_idx%2 == 0) || (this.time_idx == -1)) {
-                this.zero_lap = this.actual_lap;
+                if (this.adjust_zero_lap) {
+                    this.zero_lap = this.actual_lap;
+                }
+
                 if (!this.isSuspended()) {
                    this.reset();
                 }
                 return true;
             }
         } else {
-            this.zero_lap = this.actual_lap;
+            if (this.adjust_zero_lap) {
+                this.zero_lap = this.actual_lap;
+            }
+
             return true;
         }
 
