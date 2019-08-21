@@ -20,8 +20,16 @@ public class ContextListDecorator implements ContextList {
         return this.context_list.getComm();
     }
 
+    public void registerContexts(ArrayList<ContextList> contexts) {
+        this.context_list.registerContexts(contexts);
+    }
+
     public String getId() {
         return this.context_list.getId();
+    }
+
+    public void setRadius(int radius) {
+        this.context_list.setRadius(radius);
     }
 
     public int getRadius() {

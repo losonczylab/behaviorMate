@@ -1,8 +1,5 @@
 import processing.data.JSONObject;
 
-/**
- * AlternatingContextList class. Disables contexts based on lap count.
- */
 public class LickStartContextDecorator extends ContextListDecorator {
 
     private int prev_lickcount;

@@ -23,6 +23,8 @@ public class BasicContextList extends PApplet implements ContextList {
      */
     protected int radius;
 
+    protected float scale;
+
     /**
      * amount fo time (in seconds) that a context may remain active once it has
      * been triggered.
@@ -256,6 +258,8 @@ public class BasicContextList extends PApplet implements ContextList {
         return true;
     }
 
+    public void registerContexts(ArrayList<ContextList> contexts) { }
+
     /**
      * Setter method for the context's id. also configures the startString and
      * stopString valves.
@@ -279,12 +283,25 @@ public class BasicContextList extends PApplet implements ContextList {
     }
 
     /**
-     * Accessor for this conext's id.
+     * Accessor for this context's id.
      *
      * @return the id of this ContextList
      */
     public String getId() {
         return this.id;
+    }
+
+    public void setRadius(int radius) {
+        if (radius == 0) {
+            radius = (int)(track_length/2.0) + 2;
+        }
+
+        for (Context context : this.contexts) {
+            context.setRadius(radius);
+        }
+
+        this.radius = radius;
+        this.setDisplayScale(this.scale);
     }
 
     public int getRadius() {
@@ -303,6 +320,7 @@ public class BasicContextList extends PApplet implements ContextList {
      *              Units are in pixel/mm
      */
     public void setDisplayScale(float scale) {
+        this.scale = scale;
         this.display_radius = ((float)this.radius) * scale;
     }
 
@@ -427,30 +445,30 @@ public class BasicContextList extends PApplet implements ContextList {
         }
 
         if (this.contexts.size() == 1) {
-            contexts.get(0).move((int) random(this.radius, this.track_length-this.radius));
+            this.move(0, (int) random(this.radius, this.track_length-this.radius));
             return;
         }
 
         // initially position contexts evenly spaced
         int interval = (int)(this.track_length-2*this.radius)/this.contexts.size();
-        contexts.get(0).move(this.radius + interval/2);
+        this.move(0, this.radius + interval/2);
         for (int i = 1; i < this.contexts.size(); i++) {
-            this.contexts.get(i).move(this.contexts.get(i-1).location() + interval);
+            this.move(i, this.contexts.get(i-1).location() + interval);
         }
 
         // move the contexts randomlly without allowing them to overlap
-        this.contexts.get(0).move(
+        this.move(0, 
             (int) random(this.radius,this.contexts.get(1).location()-2*this.radius));
 
         for (int i = 1; i < this.contexts.size()-1; i++) {
             int prev_location = this.contexts.get(i-1).location();
             int next_location = this.contexts.get(i+1).location();
-            this.contexts.get(i).move(
+            this.move(i,
                 (int) random(prev_location+2*this.radius, next_location-2*this.radius));
         }
 
         int prev_location = this.contexts.get(this.size()-2).location();
-        this.contexts.get(this.size()-1).move(
+        this.move(this.size()-1,
             (int) random(prev_location+2*this.radius, this.track_length-this.radius));
     }
 

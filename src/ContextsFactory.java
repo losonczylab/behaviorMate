@@ -74,6 +74,9 @@ public final class ContextsFactory {
         //} else if (class_name.equals("gain_mod")) {
         //    cl = new GainModifiedContextList(
         //        tc, context_info, track_length, "behavior_controller");
+        } else if (class_name.equals("joint_context")) {
+            cl = new JointContextList(context_info, track_length,
+                                      "behavior_controller");
         } else {
             if (context_info.getString("type", "").equals("operant") && false) {
                 // this is so as not to confuse the arduino
@@ -112,6 +115,8 @@ public final class ContextsFactory {
                     cl = new BlockedShuffleDecorator(cl, decorator);
                 } else if (decorator_class.equals("timed_iti")){
                     cl = new TimedITIContextDecorator(tc, cl, decorator);
+                } else if (decorator_class.equals("delayed_context")) {
+                    cl = new DelayedContextDecorator(cl, decorator);
                 } else {
                     throw new IllegalArgumentException(
                         "Decorator " + decorator_class + " not found");

@@ -950,34 +950,16 @@ public class TreadmillController extends PApplet {
                     context_info.getString("class", "context"));
                 contexts.add(context_list);
 
-                //TODO: clearner way to do this
-                //TODO: is this even necessary?
-                String context_class = context_info.getString(
-                    "class", "context");
-
-                display.setContextLocations(context_list);
                 if (!context_list.setupComms(comms)) {
                     trialListener.alert(
                         "Context List: " + context_list.getId() +
                         " failed to connect to comm");
                 }
-
-                //TODO: remove vr/vr_cues and replaced with vr2
-                if (context_class.equals("vr")) {
-                    vr_context = (VrContextList) contexts.get(
-                        contexts.size()-1);
-                } else if (context_class.equals("vr_cues")) {
-                    cue_lists.add(
-                        (VrCueContextList) context_list);
-                }
+                display.setContextLocations(context_list);
             }
 
-            if (vr_context != null) {
-                System.out.println("VR LIST NOT NULL");
-                for (VrCueContextList cue_list : cue_lists) {
-                    cue_list.setVrContextList(vr_context);
-                    System.out.println("ADDING VR TO CUE LIST");
-                }
+            for (ContextList context : this.contexts) {
+                context.registerContexts(this.contexts);
             }
         }
     }

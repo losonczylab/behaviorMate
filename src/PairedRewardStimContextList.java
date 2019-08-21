@@ -29,6 +29,9 @@ public class PairedRewardStimContextList extends BasicContextList {
     protected JSONObject log_message_container;
     protected JSONObject log_message;
 
+    protected String punishment_context_id;
+    protected ContextList punishment_context;
+
     class ValveInfo {
         public int valve;
         public String start_msg;
@@ -63,12 +66,30 @@ public class PairedRewardStimContextList extends BasicContextList {
                            this.context_info.getInt("frequency_1", -1),
                            this.context_info.getInt("frequency_2", -1) };
 
-        this.getContext(0).setRadius(this.radius);
+        this.setRadius(this.radius);
         this.move(0, this.reward_locations[0]);
         this.current_reward = -1;
         this.schedule_ptr = -1;
         this.trial_num = 0;
         this.context_state = false;
+
+        this.punishment_context_id = this.context_info.getString(
+            "punishment_context", null);
+    }
+
+    public void registerContexts(ArrayList<ContextList> contexts) {
+        this.punishment_context = null;
+        if (this.punishment_context_id != null) {
+            for (ContextList contextList : contexts) {
+                if (contextList.getId().equals(this.punishment_context_id)) {
+                    this.punishment_context = contextList;
+
+                    this.punishment_context.setRadius(this.radius);
+
+                    this.punishment_context.move(0, this.reward_locations[1]);
+                }
+            }
+        }
     }
 
     public void sendCreateMessages() {
@@ -77,8 +98,6 @@ public class PairedRewardStimContextList extends BasicContextList {
         if (comm != null) {
             JSONObject ci = this.context_info.getJSONObject("reward_settings");
             ci.setString("action", "create");
-            //ci.setJSONArray("valves", new JSONArray());
-            //ci.getJSONArray("valves").append(this.reward_valve);
             ci.setString("id", this.getId());
 
             JSONObject context_setup_json = new JSONObject();
@@ -86,8 +105,14 @@ public class PairedRewardStimContextList extends BasicContextList {
 
             // configure the valves, the pins which have devices responsible for
             // controlling this context
-            int[] valves = { reward_valve, stim_valve1, stim_valve2 };
+            int[] valves = {
+                this.reward_valve, this.stim_valve1,
+                this.stim_valve2 };
+
             for (int i = 0; i < valves.length; i++) {
+                if (valves[i] == -1) {
+                    continue;
+                }
                 JSONObject valve_json;
 
                 // frequency causes this singal to oscillate in order to play a
@@ -175,6 +200,13 @@ public class PairedRewardStimContextList extends BasicContextList {
             this.sendMessage(this.valves_list.get(idx).start_msg);
             this.current_reward = idx;
             this.getContext(0).reset();
+
+            if (this.punishment_context != null) {
+                this.punishment_context.move(
+                    0, this.reward_locations[(idx+1)%2]);
+                this.punishment_context.getContext(0).reset();
+                ((SuspendableContextDecorator)this.punishment_context).suspend();
+            }
         }
         this.context_state = false;
     }

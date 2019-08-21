@@ -8,7 +8,11 @@ public interface ContextList {
 
     public abstract boolean setupComms(ArrayList<UdpClient> comms);
 
+    public abstract void registerContexts(ArrayList<ContextList> contexts);
+
     public abstract String getId();
+
+    public abstract void setRadius(int radius);
 
     public abstract int getRadius();
 
