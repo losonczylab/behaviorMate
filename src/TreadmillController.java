@@ -412,14 +412,6 @@ public class TreadmillController extends PApplet {
         delay(100);
 
         //TODO: diff and only reconfigure if an update is made
-        /*
-        if (behavior_comm != null) {
-            behavior_comm.closeSocket();
-        }
-        if (position_comm != null) {
-            position_comm.closeSocket();
-        }
-        */
         for (UdpClient c : comms) {
             c.closeSocket();
         }
@@ -445,14 +437,6 @@ public class TreadmillController extends PApplet {
 
     public void RefreshSettings() throws Exception {
         delay(100);
-        /*
-        if (behavior_comm != null) {
-            behavior_comm.closeSocket();
-        }
-
-        if (position_comm != null) {
-            position_comm.closeSocket();
-        }*/
 
         for (UdpClient c: comms) {
             c.closeSocket();
@@ -646,47 +630,6 @@ public class TreadmillController extends PApplet {
             behavior_comm.sendMessage(create_json.toString());
             delay(150);
         }
-    }
-
-    /**
-     * Configures the settings to trigger an opto-laser around the reward zone.
-     * reward centered laser zone options is NOT currenly supported (TODO: build
-     * nested context list class). This is to support legacy settings.json files
-     * where laser zones where a seperate entry in settings.json
-     */
-    void configure_laser() throws Exception {
-        JSONObject laser_info = settings_json.getJSONObject("laser");
-        int laser_pin = laser_info.getInt("pin");
-
-        JSONArray context_valves = new JSONArray();
-        context_valves.append(laser_pin);
-        laser_info.setJSONArray("valves", context_valves);
-
-        JSONArray context_duration = new JSONArray();
-        context_duration.append(-1);
-        laser_info.setJSONArray("durations", context_duration);
-
-        laser_info.setString("id", "laser_context");
-        if (laser_info.isNull("display_color")) {
-            JSONArray acolor = new JSONArray();
-            acolor.append(0);
-            acolor.append(204);
-            acolor.append(204);
-            laser_info.setJSONArray("display_color", acolor);
-        }
-
-        if (laser_info.getBoolean("reward_centered", false)) {
-            throw new Exception("reward centered not currently supported");
-        }
-
-        JSONArray context_array;
-        if (settings_json.isNull("contexts")) {
-            settings_json.setJSONArray("contexts", new JSONArray());
-        }
-
-        context_array = settings_json.getJSONArray("contexts");
-
-        context_array.append(laser_info);
     }
 
 
@@ -921,10 +864,6 @@ public class TreadmillController extends PApplet {
 
         if (!settings_json.isNull("reward")) {
             configure_rewards();
-        }
-
-        if (!settings_json.isNull("laser")) {
-            configure_laser();
         }
 
         this.commentKeys = new HashMap<Character, String>();
