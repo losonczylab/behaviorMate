@@ -79,7 +79,7 @@ public class TimedContextDecorator extends SuspendableContextDecorator {
      *                   influence the connected arduinos or UI.
      */
     public boolean check_suspend(float position, float time, int lap,
-                                 int lick_count, String[] msg_buffer) {
+                                 int lick_count, JSONObject[] msg_buffer) {
 
         if (this.time_idx != -1) {
             if (this.time_idx >= this.times.length) {
@@ -110,7 +110,7 @@ public class TimedContextDecorator extends SuspendableContextDecorator {
     }
 
     public boolean check(float position, float time, int lap, int lick_count,
-            String[] msg_buffer) {
+                         JSONObject[] msg_buffer) {
 
         this.actual_lap = lap;
         return super.check(position, time, lap-this.zero_lap,

@@ -16,6 +16,7 @@ public class VrContextList2 extends BasicContextList {
     protected String stopString;
     protected String sceneName;
     protected float startPosition;
+    protected JSONObject vr_config;
 
     protected TreadmillController tc;
 
@@ -25,6 +26,7 @@ public class VrContextList2 extends BasicContextList {
         super(context_info, track_length, null);
 
         this.tc = tc;
+        this.vr_config = null;
         this.comm_ids = context_info.getJSONArray(
             "display_controllers").getStringArray();
         this.context_info = context_info;
@@ -35,42 +37,48 @@ public class VrContextList2 extends BasicContextList {
         this.log_json = new JSONObject();
         this.log_json.setJSONObject("context", new JSONObject());
         this.log_json.setString("scene", this.sceneName);
-
-        if (this.id != null) {
-            this.log_json.setString("id", this.id);
-        }
+        this.log_json.setString("id", this.id);
 
         this.previous_location = -1;
 
         JSONObject start_msg = new JSONObject();
         start_msg.setString("action", "start");
-        start_msg.setString("scene", this.sceneName);
+        start_msg.setString("context", this.id);
         this.startString = start_msg.toString();
 
         JSONObject stop_msg = new JSONObject();
         stop_msg.setString("action", "stop");
+        stop_msg.setString("context", this.id);
         this.stopString = stop_msg.toString();
 
         this.startPosition = context_info.getFloat("start_position", -1.0f);
+    }
 
-        /*JSONObject clear_msg = new JSONObject();
-        clear_msg.setString("action", "clear");
-        sendMessage(clear_msg.toString());
-
+    public void setupVr() {
         JSONObject scene_msg = new JSONObject();
+        scene_msg.setString("action", "editContext");
+        scene_msg.setString("type", "scene");
         scene_msg.setString("scene", this.sceneName);
-        sendMessage(scene_msg.toString());*/
+        scene_msg.setString("context", this.id);
+        sendMessage(scene_msg.toString());
+        System.out.println(scene_msg.toString());
+
+        if (!this.context_info.isNull("vr_file")) {
+            setupVr(this.context_info.getString("vr_file"));
+        } else {
+            this.vr_config = null;
+        }
     }
 
     public void setupVr(String vr_file) {
-        //JSONObject clear_msg = new JSONObject();
-        //clear_msg.setString("action", "clear");
-        //sendMessage(clear_msg.toString());
-
-        JSONObject vr_config = parseJSONObject(
+        System.out.println("VR FILE");
+        this.vr_config = parseJSONObject(
             BehaviorMate.parseJsonFile(vr_file).toString());
         JSONArray objects = vr_config.getJSONArray("objects");
         JSONObject msg_json = new JSONObject();
+        msg_json.setString("action", "editContext");
+        msg_json.setString("context", this.id);
+        msg_json.setString("type", "cue");
 
         //TODO: if no id is set, set one here.
         for (int i=0; i < objects.size(); i++) {
@@ -78,35 +86,8 @@ public class VrContextList2 extends BasicContextList {
             sendMessage(msg_json.toString());
         }
 
-        Iterator<String> keys = vr_config.keyIterator();
-        while (keys.hasNext()) {
-            String key = keys.next();
-            if (!key.equals("objects")) {
-                msg_json = new JSONObject();
-                do {
-                    try {
-                        msg_json.setInt(key, vr_config.getInt(key));
-                        break;
-                    } catch(RuntimeException e) { }
-                    try {
-                        msg_json.setFloat(key, vr_config.getFloat(key));
-                        break;
-                    } catch(RuntimeException e) { }
-                    try {
-                        msg_json.setBoolean(key, vr_config.getBoolean(key));
-                        break;
-                    } catch(RuntimeException e) { }
-                    try {
-                        msg_json.setString(key, vr_config.getString(key));
-                        break;
-                    } catch(RuntimeException e) { }
-                } while(false);
-                sendMessage(msg_json.toString());
-            }
-        }
-
         if (!vr_config.isNull("skybox")) {
-            msg_json = new JSONObject();
+            msg_json.setString("type", "skybox");
             msg_json.setString("skybox", vr_config.getString("skybox"));
             sendMessage(msg_json.toString());
         }
@@ -138,13 +119,7 @@ public class VrContextList2 extends BasicContextList {
 
         }
 
-        JSONObject scene_msg = new JSONObject();
-        scene_msg.setString("scene", this.sceneName);
-        sendMessage(scene_msg.toString());
-
-        //JSONObject clear_msg = new JSONObject();
-        //clear_msg.setString("action", "clear");
-        //sendMessage(clear_msg.toString());
+        setupVr();
         return true;
     }
 
@@ -156,59 +131,8 @@ public class VrContextList2 extends BasicContextList {
         }
     }
 
-    /*public void setCues(JSONArray cues) {
-        sendMessage(this.startString);
-
-        JSONObject clearMessage = new JSONObject();
-        clearMessage.setString("type", "cues");
-        clearMessage.setString("action", "clear");
-        sendMessage(clearMessage.toString());
-
-        JSONObject createMessage = new JSONObject();
-        createMessage.setString("type", "cues");
-        createMessage.setString("action", "create");
-        createMessage.setJSONArray("cues", cues);
-        sendMessage(createMessage.toString());
-
-        if (this.active == -1) {
-            sendMessage(this.stopString);
-        }
-
-    }
-
-    public void addCues(JSONArray cues, String list_name) {
-        sendMessage(this.startString);
-
-        JSONObject createMessage = new JSONObject();
-        createMessage.setString("type", "cues");
-        createMessage.setString("action", "create");
-        createMessage.setString("list_name", list_name);
-        createMessage.setJSONArray("cues", cues);
-        sendMessage(createMessage.toString());
-
-        if (this.active == -1) {
-            sendMessage(this.stopString);
-        }
-    }
-
-    public void clearCueList(String list_name) {
-        if (this.active == -1) {
-            sendMessage(this.startString);
-        }
-
-        JSONObject clearMessage = new JSONObject();
-        clearMessage.setString("type", "cues");
-        clearMessage.setString("action", "clear");
-        clearMessage.setString("list_name", list_name);
-        sendMessage(clearMessage.toString());
-
-        if (this.active == -1) {
-            sendMessage(this.stopString);
-        }
-    }*/
-
     public boolean check(float position, float time, int lap,
-                         String[] msg_buffer) {
+                         JSONObject[] msg_buffer) {
         boolean inZone = false;
         int i=0;
         for (; i < this.contexts.size(); i++) {
@@ -234,18 +158,18 @@ public class VrContextList2 extends BasicContextList {
 
             this.log_json.setFloat("time", time);
             this.log_json.getJSONObject("context").setString("action", "stop");
-            msg_buffer[0] = this.log_json.toString().replace("\n","");
+            msg_buffer[0] = this.log_json;
         } else if((inZone) && (this.active != i)) {
             this.active = i;
             this.status = "on";
-            if (!context_info.isNull("vr_file"))
-            {
-                setupVr(context_info.getString("vr_file"));
+            //if (!context_info.isNull("vr_file"))
+            //{
+            //    setupVr(context_info.getString("vr_file"));
             //} else {
                 //JSONObject scene_msg = new JSONObject();
                 //scene_msg.setString("scene", this.sceneName);
                 //sendMessage(scene_msg.toString());
-            }
+            //}
             //for (i = 0; i < 3; i++) {
             sendMessage(this.startString);
             if (this.startPosition != -1) {
@@ -261,11 +185,28 @@ public class VrContextList2 extends BasicContextList {
 
             this.log_json.setFloat("time", time);
             this.log_json.getJSONObject("context").setString("action", "start");
-            msg_buffer[0] = this.log_json.toString().replace("\n","");
+            msg_buffer[0] = this.log_json;
         }
 
 
         return (this.active != -1);
+    }
+
+    public void trialStart(JSONObject[] msg_buffer) {
+        setupVr();
+
+        JSONObject config_msg = new JSONObject();
+        config_msg.setString("id", this.id);
+        config_msg.setJSONObject("vr_config", this.vr_config);
+        msg_buffer[0] = config_msg;
+    }
+
+    public void end() {
+        System.out.println("ending");
+        JSONObject end_msg = new JSONObject();
+        end_msg.setString("context", this.id);
+        end_msg.setString("action", "clear");
+        this.sendMessage(end_msg.toString());
     }
 
     public void suspend() {
@@ -278,17 +219,13 @@ public class VrContextList2 extends BasicContextList {
         this.log_json.getJSONObject("context").setString("action", "stop");
 
         this.tc.writeLog(this.log_json.toString());
-
-        //JSONObject clear_msg = new JSONObject();
-        //clear_msg.setString("action", "clear");
-        //sendMessage(clear_msg.toString());
     }
 
-    public void stop(float time, String[] msg_buffer) {
+    public void stop(float time, JSONObject[] msg_buffer) {
         if (this.active != -1) {
             this.log_json.setFloat("time", time);
             this.log_json.getJSONObject("context").setString("action", "stop");
-            msg_buffer[0] = this.log_json.toString().replace("\n","");
+            msg_buffer[0] = this.log_json;
         }
 
         this.active = -1;
@@ -297,12 +234,16 @@ public class VrContextList2 extends BasicContextList {
     }
 
     protected void sendMessage(String message) {
+        if (this.comms == null) {
+            System.out.println("comms null");
+            System.out.println(message);
+            return;
+        }
+
         for (int i=0; i < this.comms.length; i++) {
             this.comms[i].sendMessage(message);
         }
     }
-
-
 
     protected void sendMessageSlow(String message) {
         for (int i=0; i < this.comms.length; i++) {
@@ -313,5 +254,12 @@ public class VrContextList2 extends BasicContextList {
 
             }
         }
+    }
+
+    public void shutdown() {
+        JSONObject end_msg = new JSONObject();
+        end_msg.setString("context", this.id);
+        end_msg.setString("action", "clear");
+        this.sendMessage(end_msg.toString());
     }
 }

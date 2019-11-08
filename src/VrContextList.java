@@ -121,7 +121,7 @@ public class VrContextList extends BasicContextList {
     }
 
     public boolean check(float position, float time, int lap,
-                         String[] msg_buffer) {
+                         JSONObject[] msg_buffer) {
         boolean inZone = false;
         int i=0;
         for (; i < this.contexts.size(); i++) {
@@ -147,7 +147,7 @@ public class VrContextList extends BasicContextList {
 
             log_json.setFloat("time", time);
             log_json.getJSONObject("context").setString("action", "stop");
-            msg_buffer[0] = log_json.toString().replace("\n","");
+            msg_buffer[0] = log_json;
         } else if((inZone) && (this.active != i)) {
             this.active = i;
             this.status = "on";
@@ -155,18 +155,18 @@ public class VrContextList extends BasicContextList {
 
             log_json.setFloat("time", time);
             log_json.getJSONObject("context").setString("action", "start");
-            msg_buffer[0] = log_json.toString().replace("\n","");
+            msg_buffer[0] = log_json;
         }
 
 
         return (this.active != -1);
     }
 
-    public void stop(float time, String[] msg_buffer) {
+    public void stop(float time, JSONObject[] msg_buffer) {
         if (this.active != -1) {
             log_json.setFloat("time", time);
             log_json.getJSONObject("context").setString("action", "stop");
-            msg_buffer[0] = log_json.toString().replace("\n","");
+            msg_buffer[0] = log_json;
         }
 
         this.active = -1;

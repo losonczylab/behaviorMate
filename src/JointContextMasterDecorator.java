@@ -1,6 +1,6 @@
 public class JointContextMasterDecorator extends ContextListDecorator {
     protected JointContextList slave_list;
-    
+
     public JointContextMasterDecorator(ContextList context_list,
                                        JointContextList slave_list) {
         super(context_list);

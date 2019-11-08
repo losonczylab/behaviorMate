@@ -87,7 +87,7 @@ public class ScheduledContextDecorator extends SuspendableContextDecorator {
      *                   influence the connected arduinos or UI.
      */
     public boolean check_suspend(float position, float time, int lap,
-                                 int lick_count, String[] msg_buffer) {
+                                 int lick_count, JSONObject[] msg_buffer) {
 
         if ((keep_on) && (lap > last_lap)) {
             return false;

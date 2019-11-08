@@ -15,6 +15,17 @@ public abstract class SuspendableContextDecorator extends ContextListDecorator {
      */
     protected int[] display_color_suspended;
 
+    public SuspendableContextDecorator(ContextList context_list) {
+        super(context_list);
+        this.suspended = false;
+
+        if (this.context_list.displayColor() != null) {
+            this.display_color_suspended = new int[] {100, 100, 100};
+        } else {
+            this.display_color_suspended = null;
+        }
+    }
+
     public int[] displayColor() {
         if (!this.suspended) {
             return this.context_list.displayColor();
@@ -23,11 +34,6 @@ public abstract class SuspendableContextDecorator extends ContextListDecorator {
         }
     }
 
-    public SuspendableContextDecorator(ContextList context_list) {
-        super(context_list);
-        this.suspended = false;
-        this.display_color_suspended = new int[] {100, 100, 100};
-    }
 
     public void suspend() {
         this.suspended = true;
@@ -50,7 +56,7 @@ public abstract class SuspendableContextDecorator extends ContextListDecorator {
     }
 
     public boolean check_suspend(float position, float time, int lap,
-                                 int lick_count, String[] msg_buffer) {
+                                 int lick_count, JSONObject[] msg_buffer) {
 
         return false;
     }
@@ -75,7 +81,7 @@ public abstract class SuspendableContextDecorator extends ContextListDecorator {
      *                   influence the connected arduinos or UI.
      */
     public boolean check(float position, float time, int lap, int lick_count,
-            String[] msg_buffer) {
+                         JSONObject[] msg_buffer) {
 
         if (check_suspend(position, time, lap, lick_count, msg_buffer)) {
             if (!this.suspended) {

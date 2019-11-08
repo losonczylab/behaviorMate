@@ -29,7 +29,7 @@ public class BasicContextList extends PApplet implements ContextList {
      * amount fo time (in seconds) that a context may remain active once it has
      * been triggered.
      */
-    protected int duration;
+    protected float duration;
 
     /**
      * interger corresponding to the index of the curretly active context in the
@@ -127,7 +127,7 @@ public class BasicContextList extends PApplet implements ContextList {
         // sets startString and stopString as well as the id field
         setId(context_info.getString("id"));
 
-        this.duration = context_info.getInt("max_duration", -1);
+        this.duration = context_info.getFloat("max_duration", -1);
         this.radius = context_info.getInt("radius", -1);
         this.active = -1;
         this.status = "";
@@ -282,6 +282,10 @@ public class BasicContextList extends PApplet implements ContextList {
         this.stopString = context_message_json.toString();
     }
 
+    public String getCommId() {
+        return this.comm_id;
+    }
+
     /**
      * Accessor for this context's id.
      *
@@ -416,6 +420,8 @@ public class BasicContextList extends PApplet implements ContextList {
         }
     }
 
+    public void trialStart(JSONObject[] msg_buffer) { }
+
     /**
      * Resets the state of the contexts. Contexts which have been triggered are
      * reactivated and allowed to be triggered again. If this list is shuffeling
@@ -508,7 +514,7 @@ public class BasicContextList extends PApplet implements ContextList {
      *                   influence the connected arduinos or UI.
      */
     public boolean check(float position, float time, int lap, int lick_count,
-            String[] msg_buffer) {
+            JSONObject[] msg_buffer) {
 
         return check(position, time, lap, msg_buffer);
     }
@@ -532,7 +538,7 @@ public class BasicContextList extends PApplet implements ContextList {
      *                   influence the connected arduinos or UI.
      */
     public boolean check(float position, float time, int lap,
-            String[] msg_buffer) {
+            JSONObject[] msg_buffer) {
         boolean inZone = false;
         int i=0;
 
@@ -606,7 +612,7 @@ public class BasicContextList extends PApplet implements ContextList {
      * Stop this context. Called at the end of trials to ensure that the context
      * is shut off.
      */
-    public void stop(float time, String[] msg_buffer) {
+    public void stop(float time, JSONObject[] msg_buffer) {
         this.active = -1;
         this.status = "sent stop";
         this.waiting = false;
@@ -616,4 +622,6 @@ public class BasicContextList extends PApplet implements ContextList {
     protected void sendMessage(String message) {
         this.comm.sendMessage(message);
     }
+
+    public void shutdown() { }
 }

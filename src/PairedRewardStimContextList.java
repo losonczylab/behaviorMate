@@ -231,7 +231,7 @@ public class PairedRewardStimContextList extends BasicContextList {
      *                   influence the connected arduinos or UI.
      */
     public boolean check(float position, float time, int lap,
-            String[] msg_buffer) {
+                         JSONObject[] msg_buffer) {
         if (this.schedule_ptr == -1) {
             this.setReward(this.schedule[0]);
             this.schedule_ptr = 0;
@@ -239,7 +239,7 @@ public class PairedRewardStimContextList extends BasicContextList {
             this.log_message.setString("id", id + "_" + this.schedule[0]);
             this.log_message.setFloat("time", time);
             this.log_message.setInt("trial", this.trial_num);
-            msg_buffer[0] = this.log_message_container.toString();
+            msg_buffer[0] = this.log_message_container;
         }
 
         boolean inZone = false;
@@ -306,14 +306,14 @@ public class PairedRewardStimContextList extends BasicContextList {
             this.log_message.setFloat("time", time);
             this.trial_num++;
             this.log_message.setInt("trial", this.trial_num);
-            msg_buffer[0] = this.log_message_container.toString();
+            msg_buffer[0] = this.log_message_container;
         }
 
         return (this.active != -1);
     }
 
 
-    public void stop(float time, String[] msg_buffer) {
+    public void stop(float time, JSONObject[] msg_buffer) {
         this.current_reward = -1;
         this.schedule_ptr = -1;
         this.trial_num = 0;

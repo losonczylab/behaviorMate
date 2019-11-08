@@ -1,7 +1,7 @@
 public class Context {
 
     int location;
-    int duration;
+    float duration;
     int radius;
     float started_time;
     boolean triggered;
@@ -11,7 +11,7 @@ public class Context {
     protected boolean enabled;
 
 
-    public Context(int location, int duration, int radius, int id) {
+    public Context(int location, float duration, int radius, int id) {
         this.location = location;
         this.duration = duration;
         this.radius = radius;

@@ -304,25 +304,25 @@ public class SalienceContextList extends BasicContextList {
         }
     }
 
-    public void startTrial(float time, String[] msg_buffer) {
+    public void startTrial(float time, JSONObject[] msg_buffer) {
         JSONObject start_log = new JSONObject();
         Date dateTime = Calendar.getInstance().getTime();
         start_log.setFloat("time", time);
         start_log.setString("trial_start", this.tc.dateFormat.format(dateTime));
-        msg_buffer[0] = start_log.toString();
+        msg_buffer[0] = start_log;
     }
 
-    public void endTrial(float time, String[] msg_buffer) {
+    public void endTrial(float time, JSONObject[] msg_buffer) {
         JSONObject end_log = new JSONObject();
         Date dateTime = Calendar.getInstance().getTime();
         end_log.setFloat("time", time);
         end_log.setString("trial_end", this.tc.dateFormat.format(dateTime));
-        msg_buffer[0] = end_log.toString();
+        msg_buffer[0] = end_log;
     }
 
 
     public boolean check(float position, float time, int lap,
-            String[] msg_buffer) {
+            JSONObject[] msg_buffer) {
 
         if ((this.event_time != -1) &&
                 (time > (this.event_time + this.stim_time))) {
@@ -382,7 +382,7 @@ public class SalienceContextList extends BasicContextList {
         return false;
     }
 
-    public void stop(float time, String[] msg_buffer) {
+    public void stop(float time, JSONObject[] msg_buffer) {
         createSchedule();
         super.stop(time, msg_buffer);
     }

@@ -76,7 +76,7 @@ public class TimedITIContextDecorator extends SuspendableContextDecorator {
      *                   influence the connected arduinos or UI.
      */
     public boolean check_suspend(float position, float time, int lap,
-                                 int lick_count, String[] msg_buffer) {
+                                 int lick_count, JSONObject[] msg_buffer) {
         if (this.isSuspended()) {
             if (time > this.next_start) {
                 this.start_lap = lap;
@@ -102,5 +102,6 @@ public class TimedITIContextDecorator extends SuspendableContextDecorator {
         this.next_start = 0;
         this.start_lap = 0;
         tc.setLapLock(false);
+        this.context_list.end();
     }
 }

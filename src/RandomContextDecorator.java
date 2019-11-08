@@ -63,7 +63,7 @@ public class RandomContextDecorator extends SuspendableContextDecorator {
      *                   influence the connected arduinos or UI.
      */
     public boolean check_suspend(float position, float time, int lap,
-                                 int lick_count, String[] msg_buffer) {
+                                 int lick_count, JSONObject[] msg_buffer) {
 
         // check if the lap count means that the context list should be
         // suspended or unsuspended.

@@ -44,7 +44,7 @@ public class LickStartContextDecorator extends ContextListDecorator {
      *                   influence the connected arduinos or UI.
      */
     public boolean check(float position, float time, int lap, int lick_count,
-            String[] msg_buffer) {
+                         JSONObject[] msg_buffer) {
 
         boolean inPosition = (this.max_time == -1);
         if (!this.context_list.isActive()) {

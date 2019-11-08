@@ -84,7 +84,7 @@ public class VrCueContextList2 extends BasicContextList {
     }
 
     public boolean check(float position, float time, int lap,
-                         String[] msg_buffer) {
+                         JSONObject[] msg_buffer) {
 
         if (!this.displaying) {
             sendMessage(this.startString);
@@ -95,7 +95,7 @@ public class VrCueContextList2 extends BasicContextList {
         return true;
     }
 
-    public void stop(float time, String[] msg_buffer) {
+    public void stop(float time, JSONObject[] msg_buffer) {
         this.status = "off";
         this.active = -1;
         sendMessage(this.stopString);

@@ -46,7 +46,7 @@ public class RunningContextDecorator extends SuspendableContextDecorator {
     }
 
     public boolean check_suspend(float position, float time, int lap,
-                                 int lick_count, String[] msg_buffer) {
+                                 int lick_count, JSONObject[] msg_buffer) {
 
         if (lap != this.prev_lap) {
             position += (lap-this.prev_lap)*this.track_length;
@@ -73,7 +73,7 @@ public class RunningContextDecorator extends SuspendableContextDecorator {
         return false;
     }
 
-    public void stop(float time, String[] msg_buffer) {
+    public void stop(float time, JSONObject[] msg_buffer) {
         this.prev_lap = 0;
         this.prev_position = 0;
         this.prev_time = 0;

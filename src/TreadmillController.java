@@ -43,6 +43,8 @@ public class TreadmillController extends PApplet {
      */
     FileWriter fWriter;
 
+    JSONObject[] msg_buffer = {null};
+
     /**
      * udp client for reveiving position updates
      */
@@ -52,6 +54,10 @@ public class TreadmillController extends PApplet {
      * udp clident for behavior updates.
      */
     UdpClient behavior_comm;
+
+    UdpClient reset_comm;
+
+    long last_reset_time;
 
     //TODO: incorporate behavior_comm and position_comm into this list?
     ArrayList<UdpClient> comms;
@@ -320,6 +326,16 @@ public class TreadmillController extends PApplet {
             } catch (Exception e) {
                 System.out.println(e);
                 return false;
+            }
+        }
+
+        for (ContextList context : contexts) {
+            context.trialStart(msg_buffer);
+            if (msg_buffer[0] != null) {
+                JSONObject log_message = new JSONObject();
+                log_message.setJSONObject("behavior_mate", msg_buffer[0]);
+                fWriter.write(log_message.toString().replace("\n", ""));
+                msg_buffer[0] = null;
             }
         }
 
@@ -728,6 +744,8 @@ public class TreadmillController extends PApplet {
         comms = new ArrayList<UdpClient>();
         position_comm = null;
         behavior_comm = null;
+        reset_comm = null;
+        last_reset_time = 0;
 
         JSONObject controllers;
         if (!settings_json.isNull("controllers")) {
@@ -754,6 +772,8 @@ public class TreadmillController extends PApplet {
                 position_comm = comm;
             } else if (comm_key.equals("behavior_controller")) {
                 behavior_comm = comm;
+            } else if (comm_key.equals("reset_controller")) {
+                reset_comm = comm;
             }
         }
 
@@ -1061,6 +1081,15 @@ public class TreadmillController extends PApplet {
         }
     }
 
+    public void setPositionScale(float scale) {
+        this.position_scale = scale;
+        this.display.setPositionScale(scale);
+    }
+
+    public float getPositionScale() {
+        return this.position_scale;
+    }
+
     protected float updatePosition(float time) {
         if (position_comm == null) {
             System.out.println("null pos comm");
@@ -1070,8 +1099,9 @@ public class TreadmillController extends PApplet {
         boolean reset_lap = false;
         float dy = 0;
         JSONObject position_json = null;
-        for (int i=0; ((i < 10) && (position_comm.receiveMessage(json_buffer)))
-                ;i++) {
+        for (int i = 0;
+             ((i < 10) && (position_comm.receiveMessage(json_buffer)));
+             i++) {
             if ((dy != 0) && (started) && (position_json != null)) {
                 fWriter.write(position_json.toString());
             }
@@ -1275,8 +1305,13 @@ public class TreadmillController extends PApplet {
             }
 
             if (!behavior_json.isNull("error")) {
-                trialListener.exception(
-                    "Behavior Controller: " + behavior_json.getString("error"));
+                if (started) {
+                    trialListener.alert(
+                        "Behavior Controller: " + behavior_json.getString("error"));
+                } else {
+                    trialListener.exception(
+                        "Behavior Controller: " + behavior_json.getString("error"));
+                }
             }
 
             if (!behavior_json.isNull("context")) {
@@ -1328,6 +1363,12 @@ public class TreadmillController extends PApplet {
 
         if (!behavior_comm.getStatus()) {
             display.setBottomMessage("Behavior Controller Disconnected");
+
+            if (_millis > (last_reset_time + 3000))
+            {
+                last_reset_time = _millis;
+                resetArduino(true);
+            }
         }
 
     }
@@ -1337,7 +1378,6 @@ public class TreadmillController extends PApplet {
      */
     int display_update = 0;
     int display_rate = 50;
-    String[] msg_buffer = {null};
     public void draw() {
         float time = timer.checkTime();
         if ((trial_duration != -1) && (time > trial_duration)) {
@@ -1355,7 +1395,10 @@ public class TreadmillController extends PApplet {
                 contexts.get(i).check(offset_position, time, lap_count,
                                       lick_count, msg_buffer);
                 if (msg_buffer[0] != null) {
-                    fWriter.write(msg_buffer[0].replace("\n", ""));
+                    JSONObject log_message = new JSONObject();
+                    log_message.setJSONObject("behavior_mate", msg_buffer[0]);
+                    log_message.setFloat("time", time);
+                    fWriter.write(log_message.toString().replace("\n", ""));
                     msg_buffer[0] = null;
                 }
             }
@@ -1378,45 +1421,44 @@ public class TreadmillController extends PApplet {
         }
     }
 
-    public void resetArduino() {
+    public void resetArduino(boolean hardware_reset) {
         JSONObject resetArduino = new JSONObject();
         resetArduino.setJSONObject("communicator", new JSONObject());
         resetArduino.getJSONObject("communicator").setString("action", "reset");
         for (int i=0; i < contexts.size(); i++) {
-            contexts.get(i).setStatus("resetting");
+            UdpClient comm = contexts.get(i).getComm();
+            if ((comm != null) && (comm.getId().equals("behavior_controller"))) {
+                contexts.get(i).setStatus("resetting");
+            }
         }
-        behavior_comm.sendMessage(resetArduino.toString());
+
+        if ((reset_comm != null) && (hardware_reset)) {
+            reset_comm.sendMessage(resetArduino.toString());
+        } else {
+            behavior_comm.sendMessage(resetArduino.toString());
+        }
+    }
+
+    public void resetArduino() {
+        resetArduino(false);
     }
 
     public void resetComms() {
         delay(100);
-
-        /*
-        if (position_comm != null) {
-            position_comm.closeSocket();
-        }
-
-        if (behavior_comm != null) {
-            behavior_comm.closeSocket();
-        }
-        */
 
         for (UdpClient c : comms) {
             c.closeSocket();
         }
 
         delay(250);
-        /*try {
-            Thread.sleep(50);
-        } catch(Exception e) {
-            e.printStackTrace();
-        }*/
 
         try {
             startComms();
         } catch(Exception e) {
             e.printStackTrace();
         }
+
+        resetArduino(true);
     }
 
     /**
@@ -1436,7 +1478,7 @@ public class TreadmillController extends PApplet {
             contexts.get(i).end();
 
             if (msg_buffer[0] != null) {
-                fWriter.write(msg_buffer[0]);
+                fWriter.write(msg_buffer[0].toString().replace("\n", ""));
                 msg_buffer[0] = null;
             }
         }
@@ -1478,9 +1520,11 @@ public class TreadmillController extends PApplet {
                 for (int i=0; i < contexts.size(); i++) {
                     contexts.get(i).stop(timer.getTime(), msg_buffer);
                     contexts.get(i).reset();
+                    contexts.get(i).shutdown();
 
                     if (msg_buffer[0] != null) {
-                        fWriter.write(msg_buffer[0]);
+                        fWriter.write(
+                            msg_buffer[0].toString().replace("\n", ""));
                         msg_buffer[0] = null;
                     }
                 }

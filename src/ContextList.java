@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import processing.data.JSONObject;
 
 public interface ContextList {
 
@@ -43,10 +44,12 @@ public interface ContextList {
     public abstract int[] toList();
 
     public abstract boolean check(float position, float time, int lap,
-                                  int lick_count, String[] msg_buffer);
+                                  int lick_count, JSONObject[] msg_buffer);
 
     public abstract boolean check(float position, float time, int lap,
-                         String[] msg_buffer);
+                         JSONObject[] msg_buffer);
+
+    public abstract void trialStart(JSONObject[] msg_buffer);
 
     public abstract void reset();
 
@@ -58,5 +61,7 @@ public interface ContextList {
 
     public abstract void suspend();
 
-    public abstract void stop(float time, String[] msg_buffer);
+    public abstract void stop(float time, JSONObject[] msg_buffer);
+
+    public abstract void shutdown();
 }

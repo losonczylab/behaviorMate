@@ -95,7 +95,7 @@ public class RandomContextList extends BasicContextList {
      *                   influence the connected arduinos or UI.
      */
     public boolean check(float position, float time, int lap,
-            String[] msg_buffer) {
+                         JSONObject[] msg_buffer) {
 
         // check if the lap count means that the context list should be
         // suspended or unsuspended.

@@ -62,7 +62,7 @@ public final class ContextsFactory {
         } else if (class_name.equals("vr_extended")) {
             cl = new VrExtendedContextList(tc, context_info, track_length);
         } else if (class_name.equals("vr_cue2")) {
-            cl = new VrCueContextList2(context_info, track_length);
+            cl = new VrCueContextList3(tc, context_info, track_length);
         } else if (class_name.equals("vr_cues")) {
             return new VrCueContextList(context_info, track_length);
         } else if (class_name.equals("salience")) {
@@ -71,9 +71,9 @@ public final class ContextsFactory {
         } else if (class_name.equals("paired_reward_stim")) {
             cl = new PairedRewardStimContextList(context_info, track_length,
                                                  "behavior_controller");
-        //} else if (class_name.equals("gain_mod")) {
-        //    cl = new GainModifiedContextList(
-        //        tc, context_info, track_length, "behavior_controller");
+        } else if (class_name.equals("gain_mod")) {
+            cl = new GainModifiedContextList(
+                tc, context_info, track_length);
         } else if (class_name.equals("joint_context")) {
             cl = new JointContextList(context_info, track_length,
                                       "behavior_controller");

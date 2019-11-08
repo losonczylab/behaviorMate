@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import processing.data.JSONObject;
 
 public class ContextListDecorator implements ContextList {
 
@@ -8,16 +9,16 @@ public class ContextListDecorator implements ContextList {
         this.context_list = context_list;
     }
 
+    public UdpClient getComm() {
+        return this.context_list.getComm();
+    }
+
     public void sendCreateMessages() {
         this.context_list.sendCreateMessages();
     }
 
     public boolean setupComms(ArrayList<UdpClient> comms) {
         return this.context_list.setupComms(comms);
-    }
-
-    public UdpClient getComm() {
-        return this.context_list.getComm();
     }
 
     public void registerContexts(ArrayList<ContextList> contexts) {
@@ -90,17 +91,21 @@ public class ContextListDecorator implements ContextList {
     }
 
     public boolean check(float position, float time, int lap,
-                         int lick_count, String[] msg_buffer) {
+                         int lick_count, JSONObject[] msg_buffer) {
 
         return this.context_list.check(position, time, lap, lick_count,
                                        msg_buffer);
     }
 
     public boolean check(float position, float time, int lap,
-                         String[] msg_buffer) {
+                         JSONObject[] msg_buffer) {
 
         return this.context_list.check(position, time, lap,
                                        msg_buffer);
+    }
+
+    public void trialStart(JSONObject[] msg_buffer) {
+        this.context_list.trialStart(msg_buffer);
     }
 
     public void reset() {
@@ -123,7 +128,11 @@ public class ContextListDecorator implements ContextList {
         this.context_list.suspend();
     }
 
-    public void stop(float time, String[] msg_buffer) {
+    public void stop(float time, JSONObject[] msg_buffer) {
         this.context_list.stop(time, msg_buffer);
+    }
+
+    public void shutdown() {
+        this.context_list.shutdown();
     }
 }
