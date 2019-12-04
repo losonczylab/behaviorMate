@@ -11,6 +11,8 @@ public class TimedContextDecorator extends SuspendableContextDecorator {
 
     private float[] times;
 
+    private float[] times_original;
+
     private int time_idx;
 
     private int zero_lap;
@@ -19,6 +21,8 @@ public class TimedContextDecorator extends SuspendableContextDecorator {
 
     private boolean adjust_zero_lap;
 
+    private float repeat;
+
     public TimedContextDecorator(ContextList context_list,
                                  JSONObject context_info) {
         super(context_list);
@@ -26,6 +30,7 @@ public class TimedContextDecorator extends SuspendableContextDecorator {
         if (context_info.isNull("times")) {
             this.time_idx = -1;
             this.times = null;
+            this.times_original = null;
         } else {
             JSONArray times_array = context_info.getJSONArray("times");
 
@@ -35,8 +40,12 @@ public class TimedContextDecorator extends SuspendableContextDecorator {
                 this.times[2*i] = start_stop.getFloat(0);
                 this.times[2*i+1] = start_stop.getFloat(1);
             }
+
             this.time_idx = 0;
+            this.times_original = this.times.clone();
         }
+
+        this.repeat = context_info.getFloat("repeat", -1);
 
         if (context_info.getBoolean("no_display", false)) {
             this.display_color_suspended = null;
@@ -54,9 +63,13 @@ public class TimedContextDecorator extends SuspendableContextDecorator {
     public void end() {
         if (this.times != null) {
             this.time_idx = 0;
-        }
-        super.end();
 
+            if (this.repeat != -1) {
+                this.times = this.times_original.clone();
+            }
+        }
+
+        super.end();
     }
 
     /**
@@ -83,7 +96,14 @@ public class TimedContextDecorator extends SuspendableContextDecorator {
 
         if (this.time_idx != -1) {
             if (this.time_idx >= this.times.length) {
-                this.time_idx = -1;
+                if (this.repeat != -1) {
+                    for (int i=0; i < this.times.length; i++) {
+                        this.times[i] = this.times[i] + this.repeat;
+                    }
+                    this.time_idx = 0;
+                } else {
+                    this.time_idx = -1;
+                }
             } else if (time >= this.times[this.time_idx]) {
                 this.time_idx++;
             }

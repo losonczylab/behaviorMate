@@ -105,6 +105,10 @@ public class BasicContextList extends PApplet implements ContextList {
 
     protected JSONObject context_info;
 
+    protected Boolean fixed_duration;
+
+    protected JSONObject log_json;
+
     /**
      * Constructor.
      *
@@ -123,6 +127,14 @@ public class BasicContextList extends PApplet implements ContextList {
         this.sent = -1;
         this.tries = 0;
         this.waiting = false;
+        this.fixed_duration = context_info.getBoolean("fixed_duration", false);
+
+        this.log_json = new JSONObject();
+        this.log_json.setJSONObject("context", new JSONObject());
+        if (!context_info.isNull("class")) {
+            this.log_json.getJSONObject("context")
+                         .setString("class", context_info.getString("class"));
+        }
 
         // sets startString and stopString as well as the id field
         setId(context_info.getString("id"));
@@ -270,6 +282,8 @@ public class BasicContextList extends PApplet implements ContextList {
     protected void setId(String id) {
         this.id = id;
 
+        this.log_json.getJSONObject("context").setString("id", id);
+
         JSONObject context_message = new JSONObject();
         context_message.setString("action", "start");
         context_message.setString("id", this.id);
@@ -403,7 +417,7 @@ public class BasicContextList extends PApplet implements ContextList {
      */
     protected void add(int location) {
         this.contexts.add(new Context(location, this.duration,
-            this.radius, this.contexts.size()));
+            this.radius, this.contexts.size(), this.fixed_duration));
     }
 
     public void move(int index, int location) {

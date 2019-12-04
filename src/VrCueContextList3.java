@@ -64,26 +64,16 @@ public class VrCueContextList3 extends VrContextList2 {
             this.status = "off";
             sendMessage(this.stopString);
 
-            this.log_json.setFloat("time", time);
             this.log_json.getJSONObject("context").setString("action", "stop");
             msg_buffer[0] = this.log_json;
         } else if((inZone) && (this.active != i)) {
             this.active = i;
             this.status = "on";
-            //if (!context_info.isNull("vr_file"))
-            //{
-            //    setupVr(context_info.getString("vr_file"));
-            //} else {
-                //JSONObject scene_msg = new JSONObject();
-                //scene_msg.setString("scene", this.sceneName);
-                //sendMessage(scene_msg.toString());
-            //}
-            //for (i = 0; i < 3; i++) {
             sendMessage(this.startString);
             if (this.startPosition != -1) {
                 tc.setPosition(this.startPosition);
             }
-            //}
+
             position_data.setFloat("y", position/10);
             position_json.setJSONObject(
                 "position", position_data);
@@ -91,7 +81,6 @@ public class VrCueContextList3 extends VrContextList2 {
             sendMessage(position_json.toString());
             previous_location = position;
 
-            this.log_json.setFloat("time", time);
             this.log_json.getJSONObject("context").setString("action", "start");
             msg_buffer[0] = this.log_json;
         }

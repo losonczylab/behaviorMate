@@ -9,7 +9,6 @@ public class VrContextList2 extends BasicContextList {
     protected UdpClient[] comms;
     protected JSONObject position_json;
     protected JSONObject position_data;
-    protected JSONObject log_json;
     protected String[] comm_ids;
     protected JSONObject context_info;
     protected String startString;
@@ -30,14 +29,13 @@ public class VrContextList2 extends BasicContextList {
         this.comm_ids = context_info.getJSONArray(
             "display_controllers").getStringArray();
         this.context_info = context_info;
+
         this.sceneName = context_info.getString("scene_name", "_vrMate_main");
 
         position_data = new JSONObject();
         position_json = new JSONObject();
-        this.log_json = new JSONObject();
-        this.log_json.setJSONObject("context", new JSONObject());
-        this.log_json.setString("scene", this.sceneName);
-        this.log_json.setString("id", this.id);
+        this.log_json.getJSONObject("context")
+                     .setString("scene", this.sceneName);
 
         this.previous_location = -1;
 
@@ -61,7 +59,6 @@ public class VrContextList2 extends BasicContextList {
         scene_msg.setString("scene", this.sceneName);
         scene_msg.setString("context", this.id);
         sendMessage(scene_msg.toString());
-        System.out.println(scene_msg.toString());
 
         if (!this.context_info.isNull("vr_file")) {
             setupVr(this.context_info.getString("vr_file"));
@@ -123,13 +120,6 @@ public class VrContextList2 extends BasicContextList {
         return true;
     }
 
-    public void setId(String id) {
-        this.id = id;
-
-        if (this.log_json != null) {
-            this.log_json.setString("id", this.id);
-        }
-    }
 
     public boolean check(float position, float time, int lap,
                          JSONObject[] msg_buffer) {
@@ -156,26 +146,15 @@ public class VrContextList2 extends BasicContextList {
             this.status = "off";
             sendMessage(this.stopString);
 
-            this.log_json.setFloat("time", time);
             this.log_json.getJSONObject("context").setString("action", "stop");
             msg_buffer[0] = this.log_json;
         } else if((inZone) && (this.active != i)) {
             this.active = i;
             this.status = "on";
-            //if (!context_info.isNull("vr_file"))
-            //{
-            //    setupVr(context_info.getString("vr_file"));
-            //} else {
-                //JSONObject scene_msg = new JSONObject();
-                //scene_msg.setString("scene", this.sceneName);
-                //sendMessage(scene_msg.toString());
-            //}
-            //for (i = 0; i < 3; i++) {
             sendMessage(this.startString);
             if (this.startPosition != -1) {
                 tc.setPosition(this.startPosition);
             }
-            //}
             position_data.setFloat("y", position/10);
             position_json.setJSONObject(
                 "position", position_data);
@@ -183,7 +162,6 @@ public class VrContextList2 extends BasicContextList {
             sendMessage(position_json.toString());
             previous_location = position;
 
-            this.log_json.setFloat("time", time);
             this.log_json.getJSONObject("context").setString("action", "start");
             msg_buffer[0] = this.log_json;
         }
@@ -202,7 +180,6 @@ public class VrContextList2 extends BasicContextList {
     }
 
     public void end() {
-        System.out.println("ending");
         JSONObject end_msg = new JSONObject();
         end_msg.setString("context", this.id);
         end_msg.setString("action", "clear");
@@ -215,15 +192,13 @@ public class VrContextList2 extends BasicContextList {
         sendMessage(this.stopString);
 
         float time = this.tc.getTime();
-        this.log_json.setFloat("time", time);
         this.log_json.getJSONObject("context").setString("action", "stop");
 
-        this.tc.writeLog(this.log_json.toString());
+        this.tc.writeLog(this.log_json);
     }
 
     public void stop(float time, JSONObject[] msg_buffer) {
         if (this.active != -1) {
-            this.log_json.setFloat("time", time);
             this.log_json.getJSONObject("context").setString("action", "stop");
             msg_buffer[0] = this.log_json;
         }

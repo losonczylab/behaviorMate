@@ -26,9 +26,6 @@ public class PairedRewardStimContextList extends BasicContextList {
     protected int[] reward_locations;
     protected ArrayList<ValveInfo> valves_list;
 
-    protected JSONObject log_message_container;
-    protected JSONObject log_message;
-
     protected String punishment_context_id;
     protected ContextList punishment_context;
 
@@ -181,13 +178,6 @@ public class PairedRewardStimContextList extends BasicContextList {
         context_message.setString("action", "stop");
         context_message_json.setJSONObject("contexts", context_message);
         this.stopString = context_message_json.toString();
-
-        this.log_message_container = new JSONObject();
-        this.log_message_container.setJSONObject(
-            "behavior_mate", new JSONObject());
-        this.log_message = new JSONObject();
-        this.log_message_container.getJSONObject("behavior_mate").setJSONObject(
-            "contexts", this.log_message);
     }
 
     protected void setReward(int idx) {
@@ -236,10 +226,11 @@ public class PairedRewardStimContextList extends BasicContextList {
             this.setReward(this.schedule[0]);
             this.schedule_ptr = 0;
 
-            this.log_message.setString("id", id + "_" + this.schedule[0]);
-            this.log_message.setFloat("time", time);
-            this.log_message.setInt("trial", this.trial_num);
-            msg_buffer[0] = this.log_message_container;
+            this.log_json.getJSONObject("context")
+                         .setInt("trial_type", this.schedule[0]);
+            this.log_json.getJSONObject("context")
+                         .setInt("trial", this.trial_num);
+            msg_buffer[0] = this.log_json;
         }
 
         boolean inZone = false;
@@ -300,13 +291,12 @@ public class PairedRewardStimContextList extends BasicContextList {
             this.schedule_ptr = (this.schedule_ptr + 1) % this.schedule.length;
             this.setReward(this.schedule[this.schedule_ptr]);
 
-
-            this.log_message.setString(
-                "id", id + "_" + this.schedule[this.schedule_ptr]);
-            this.log_message.setFloat("time", time);
             this.trial_num++;
-            this.log_message.setInt("trial", this.trial_num);
-            msg_buffer[0] = this.log_message_container;
+            this.log_json.getJSONObject("context")
+                         .setInt("trial_type", this.schedule[this.schedule_ptr]);
+            this.log_json.getJSONObject("context")
+                         .setInt("trial", this.trial_num);
+            msg_buffer[0] = this.log_json;
         }
 
         return (this.active != -1);

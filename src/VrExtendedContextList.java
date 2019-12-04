@@ -58,7 +58,6 @@ public class VrExtendedContextList extends VrContextList2 {
             this.status = "off";
             sendMessage(this.stopString);
 
-            log_json.setFloat("time", time);
             log_json.getJSONObject("context").setString("action", "stop");
             msg_buffer[0] = log_json;
         } else if((inZone) && (this.active != i)) {
@@ -76,7 +75,6 @@ public class VrExtendedContextList extends VrContextList2 {
             sendMessage(position_json.toString());
             previous_location = position;
 
-            log_json.setFloat("time", time);
             log_json.getJSONObject("context").setString("action", "start");
             msg_buffer[0] = log_json;
         }

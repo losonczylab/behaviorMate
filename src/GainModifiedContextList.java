@@ -10,8 +10,6 @@ public class GainModifiedContextList extends BasicContextList {
     protected float position_scale;
     protected float position_scale_mod;
 
-    protected JSONObject log_message;
-
     public GainModifiedContextList(
             TreadmillController tc, JSONObject context_info,
             float track_length) throws Exception {
@@ -22,14 +20,6 @@ public class GainModifiedContextList extends BasicContextList {
         position_scale = tc.getPositionScale();
         position_scale_mod = context_info.getFloat("position_scale");
     }
-
-    protected void setId(String id) {
-        this.id = id;
-
-        this.log_message = new JSONObject();
-        this.log_message.setString("id", this.id);
-    }
-
 
     public void sendCreateMessages() { }
 
@@ -59,16 +49,18 @@ public class GainModifiedContextList extends BasicContextList {
                 this.status = "stopped";
                 this.active = -1;
 
-                this.log_message.setString("action", "stop");
-                msg_buffer[0] = this.log_message;
+                this.log_json.getJSONObject("context")
+                             .setString("action", "stop");
+                msg_buffer[0] = this.log_json;
                 this.tc.setPositionScale(this.position_scale);
             } else if((inZone) && (this.active != i)) {
                 this.active = i;
                 this.status = "started";
                 this.tc.setPositionScale(this.position_scale_mod);
 
-                this.log_message.setString("action", "start");
-                msg_buffer[0] = this.log_message;
+                this.log_json.getJSONObject("context")
+                             .setString("action", "start");
+                msg_buffer[0] = this.log_json;
             }
         }
 

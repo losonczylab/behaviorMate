@@ -928,13 +928,21 @@ public class TreadmillController extends PApplet {
         reconfigureExperiment();
     }
 
-    public boolean writeLog(String log) {
+    public boolean writeLog(JSONObject log, float time) {
         if (fWriter == null) {
             return false;
         }
 
-        fWriter.write(log);
+        JSONObject log_message = new JSONObject();
+        log_message.setJSONObject("behavior_mate", log);
+        log_message.setFloat("time", timer.getTime());
+        fWriter.write(log_message.toString().replace("\n", ""));
+
         return true;
+    }
+
+    public boolean writeLog(JSONObject log) {
+        return writeLog(log, timer.getTime());
     }
 
     public void addComment(String comment) {
@@ -1319,7 +1327,7 @@ public class TreadmillController extends PApplet {
                 if (!context_json.isNull("id")) {
                     String context_id = context_json.getString("id");
                     if (!context_json.isNull("action")) {
-                        for (int j=0; j<contexts.size(); j++) {
+                        for (int j=0; j < contexts.size(); j++) {
                             if (contexts.get(j).getId().equals(context_id)) {
                                 if (context_json.getString("action").equals("start")) {
                                     contexts.get(j).setStatus("started");
@@ -1395,10 +1403,11 @@ public class TreadmillController extends PApplet {
                 contexts.get(i).check(offset_position, time, lap_count,
                                       lick_count, msg_buffer);
                 if (msg_buffer[0] != null) {
-                    JSONObject log_message = new JSONObject();
-                    log_message.setJSONObject("behavior_mate", msg_buffer[0]);
-                    log_message.setFloat("time", time);
-                    fWriter.write(log_message.toString().replace("\n", ""));
+                    this.writeLog(msg_buffer[0], time);
+                    //JSONObject log_message = new JSONObject();
+                    //log_message.setJSONObject("behavior_mate", msg_buffer[0]);
+                    //log_message.setFloat("time", time);
+                    //fWriter.write(log_message.toString().replace("\n", ""));
                     msg_buffer[0] = null;
                 }
             }
@@ -1478,7 +1487,8 @@ public class TreadmillController extends PApplet {
             contexts.get(i).end();
 
             if (msg_buffer[0] != null) {
-                fWriter.write(msg_buffer[0].toString().replace("\n", ""));
+                //fWriter.write(msg_buffer[0].toString().replace("\n", ""));
+                this.writeLog(msg_buffer[0]);
                 msg_buffer[0] = null;
             }
         }
