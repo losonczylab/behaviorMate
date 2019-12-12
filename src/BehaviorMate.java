@@ -910,7 +910,14 @@ class KeyboardListener implements KeyEventDispatcher {
             Class sourceClass = e.getSource().getClass();
             if (!sourceClass.equals(textfieldclass) && !sourceClass.equals(commentclass)) {
                 Character keyChar = e.getKeyChar();
-                this.treadmillController.commentKey(keyChar);
+                this.treadmillController.commentKey(keyChar, true);
+            }
+        }
+        if (e.getID() == KeyEvent.KEY_RELEASED) {
+            Class sourceClass = e.getSource().getClass();
+            if (!sourceClass.equals(textfieldclass) && !sourceClass.equals(commentclass)) {
+                Character keyChar = e.getKeyChar();
+                this.treadmillController.commentKey(keyChar, false);
             }
         }
         return false;

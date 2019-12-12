@@ -950,8 +950,13 @@ public class TreadmillController extends PApplet {
             return;
         }
 
+        JSONObject comment_message = new JSONObject();
+        comment_message.setString("message", comment);
+
         JSONObject comment_json = new JSONObject();
-        comment_json.setString("comments", comment);
+        comment_json.setJSONObject("behavior_mate", new JSONObject());
+        comment_json.getJSONObject("behavior_mate").setJSONObject(
+            "comment", comment_message);
         comment_json.setFloat("time", timer.getTime());
         fWriter.write(comment_json.toString());
     }
@@ -967,15 +972,25 @@ public class TreadmillController extends PApplet {
         fWriter.write(comment_json.toString());
     }
 
-    public void commentKey(Character key) {
+    public void commentKey(Character key, boolean pressed) {
         if (fWriter == null) {
             return;
         }
 
         if (this.commentKeys.containsKey(key)) {
-            String comment = this.commentKeys.get(key);
+            JSONObject comment_message = new JSONObject();
+            comment_message.setString("key", Character.toString(key));
+            if (pressed) {
+                comment_message.setString("action", "start");
+            } else {
+                comment_message.setString("action", "stop");
+            }
+            comment_message.setString("message", this.commentKeys.get(key));
+
             JSONObject comment_json = new JSONObject();
-            comment_json.setString("_"+key, comment);
+            comment_json.setJSONObject("behavior_mate", new JSONObject());
+            comment_json.getJSONObject("behavior_mate").setJSONObject(
+                "comment_key", comment_message);
             comment_json.setFloat("time", timer.getTime());
             fWriter.write(comment_json.toString());
         }
