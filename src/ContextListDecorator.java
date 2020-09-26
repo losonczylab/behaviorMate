@@ -135,4 +135,12 @@ public class ContextListDecorator implements ContextList {
     public void shutdown() {
         this.context_list.shutdown();
     }
+
+    public void sendMessage(String message) {
+        this.context_list.sendMessage(message);
+    }
+
+    public ContextList getContextListBase() {
+        return this.context_list;
+    }
 }

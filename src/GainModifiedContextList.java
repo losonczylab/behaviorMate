@@ -77,7 +77,7 @@ public class GainModifiedContextList extends BasicContextList {
         this.status = "stopped";
     }
 
-    protected void sendMessage(String message) { }
+    public void sendMessage(String message) { }
 }
 
 

@@ -77,7 +77,7 @@ public class VrCueContextList2 extends BasicContextList {
         this.displaying = false;
     }
 
-    protected void sendMessage(String message) {
+    public void sendMessage(String message) {
         for (int i=0; i < this.comms.length; i++) {
             this.comms[i].sendMessage(message);
         }

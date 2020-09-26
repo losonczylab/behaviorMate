@@ -64,4 +64,6 @@ public interface ContextList {
     public abstract void stop(float time, JSONObject[] msg_buffer);
 
     public abstract void shutdown();
+
+    public abstract void sendMessage(String message);
 }

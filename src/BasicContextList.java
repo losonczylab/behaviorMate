@@ -146,7 +146,7 @@ public class BasicContextList extends PApplet implements ContextList {
         this.track_length = track_length;
         this.context_info = context_info;
 
-        // resplve the display color from rbg in the settings to an integer
+        // resolve the display color from rbg in the settings to an integer
         if (!context_info.isNull("display_color")) {
             JSONArray disp_color = context_info.getJSONArray("display_color");
             this.display_color = new int[] {disp_color.getInt(0),
@@ -162,14 +162,14 @@ public class BasicContextList extends PApplet implements ContextList {
             locations = context_info.getJSONArray("locations");
         } catch (RuntimeException e) { }
 
-        // if loactions is null - specific locations for this context are not
+        // if locations is null - specific locations for this context are not
         // supplied
         if (locations != null) {
             for (int i=0; i < locations.size(); i++) {
                 add(locations.getInt(i));
             }
         } else {
-            // either the field "number" is presevered for compatibility with
+            // either the field "number" is preserved for compatibility with
             // old settings files. now "locations" not being an integer instead
             // of a list is sufficient
             int num_contexts = context_info.getInt("locations",
@@ -181,7 +181,7 @@ public class BasicContextList extends PApplet implements ContextList {
                 add((int)(track_length/2.0) + 2);
                 this.radius = (int)(track_length/2.0) + 2;
             } else {
-                // otherwise add the contexts randomlly and shuffle each lap
+                // otherwise add the contexts randomly and shuffle each lap
                 for (int i=0; i < num_contexts; i++) {
                     add((int)(track_length/2.0));
                     this.shuffle_contexts = true;
@@ -633,7 +633,7 @@ public class BasicContextList extends PApplet implements ContextList {
         this.sendMessage(this.stopString);
     }
 
-    protected void sendMessage(String message) {
+    public void sendMessage(String message) {
         this.comm.sendMessage(message);
     }
 

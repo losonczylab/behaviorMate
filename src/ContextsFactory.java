@@ -74,6 +74,8 @@ public final class ContextsFactory {
         } else if (class_name.equals("gain_mod")) {
             cl = new GainModifiedContextList(
                 tc, context_info, track_length);
+        } else if (class_name.equals("fog_context")) {
+            cl = new VrFogContext(tc, context_info, track_length);
         } else if (class_name.equals("joint_context")) {
             cl = new JointContextList(context_info, track_length,
                                       "behavior_controller");
@@ -117,6 +119,8 @@ public final class ContextsFactory {
                     cl = new TimedITIContextDecorator(tc, cl, decorator);
                 } else if (decorator_class.equals("delayed_context")) {
                     cl = new DelayedContextDecorator(cl, decorator);
+                } else if (decorator_class.equals("joint_suspend")) {
+                    cl = new JointSuspendContextDecorator(cl, decorator);
                 } else {
                     throw new IllegalArgumentException(
                         "Decorator " + decorator_class + " not found");

@@ -10,9 +10,6 @@ public class VrContextList2 extends BasicContextList {
     protected JSONObject position_json;
     protected JSONObject position_data;
     protected String[] comm_ids;
-    protected JSONObject context_info;
-    protected String startString;
-    protected String stopString;
     protected String sceneName;
     protected float startPosition;
     protected JSONObject vr_config;
@@ -68,7 +65,6 @@ public class VrContextList2 extends BasicContextList {
     }
 
     public void setupVr(String vr_file) {
-        System.out.println("VR FILE");
         this.vr_config = parseJSONObject(
             BehaviorMate.parseJsonFile(vr_file).toString());
         JSONArray objects = vr_config.getJSONArray("objects");
@@ -166,7 +162,6 @@ public class VrContextList2 extends BasicContextList {
             msg_buffer[0] = this.log_json;
         }
 
-
         return (this.active != -1);
     }
 
@@ -208,7 +203,7 @@ public class VrContextList2 extends BasicContextList {
         sendMessage(this.stopString);
     }
 
-    protected void sendMessage(String message) {
+    public void sendMessage(String message) {
         if (this.comms == null) {
             System.out.println("comms null");
             System.out.println(message);
