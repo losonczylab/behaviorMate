@@ -54,6 +54,10 @@ public class JointContextList extends BasicContextList {
                 super.move(i, this.joint_list.getLocation(i) + this.offset);
             }
         }
+
+        for (int i=0; i < this.contexts.size(); i++) {
+            this.contexts.get(i).reset();
+        }
     }
 
     public void move(int index, int location) { }

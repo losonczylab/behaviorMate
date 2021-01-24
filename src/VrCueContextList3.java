@@ -24,6 +24,7 @@ public class VrCueContextList3 extends VrContext {
             this.object_locations.add(
                 objects.getJSONObject(i).getJSONArray("Position").getInt(1)*10);
         }
+
     }
 
 
@@ -43,6 +44,10 @@ public class VrCueContextList3 extends VrContext {
 
 
     public void move(int index, int location) {
+        if (this.comms == null) {
+            return;
+        }
+
         this.contexts.get(index).move(location);
         this.object_locations.set(index, location);
         JSONObject setup_msg = new JSONObject();
@@ -76,48 +81,4 @@ public class VrCueContextList3 extends VrContext {
         this.scale = scale;
         this.display_radius = this.display_radius_unscale * scale;
     }
-    /*
-    public boolean check(float position, float time, int lap,
-            JSONObject[] msg_buffer) {
-        boolean inZone = true;
-        int i=0;
-        if ((this.active != -1) && (position != previous_location)) {
-            //position_data.setFloat("y", position/10);
-            //position_json.setJSONObject(
-            //    "position", position_data);
-
-            //sendMessage(position_json.toString());
-            previous_location = position;
-        }
-
-        if ((!inZone) && (this.active != -1)) {
-            this.active = -1;
-            this.status = "off";
-            sendMessage(this.stopString);
-
-            this.log_json.getJSONObject("context").setString("action", "stop");
-            msg_buffer[0] = this.log_json;
-        } else if((inZone) && (this.active != i)) {
-            this.active = i;
-            this.status = "on";
-            sendMessage(this.startString);
-            //if (this.startPosition != -1) {
-            //    tc.setPosition(this.startPosition);
-            //}
-
-            //position_data.setFloat("y", position/10);
-            //position_json.setJSONObject(
-            //    "position", position_data);
-
-            //sendMessage(position_json.toString());
-            previous_location = position;
-
-            this.log_json.getJSONObject("context").setString("action", "start");
-            msg_buffer[0] = this.log_json;
-        }
-
-
-        return (this.active != -1);
-    }
-    */
 }

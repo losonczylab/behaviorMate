@@ -6,6 +6,7 @@ public class BlockedShuffleDecorator extends ContextListDecorator {
 
     protected int[] blocked_locations_starts;
     protected int[] blocked_locations_ends;
+    protected int[] blocked_location_widths;
     protected int blocked_size;
 
     public BlockedShuffleDecorator(ContextList context_list,
@@ -15,15 +16,18 @@ public class BlockedShuffleDecorator extends ContextListDecorator {
         if (context_info.isNull("locations")) {
             this.blocked_locations_starts = new int[0];
             this.blocked_locations_ends = new int[0];
+            this.blocked_location_widths = new int[0];
         } else {
             JSONArray locations_array = context_info.getJSONArray("locations");
 
             this.blocked_locations_starts = new int[locations_array.size()];
             this.blocked_locations_ends = new int[locations_array.size()];
+            this.blocked_location_widths = new int[locations_array.size()];
             for (int i = 0; i < locations_array.size(); i++) {
                 JSONArray start_stop = locations_array.getJSONArray(i);
                 this.blocked_locations_starts[i] = start_stop.getInt(0);
                 this.blocked_locations_ends[i] = start_stop.getInt(1);
+                this.blocked_location_widths[i] = start_stop.getInt(1) - start_stop.getInt(0);
             }
         }
 
@@ -49,6 +53,13 @@ public class BlockedShuffleDecorator extends ContextListDecorator {
         if (size == 1) {
             int new_location = ThreadLocalRandom.current().nextInt(
                 radius, (int)(track_length-radius + 1));
+
+            for (int i = 0; i < this.blocked_locations_ends.length; i++) {
+                if (new_location >= this.blocked_locations_starts[i]) {
+                    new_location += blocked_location_widths[i];
+                }
+            }
+
             this.context_list.move(0, new_location);
             return;
         }
@@ -79,11 +90,10 @@ public class BlockedShuffleDecorator extends ContextListDecorator {
         this.move(size-1, new_location);
 
         for (int j=0; j < this.blocked_locations_starts.length; j++) {
-            int width = this.blocked_locations_ends[j] -
-                        this.blocked_locations_starts[j];
+            int width = this.blocked_location_widths[j];
             for (int i=0; i < size; i++) {
                 int location = this.getLocation(i);
-                if (location > this.blocked_locations_starts[j]) {
+                if (location >= this.blocked_locations_starts[j]) {
                     this.move(i, location + width);
                 }
             }
@@ -96,7 +106,8 @@ public class BlockedShuffleDecorator extends ContextListDecorator {
     }
 
     public void end() {
-        this.reset();
+        this.context_list.end();
+        shuffle();
     }
 
 }
