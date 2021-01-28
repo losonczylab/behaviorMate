@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 import processing.data.JSONObject;
 
 public interface ContextList {
@@ -47,7 +48,12 @@ public interface ContextList {
                                   int lick_count, JSONObject[] msg_buffer);
 
     public abstract boolean check(float position, float time, int lap,
-                         JSONObject[] msg_buffer);
+                                  int lick_count,
+                                  HashMap<Integer, Integer> sensor_counts,
+                                  JSONObject[] msg_buffer);
+
+    public abstract boolean check(float position, float time, int lap,
+                                  JSONObject[] msg_buffer);
 
     public abstract void trialStart(JSONObject[] msg_buffer);
 

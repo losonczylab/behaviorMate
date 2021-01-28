@@ -2,6 +2,7 @@ import processing.core.PApplet;
 import processing.data.JSONObject;
 import processing.data.JSONArray;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * ContextList class. Controlls activating and stopping contexts as the animal
@@ -528,7 +529,14 @@ public class BasicContextList extends PApplet implements ContextList {
      *                   influence the connected arduinos or UI.
      */
     public boolean check(float position, float time, int lap, int lick_count,
-            JSONObject[] msg_buffer) {
+                         JSONObject[] msg_buffer) {
+
+        return check(position, time, lap, msg_buffer);
+    }
+
+    public boolean check(float position, float time, int lap, int lick_count,
+                         HashMap<Integer, Integer> sensor_counts,
+                         JSONObject[] msg_buffer) {
 
         return check(position, time, lap, msg_buffer);
     }

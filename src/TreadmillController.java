@@ -140,6 +140,8 @@ public class TreadmillController extends PApplet {
 
     int lick_count;
 
+    HashMap<Integer, Integer> sensor_counts;
+
     /**
      * length of the trial. signals the trial to end. "trial_length" in the settings
      * file.
@@ -1048,6 +1050,8 @@ public class TreadmillController extends PApplet {
         lock_lap = false;
         fWriter = null;
         timer = new ExperimentTimer();
+        sensor_counts = new HashMap<Integer, Integer>();
+        lick_count = 0;
 
         PGraphics img = createGraphics(100,100);
         display = new Display();
@@ -1306,14 +1310,18 @@ public class TreadmillController extends PApplet {
                 JSONObject sensorJson = behavior_json.getJSONObject("sensor");
                 int sensor_pin = sensorJson.getInt("pin", -1);
                 if (sensor_pin != -1) {
-                    if (sensorJson.getString("action", "stop").equals("start")) {
+                    String action = sensorJson.getString("action", "stop");
+                    if (action.equals("start")) {
                         display.setSensorState(sensor_pin, 1);
-                    } else {
+                        sensor_counts.put(sensor_pin, sensor_counts.get(sensor_pin) + 1);
+                    } else if (action.equals("stop")) {
+                        display.setSensorState(sensor_pin, -1);
+                    } else if (action.equals("created")) {
+                        sensor_counts.put(sensor_pin, 0);
                         display.setSensorState(sensor_pin, -1);
                     }
                 }
             }
-
 
             if (!behavior_json.isNull("tag_reader") &&
                     !behavior_json.getJSONObject("tag_reader").isNull("tag")) {
@@ -1416,13 +1424,9 @@ public class TreadmillController extends PApplet {
         if (started) {
             for (int i=0; i < contexts.size(); i++) {
                 contexts.get(i).check(offset_position, time, lap_count,
-                                      lick_count, msg_buffer);
+                                      lick_count, sensor_counts, msg_buffer);
                 if (msg_buffer[0] != null) {
                     this.writeLog(msg_buffer[0], time);
-                    //JSONObject log_message = new JSONObject();
-                    //log_message.setJSONObject("behavior_mate", msg_buffer[0]);
-                    //log_message.setFloat("time", time);
-                    //fWriter.write(log_message.toString().replace("\n", ""));
                     msg_buffer[0] = null;
                 }
             }
@@ -1438,7 +1442,7 @@ public class TreadmillController extends PApplet {
         }
 
         int t = millis();
-        int display_check = t-display_update;
+        int display_check = t - display_update;
         if (display_check > display_rate) {
             display.update(this, dy, offset_position, time);
             display_update = t;
@@ -1517,6 +1521,7 @@ public class TreadmillController extends PApplet {
 
         lap_count = 0;
         lick_count = 0;
+        sensor_counts = new HashMap<Integer, Integer>();
 
         if (!settings_json.isNull("trial_shutdown")) {
             try {
