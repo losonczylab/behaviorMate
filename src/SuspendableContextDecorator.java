@@ -1,3 +1,4 @@
+import java.util.HashMap;
 import processing.data.JSONObject;
 
 /**
@@ -55,10 +56,21 @@ public abstract class SuspendableContextDecorator extends ContextListDecorator {
         }
     }
 
-    public boolean check_suspend(float position, float time, int lap,
+
+
+    protected boolean check_suspend(float position, float time, int lap,
                                  int lick_count, JSONObject[] msg_buffer) {
 
         return false;
+    }
+
+
+    public boolean check_suspend(float position, float time, int lap,
+                                 int lick_count,
+                                 HashMap<Integer, Integer> sensor_counts,
+                                 JSONObject[] msg_buffer) {
+
+        return this.check_suspend(position, time, lap, lick_count, msg_buffer);
     }
 
     /**
@@ -81,9 +93,10 @@ public abstract class SuspendableContextDecorator extends ContextListDecorator {
      *                   influence the connected arduinos or UI.
      */
     public boolean check(float position, float time, int lap, int lick_count,
+                         HashMap<Integer, Integer> sensor_counts,
                          JSONObject[] msg_buffer) {
 
-        if (check_suspend(position, time, lap, lick_count, msg_buffer)) {
+        if (check_suspend(position, time, lap, lick_count, sensor_counts, msg_buffer)) {
             if (!this.suspended) {
                 this.suspended = true;
                 if (this.context_list.isActive()) {
@@ -101,6 +114,6 @@ public abstract class SuspendableContextDecorator extends ContextListDecorator {
         // if the context list is not suspended call the check method for the
         // default ContextList behavior.
         return this.context_list.check(position, time, lap, lick_count,
-                                       msg_buffer);
+                                       sensor_counts, msg_buffer);
     }
 }

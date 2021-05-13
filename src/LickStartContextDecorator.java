@@ -1,3 +1,4 @@
+import java.util.HashMap;
 import processing.data.JSONObject;
 
 public class LickStartContextDecorator extends ContextListDecorator {
@@ -44,6 +45,7 @@ public class LickStartContextDecorator extends ContextListDecorator {
      *                   influence the connected arduinos or UI.
      */
     public boolean check(float position, float time, int lap, int lick_count,
+                         HashMap<Integer, Integer> sensor_counts,
                          JSONObject[] msg_buffer) {
 
         boolean inPosition = (this.max_time == -1);
@@ -82,7 +84,7 @@ public class LickStartContextDecorator extends ContextListDecorator {
                 prev_lickcount = lick_count;
 
                 return this.context_list.check(position, time, lap, lick_count,
-                                               msg_buffer);
+                                               sensor_counts, msg_buffer);
             } else {
 
                 prev_lickcount = lick_count;
@@ -92,6 +94,6 @@ public class LickStartContextDecorator extends ContextListDecorator {
 
         prev_lickcount = lick_count;
         return this.context_list.check(position, time, lap, lick_count,
-                                       msg_buffer);
+                                       sensor_counts,  msg_buffer);
     }
 }

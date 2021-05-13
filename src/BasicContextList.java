@@ -528,7 +528,7 @@ public class BasicContextList extends PApplet implements ContextList {
      *                   the state of the context, but does not actually
      *                   influence the connected arduinos or UI.
      */
-    public boolean check(float position, float time, int lap, int lick_count,
+    protected boolean check(float position, float time, int lap, int lick_count,
                          JSONObject[] msg_buffer) {
 
         return check(position, time, lap, msg_buffer);
@@ -559,7 +559,7 @@ public class BasicContextList extends PApplet implements ContextList {
      *                   the state of the context, but does not actually
      *                   influence the connected arduinos or UI.
      */
-    public boolean check(float position, float time, int lap,
+    protected boolean check(float position, float time, int lap,
             JSONObject[] msg_buffer) {
         boolean inZone = false;
         int i=0;

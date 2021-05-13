@@ -1,3 +1,4 @@
+import java.util.HashMap;
 import processing.data.JSONObject;
 import processing.data.JSONArray;
 
@@ -92,7 +93,9 @@ public class TimedContextDecorator extends SuspendableContextDecorator {
      *                   influence the connected arduinos or UI.
      */
     public boolean check_suspend(float position, float time, int lap,
-                                 int lick_count, JSONObject[] msg_buffer) {
+                                 int lick_count,
+                                 HashMap<Integer, Integer> sensor_counts,
+                                 JSONObject[] msg_buffer) {
 
         if (this.time_idx != -1) {
             if (this.time_idx >= this.times.length) {
@@ -130,10 +133,11 @@ public class TimedContextDecorator extends SuspendableContextDecorator {
     }
 
     public boolean check(float position, float time, int lap, int lick_count,
+                         HashMap<Integer, Integer> sensor_counts,
                          JSONObject[] msg_buffer) {
 
         this.actual_lap = lap;
         return super.check(position, time, lap-this.zero_lap,
-                                       lick_count, msg_buffer);
+                           lick_count, sensor_counts, msg_buffer);
     }
 }

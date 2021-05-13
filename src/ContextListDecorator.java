@@ -92,26 +92,12 @@ public class ContextListDecorator implements ContextList {
     }
 
     public boolean check(float position, float time, int lap,
-                         int lick_count, JSONObject[] msg_buffer) {
-
-        return this.context_list.check(position, time, lap, lick_count,
-                                       msg_buffer);
-    }
-
-    public boolean check(float position, float time, int lap,
                          int lick_count,
                          HashMap<Integer, Integer> sensor_counts,
                          JSONObject[] msg_buffer) {
 
         return this.context_list.check(position, time, lap, lick_count,
                                        sensor_counts, msg_buffer);
-    }
-
-    public boolean check(float position, float time, int lap,
-                         JSONObject[] msg_buffer) {
-
-        return this.context_list.check(position, time, lap,
-                                       msg_buffer);
     }
 
     public void trialStart(JSONObject[] msg_buffer) {
