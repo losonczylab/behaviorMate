@@ -34,7 +34,7 @@
                 "pin": 3,
                 "sensor": 0,
                 "lights": true,
-                "sensitivity": 6,
+                "sensitivity": 7,
                 "reset_pin": 5
             },
             //{
@@ -69,9 +69,9 @@
                 "radius": 50,
                 "report_pin": 7,
                 "initial_open": false,
-                "sensor": 2, // pin number associated with the sensor to trigger
+                "sensor": 3, // pin number associated with the sensor to trigger
                              // operant context.
-                "locations": 10,
+                "locations": 2,
                 // "locations": [500, 1500], // integer or list. list - list of
                                              // locations to place context
                                              // centroids. integer - number of
@@ -81,12 +81,12 @@
                 "display_color": [104,204,104], // color to make display
                                                 // indicating the location of
                                                 // this context
-                //"decorators": [
-                //    {
-                //        "class": "blocked_shuffle",
-                //        "locations": [[500, 1500]]
-                //    }
-                //]
+                "decorators": [
+                    {
+                        "class": "blocked_shuffle",
+                        "locations": [[0, 1500]]
+                    }
+                ]
             }
         ],
         "sync_pin": 23, // a ttl pulse is delivered at the beginning of each
