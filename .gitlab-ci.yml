@@ -3,7 +3,7 @@ pages:
   script:
     #- cd ..
     - mkdir public
-    - javadoc BehaviorMate -sourcepath ./src/* -classpath "./lib/*" -d public -private -doctitle "BehaviorMate" -windowtitle "BehaviorMate" -author -bottom "© Copyright 2021, Losonczy Lab, Jack Bowler" || NO_CONTAINER=1
+    - javadoc BehaviorMate -sourcepath ./src/* -subpackages BehaviorMate -classpath "./lib/*" -d public -private -doctitle "BehaviorMate" -windowtitle "BehaviorMate" -author -bottom "© Copyright 2021, Losonczy Lab, Jack Bowler" || NO_CONTAINER=1
     # WORKS: - javadoc -sourcepath ./src/* -classpath "./lib/*" -d public -private -doctitle "BehaviorMate" -windowtitle "BehaviorMate" -author -bottom "© Copyright 2021, Losonczy Lab, Jack Bowler" || NO_CONTAINER=1
     # WORKS: - javadoc -sourcepath ./src/* -classpath "./lib/*" -d public -private -doctitle "BehaviorMate" || NO_CONTAINER=1
     #- javadoc --help -doctitle "<p>$PACKAGE</p>" -windowtitle "$PACKAGE"
