@@ -3,11 +3,12 @@ generate-docs:
   rules:
     - allow_failure: true
   script:
+    - mkdir public
     - javadoc ./src/* -classpath "./lib/*" -d public -quiet -Xmaxerrs 0 -Xmaxwarns 0 2>/dev/null 1>/dev/null
 pages:
   script:
     - ls
-    - ls ..
+    - ls public
     - echo "Serving pages"
   artifacts:
     paths:
