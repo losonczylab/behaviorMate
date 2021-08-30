@@ -2,10 +2,10 @@ image: openjdk
 pages:
   script:
     - cd ..
-    - PACKAGE="BehaviorMate"
     - mkdir public
+    - javadoc -sourcepath "BehaviorMate/src/*" -classpath "BehaviorMate/lib/*" -d public -private -doctitle "BehaviorMate"
     #- javadoc --help -doctitle "<p>$PACKAGE</p>" -windowtitle "$PACKAGE"
-    - javadoc -classpath "$PACKAGE/lib/*" -sourcepath "$PACKAGE/src/*" -subpackages $PACKAGE -d public -private  || NO_CONTAINER=1
+    #javadoc -classpath "$PACKAGE/lib/*" -sourcepath "$PACKAGE/src/*" -subpackages $PACKAGE -d public -private  || NO_CONTAINER=1
   artifacts:
     paths:
       - public
