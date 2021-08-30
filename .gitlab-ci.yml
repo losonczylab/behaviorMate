@@ -1,24 +1,9 @@
 pages:
   image: openjdk
   rules:
-    - if: '$CI_PIPELINE_SOURCE == $CI_PIPELINE_SOURCE'
-      allow_failure: true
+    - allow_failure: true
   script:
-      - javadoc ./src/* -classpath "./lib/*" -d public# -quiet -Xmaxerrs 0 -Xmaxwarns 0 2>/dev/null 1>/dev/null
-  # rules:
-  #   #- if: '$CI_PIPELINE_SOURCE == $CI_PIPELINE_SOURCE'
-  #   -  allow_failure: true
+      - javadoc ./src/* -classpath "./lib/*" -d public -quiet -Xmaxerrs 0 -Xmaxwarns 0 2>/dev/null 1>/dev/null
   artifacts:
     paths:
       - public
-    #- javadoc ...
-# pages:
-#     script:
-#         — mkdir .public
-#         — cp -r * .public
-#         — mv .public public
-#     artifacts:
-#         paths:
-#             [— public]
-#     only:
-#         [— master]
