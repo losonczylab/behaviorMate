@@ -5,7 +5,7 @@ pages:
     - mkdir public
     - cd ..
     - ls
-    - javadoc BehaviorMate -sourcepath BehaviorMate/src/* -classpath "BehaviorMate/lib/*" -d BehaviorMate/public -private -doctitle "BehaviorMate" -windowtitle "BehaviorMate" -author -bottom "© Copyright 2021, Losonczy Lab, Jack Bowler" || NO_CONTAINER=1
+    - javadoc BehaviorMate -subpackage BehaviorMate -sourcepath BehaviorMate/src/* -classpath "BehaviorMate/lib/*" -d BehaviorMate/public -private -doctitle "BehaviorMate" -windowtitle "BehaviorMate" -author -bottom "© Copyright 2021, Losonczy Lab, Jack Bowler" || NO_CONTAINER=1
     - cd BehaviorMate
     - ls public
     # WORKS: - javadoc -sourcepath ./src/* -classpath "./lib/*" -d public -private -doctitle "BehaviorMate" -windowtitle "BehaviorMate" -author -bottom "© Copyright 2021, Losonczy Lab, Jack Bowler" || NO_CONTAINER=1
