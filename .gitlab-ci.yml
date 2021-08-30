@@ -2,8 +2,10 @@ image: openjdk
 pages:
   script:
     - cd ..
+    - ls
     - mkdir public
     - javadoc -sourcepath BehaviorMate/src/* -classpath "BehaviorMate/lib/*" -d public -private -doctitle "BehaviorMate" -windowtitle "BehaviorMate" -author -bottom "© Copyright 2021, Losonczy Lab, Jack Bowler" || NO_CONTAINER=1
+    - ls
     # WORKS: - javadoc -sourcepath ./src/* -classpath "./lib/*" -d public -private -doctitle "BehaviorMate" -windowtitle "BehaviorMate" -author -bottom "© Copyright 2021, Losonczy Lab, Jack Bowler" || NO_CONTAINER=1
     # WORKS: - javadoc -sourcepath ./src/* -classpath "./lib/*" -d public -private -doctitle "BehaviorMate" || NO_CONTAINER=1
     #- javadoc --help -doctitle "<p>$PACKAGE</p>" -windowtitle "$PACKAGE"
