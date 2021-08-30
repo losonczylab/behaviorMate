@@ -2,6 +2,8 @@ image: openjdk
 pages:
   script:
     - mkdir public
+    - java --version
+    - javadoc --version
     - javadoc ./src/* -classpath "./lib/*" -d public -private -doctitle "BehaviorMate" || NO_CONTAINER=1
   artifacts:
     paths:
