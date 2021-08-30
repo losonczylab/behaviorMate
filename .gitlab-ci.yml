@@ -1,18 +1,8 @@
-image: openjdk
-generate-docs:
-  rules:
-    - allow_failure: true
+pages:
+  image: openjdk
   script:
     - mkdir public
-    - ls
-    - ls public
     - javadoc ./src/* -classpath "./lib/*" -d public >/dev/null 2>&1 || NO_CONTAINER=1 
-pages:
-  needs: ["generate-docs"]
-  script:
-    - ls
-    - ls public
-    - echo "Serving pages"
   artifacts:
     paths:
       - public
