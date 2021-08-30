@@ -3,9 +3,8 @@ pages:
   script:
       - javadoc ./src/* -classpath "./lib/*" -d public# -quiet -Xmaxerrs 0 -Xmaxwarns 0 2>/dev/null 1>/dev/null
   rules:
-    - if: '$CI_PIPELINE_SOURCE == $CI_PIPELINE_SOURCE'
-      when: manual
-      allow_failure: true
+    #- if: '$CI_PIPELINE_SOURCE == $CI_PIPELINE_SOURCE'
+    -  allow_failure: true
   artifacts:
     paths:
       - public
