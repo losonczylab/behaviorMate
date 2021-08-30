@@ -1,5 +1,5 @@
+image: openjdk
 generate-docs:
-  image: openjdk
   rules:
     - allow_failure: true
   script:
