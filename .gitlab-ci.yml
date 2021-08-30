@@ -5,6 +5,8 @@ generate-docs:
   script:
     - mkdir public
     - javadoc ./src/* -classpath "./lib/*" -d public -quiet -Xmaxerrs 0 -Xmaxwarns 0 2>/dev/null 1>/dev/null
+    - ls
+    - ls public
 pages:
   script:
     - ls
