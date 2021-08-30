@@ -4,6 +4,8 @@ pages:
     - mkdir public
     - OPTIONS='-private -doctitle "BehaviorMate" -author "Jack Bowler"'
     - ALLOW_FAILURE='>/dev/null 2>&1 || NO_CONTAINER=1'
+    - echo "$OPTIONS"
+    - echo "$ALLOW_FAILURE"
     - javadoc ./src/* -classpath "./lib/*" -d public $OPTIONS $ALLOW_FAILURE
   artifacts:
     paths:
