@@ -2,22 +2,7 @@ image: openjdk
 pages:
   script:
     - mkdir public
-    - OPTIONS="-private -doctitle 'BehaviorMate'"
-    - javadoc ./src/* -classpath "./lib/*" -d public $OPTIONS || NO_CONTAINER=1
+    - javadoc ./src/* -classpath "./lib/*" -d public -private -doctitle "BehaviorMate" || NO_CONTAINER=1
   artifacts:
     paths:
       - public
-# image: openjdk
-# pages:
-#   script:
-#     - mkdir public
-#     - javadoc ./src/* -classpath "./lib/*" 
-#                       -d public 
-#                       -private 
-#                       -doctitle "BehaviorMate" 
-#                       -author "Jack Bowler" 
-#                       -footer "© Copyright 2019, Losonczy Lab, Jack Bowler"
-#                       >/dev/null 2>&1 || NO_CONTAINER=1 
-#   artifacts:
-#     paths:
-#       - public
