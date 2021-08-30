@@ -2,7 +2,7 @@ pages:
   image: openjdk
   script:
       - ls
-      - javadoc ./src/* -classpath "./lib/*" -d public -quiet -Xmaxerrs 0 -Xmaxwarns 0 2>/dev/null
+      - javadoc ./src/* -classpath "./lib/*" -d public -quiet -Xmaxerrs 0 -Xmaxwarns 0 2>/dev/null 1>/dev/null
   artifacts:
     paths:
       - public
