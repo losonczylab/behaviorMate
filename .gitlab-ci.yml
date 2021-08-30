@@ -6,7 +6,7 @@ generate-docs:
     - mkdir public
     - ls
     - ls public
-    - javadoc ./src/* -classpath "./lib/*" -d public -quiet -Xmaxerrs 0 -Xmaxwarns 0 2>/dev/null 1>/dev/null
+    - javadoc ./src/* -classpath "./lib/*" -d public >/dev/null 2>&1 || NO_CONTAINER=1 
 pages:
   needs: ["generate-docs"]
   script:
