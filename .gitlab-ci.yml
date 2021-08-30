@@ -5,7 +5,7 @@ pages:
     - PACKAGE="BehaviorMate"
     - mkdir public
     #- javadoc --help -doctitle "<p>$PACKAGE</p>" -windowtitle "$PACKAGE"
-    - javadoc $PACKAGE -classpath "$PACKAGE/lib/*" -sourcepath "$PACKAGE/src/*" -subpackages $PACKAGE -d public -private  || NO_CONTAINER=1
+    - javadoc -classpath "$PACKAGE/lib/*" -sourcepath "$PACKAGE/src/*" -subpackages $PACKAGE -d public -private  || NO_CONTAINER=1
   artifacts:
     paths:
       - public
