@@ -3,7 +3,8 @@ pages:
   script:
     #- cd ..
     - mkdir public
-    - javadoc -sourcepath ./src/* -classpath "./lib/*" -d public -private -doctitle "BehaviorMate" || NO_CONTAINER=1
+    - javadoc -sourcepath ./src/* -classpath "./lib/*" -d public -private -doctitle "BehaviorMate" -author -bottom "© Copyright 2019, Losonczy Lab, Jack Bowler" || NO_CONTAINER=1
+    # WORKS: - javadoc -sourcepath ./src/* -classpath "./lib/*" -d public -private -doctitle "BehaviorMate" || NO_CONTAINER=1
     #- javadoc --help -doctitle "<p>$PACKAGE</p>" -windowtitle "$PACKAGE"
     #javadoc -classpath "$PACKAGE/lib/*" -sourcepath "$PACKAGE/src/*" -subpackages $PACKAGE -d public -private  || NO_CONTAINER=1
   artifacts:
