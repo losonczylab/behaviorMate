@@ -3,7 +3,7 @@ pages:
   script:
     #- cd ..
     - mkdir public
-    - javadoc ./src/* -classpath "./lib/*" -d public -private -doctitle "BehaviorMate" || NO_CONTAINER=1
+    - javadoc ./src/* -classpath ./lib/* -d public -private -doctitle "BehaviorMate" || NO_CONTAINER=1
     #- javadoc --help -doctitle "<p>$PACKAGE</p>" -windowtitle "$PACKAGE"
     #javadoc -classpath "$PACKAGE/lib/*" -sourcepath "$PACKAGE/src/*" -subpackages $PACKAGE -d public -private  || NO_CONTAINER=1
   artifacts:
