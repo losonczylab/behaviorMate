@@ -2,7 +2,7 @@ image: openjdk
 pages:
   script:
     - mkdir public
-    - OPTIONS='-private -doctitle "BehaviorMate" -author "Jack Bowler" -footer "© Copyright 2021, Losonczy Lab, Jack Bowler"'
+    - OPTIONS='-private -doctitle "BehaviorMate" -author "Jack Bowler"'
     - ALLOW_FAILURE='>/dev/null 2>&1 || NO_CONTAINER=1'
     - javadoc ./src/* -classpath "./lib/*" -d public $OPTIONS $ALLOW_FAILURE
   artifacts:
