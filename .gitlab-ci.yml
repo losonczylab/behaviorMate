@@ -1,9 +1,12 @@
-pages:
+generate-docs:
   image: openjdk
   rules:
     - allow_failure: true
   script:
-      - javadoc ./src/* -classpath "./lib/*" -d public -quiet -Xmaxerrs 0 -Xmaxwarns 0 2>/dev/null 1>/dev/null
+    - javadoc ./src/* -classpath "./lib/*" -d public -quiet -Xmaxerrs 0 -Xmaxwarns 0 2>/dev/null 1>/dev/null
+pages:
+  script:
+    echo "Serving pages"
   artifacts:
     paths:
       - public
