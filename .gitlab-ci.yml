@@ -2,7 +2,7 @@ generate-doc:
   image: openjdk
   script:
       - ls
-      - javadoc "./src/*" -classpath "./lib/*"
+      - javadoc -sourcepath "./src" -classpath "./lib/*"
     #- javadoc ...
 # pages:
 #     script:
