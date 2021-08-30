@@ -1,9 +1,7 @@
 pages:
   image: openjdk
   script:
-      - ls
-      - javadoc ./src/* -classpath "./lib/*" -d public -quiet -Xmaxerrs 0 -Xmaxwarns 0 2>/dev/null 1>/dev/null
-      - exit 0
+      - javadoc ./src/* -classpath "./lib/*" -d public# -quiet -Xmaxerrs 0 -Xmaxwarns 0 2>/dev/null 1>/dev/null
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
       when: manual
