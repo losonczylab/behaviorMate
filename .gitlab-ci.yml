@@ -1,8 +1,11 @@
-generate-doc:
+pages:
   image: openjdk
   script:
       - ls
-      - javadoc ./src/* -classpath "./lib/*"
+      - javadoc ./src/* -classpath "./lib/*" -d public
+  artifacts:
+    paths:
+      - public
     #- javadoc ...
 # pages:
 #     script:
