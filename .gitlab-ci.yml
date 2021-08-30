@@ -6,9 +6,9 @@ generate-docs:
     - javadoc ./src/* -classpath "./lib/*" -d public -quiet -Xmaxerrs 0 -Xmaxwarns 0 2>/dev/null 1>/dev/null
 pages:
   script:
-    ls
-    ls ..
-    echo "Serving pages"
+    - ls
+    - ls ..
+    - echo "Serving pages"
   artifacts:
     paths:
       - public
