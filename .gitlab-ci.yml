@@ -1,8 +1,8 @@
 generate-doc:
   image: openjdk
   script:
-      - ls ./..
       - ls
+      - javadoc --source-files ./src/*
     #- javadoc ...
 # pages:
 #     script:
