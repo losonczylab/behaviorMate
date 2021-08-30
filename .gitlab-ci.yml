@@ -2,7 +2,7 @@ image: openjdk
 pages:
   script:
     - mkdir public
-    - OPTIONS="-private -doctitle 'BehaviorMate'"
+    - OPTIONS="-private -doctitle 'BehaviorMate' BehaviorMate"
     - javadoc ./src/* -classpath "./lib/*" -d public $OPTIONS >/dev/null 2>&1 || NO_CONTAINER=1
   artifacts:
     paths:
