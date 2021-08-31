@@ -214,12 +214,15 @@ public class BasicContextList extends PApplet implements ContextList {
 
     /**
      *
-     * @return
+     * @return The <code>UdpClient</code> object belonging to this instance.
      */
     public UdpClient getComm() {
         return this.comm;
     }
 
+    /**
+     * ?
+     */
     public void sendCreateMessages() {
         // comm may be null for certian subclasses of ContextList which to not
         // need to talk to the behavior arduino
@@ -269,10 +272,10 @@ public class BasicContextList extends PApplet implements ContextList {
     }
 
     /**
-     * Setter method for the UdpClient.
+     * Setter method for this BasicContextList's UdpClient.
      *
-     * @param comm channel to post messages to for configuring, starting or
-     * stopping contexts.
+     * @param comms channel to post messages for configuring, starting or stopping contexts.
+     * @return <code>true</code> if the messages were successfully sent, <code>false</code> otherwise.
      */
     public boolean setupComms(ArrayList<UdpClient> comms) {
         for (UdpClient c: comms) {
@@ -283,8 +286,7 @@ public class BasicContextList extends PApplet implements ContextList {
         }
 
         if (this.comm == null) {
-            System.out.println(
-                "[" +this.id+ " "  + this.comm_id + "] FAILED TO FIND COMM");
+            System.out.println("[" + this.id + " "  + this.comm_id + "] FAILED TO FIND COMM");
             return false;
         }
 
@@ -292,18 +294,22 @@ public class BasicContextList extends PApplet implements ContextList {
         return true;
     }
 
+    /**
+     * ?
+     *
+     * @param contexts ?
+     */
     public void registerContexts(ArrayList<ContextList> contexts) { }
 
     /**
-     * Setter method for the context's id. also configures the startString and
-     * stopString valves.
+     * Setter method for the id of this BasicContextList.
+     * Also configures the startString and stopString valves.
      *
-     * @param id a string identifier that is send to the comm to specifically
-     *           identify this context.
+     * @param id Sent to this BasicContextList's <code>UdpClient</code>(<code>comm</code>)
+     *           to identify this <code>BasicContextList</code>
      */
     protected void setId(String id) {
         this.id = id;
-
         this.log_json.getJSONObject("context").setString("id", id);
 
         JSONObject context_message = new JSONObject();
@@ -318,19 +324,27 @@ public class BasicContextList extends PApplet implements ContextList {
         this.stopString = context_message_json.toString();
     }
 
+    /**
+     *
+     * @return ?
+     */
     public String getCommId() {
         return this.comm_id;
     }
 
     /**
-     * Accessor for this context's id.
+     * Returns the id of this BasicContextList.
      *
-     * @return the id of this ContextList
+     * @return the identifier
      */
     public String getId() {
         return this.id;
     }
 
+    /**
+     * Sets the length, in mm, the contexts will span in either direction.
+     * @param radius
+     */
     public void setRadius(int radius) {
         if (radius == 0) {
             radius = (int)(track_length/2.0) + 2;
@@ -344,20 +358,27 @@ public class BasicContextList extends PApplet implements ContextList {
         this.setDisplayScale(this.scale);
     }
 
+    /**
+     *
+     * @return An int representing the length, in mm, the contexts span in either direction.
+     */
     public int getRadius() {
         return this.radius;
     }
 
+    /**
+     *
+     * @return The length of the track in mm.
+     */
     public float getTrackLength() {
         return this.track_length;
     }
 
     /**
-     * Setter for the display radius. Defines how wide this context appears on
-     * the UI baed on the provided display scale.
+     * Sets the scaling used for displaying this BasicContextList's radius in the UI.
      *
-     * @param scale the amount to scale the radius so as to display properly.
-     *              Units are in pixel/mm
+     * @param scale the amount to scale the radius so it displays properly in the UI.
+     *              Units are in pixel/mm.
      */
     public void setDisplayScale(float scale) {
         this.scale = scale;
@@ -365,9 +386,8 @@ public class BasicContextList extends PApplet implements ContextList {
     }
 
     /**
-     * Accessor for the dispaly radius.
      *
-     * @return the width, in pixels, to represent this context on the UI.
+     * @return the scaled width, in pixels, used to draw this BasicContextList's radius in the UI.
      */
     public float displayRadius() {
         return this.display_radius;
