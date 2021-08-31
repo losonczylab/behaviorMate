@@ -394,20 +394,19 @@ public class BasicContextList extends PApplet implements ContextList {
     }
 
     /**
-     * Accessor for the display color.
      *
-     * @return returns a color, as an integer value. see the processing.org
-     *         color function.
+     * @return An array of 3 integers, representing the red, green, and blue pixels (in the order)
+     *         used to display the currently active context.
      */
     public int[] displayColor() {
         return this.display_color;
     }
 
     /**
-     * Setter for the string displayed in the UI which corresponds to the state
-     * of these contexts.
+     * Sets the string displayed in the UI describing the state of the contexts in this
+     * BasicContextList.
      *
-     * @param status the string to display in the UI.
+     * @param status The status to display in the UI.
      */
     public void setStatus(String status) {
         this.status = status;
@@ -419,7 +418,6 @@ public class BasicContextList extends PApplet implements ContextList {
     }
 
     /**
-     *  Accessor for the status string.
      *
      * @return the string representing the current status of the contexts in
      * this list.
@@ -429,15 +427,15 @@ public class BasicContextList extends PApplet implements ContextList {
     }
 
     /**
-     * Accessor for the size of this ContextList.
      *
-     * @return The number of contexts  contained in the list.
+     * @return The number of contexts wrapped by this BasicContextList.
      */
     public int size() {
         return this.contexts.size();
     }
 
     /**
+     * Todo: doesn't this return the location of the ith context?
      * Accessor for a specific Context in the List.
      *
      * @param i index of the context to return
@@ -447,58 +445,79 @@ public class BasicContextList extends PApplet implements ContextList {
         return this.contexts.get(i).location();
     }
 
+    /**
+     * Todo: I assume the description of getLocation(int) should apply to this method instead.
+     * @param i ?
+     * @return ?
+     */
     public Context getContext(int i) {
         return this.contexts.get(i);
     }
 
     /**
-     * Push a new context on to the List of Contexts.
+     * Add a new context to this BasicContext list at the given location.
      *
-     * @param location integer in mm corresponding to the loction to place this
-     *                 context.
+     * @param location Distance, in mm, from the start of the track to place this context.
      */
     protected void add(int location) {
-        this.contexts.add(new Context(location, this.duration,
-            this.radius, this.contexts.size(), this.fixed_duration));
+        this.contexts.add(new Context(
+                location, this.duration, this.radius, this.contexts.size(), this.fixed_duration));
     }
 
+    /**
+     * Moves the context at the given index in <code>contexts</code>,
+     * to the provided location (in mm).
+     *
+     * @param index The index of the context in <code>contexts</code>
+     * @param location The new location of the context, in mm.
+     */
     public void move(int index, int location) {
         this.contexts.get(index).move(location);
     }
 
     /**
-     * If there are any contexts in this list, create a new new list (remove
-     * the contexts).
+     * Removes all contexts from this BasicContextList.
      */
     public void clear() {
-        if (this.size() > 0) {
-            this.contexts = new ArrayList<Context>();
-        }
+//        if (this.size() > 0) {
+//            this.contexts = new ArrayList<Context>();
+//        }
+        // Is there a reason to check if size() > 0?
+        contexts = new ArrayList<Context>();
     }
 
     public void trialStart(JSONObject[] msg_buffer) { }
 
     /**
      * Resets the state of the contexts. Contexts which have been triggered are
-     * reactivated and allowed to be triggered again. If this list is shuffeling
-     * then execute the shuffle.
+     * reactivated and allowed to be triggered again. If <code>shuffle_contexts</code>
+     * is <code>true</code>, the contexts will be shuffled.
      */
     public void reset() {
-        for (int i=0; i < this.contexts.size(); i++) {
-            this.contexts.get(i).reset();
+//        for (int i=0; i < this.contexts.size(); i++) {
+//            this.contexts.get(i).reset();
+//        }
+
+        for (Context context : contexts) {
+            context.reset();
         }
 
-        if (this.shuffle_contexts) {
+        if (this.shuffle_contexts) { // maybe this check should be in shuffle()?
             shuffle();
         }
     }
 
+    /**
+     * Resets the state of the contexts. Contexts which have been triggered are
+     * reactivated and allowed to be triggered again. If <code>shuffle_contexts</code>
+     * is <code>true</code>, the contexts will be shuffled.
+     */
     public void end() {
         this.reset();
     }
 
     /**
-     * Shuffles the location of each of the contexts contained in this list.
+     * Gives each context a new random location on the track.
      */
     public void shuffle() {
         // return immediately if there are no contexts to shuffle
@@ -518,7 +537,7 @@ public class BasicContextList extends PApplet implements ContextList {
             this.move(i, this.contexts.get(i-1).location() + interval);
         }
 
-        // move the contexts randomlly without allowing them to overlap
+        // move the contexts randomly without allowing them to overlap
         this.move(0, 
             (int) random(this.radius,this.contexts.get(1).location()-2*this.radius));
 
@@ -535,14 +554,15 @@ public class BasicContextList extends PApplet implements ContextList {
     }
 
     /**
-     * Create a java style array out of the context locations.
+     * An array whose ith element contains the location of the ith context of this
+     * BasicContextList.
      *
-     * @return list of context locations.
+     * @return An array containing context locations.
      */
     public int[] toList() {
         int[] list = new int[contexts.size()];
-        for (int i=0; i < this.contexts.size(); i++) {
-            list[i] = this.contexts.get(i).location;
+        for (int i = 0; i < contexts.size(); i++) {
+            list[i] = contexts.get(i).location;
         }
 
         return list;
@@ -550,20 +570,20 @@ public class BasicContextList extends PApplet implements ContextList {
 
     /**
      * Check the state of the contexts contained in this list and send the
-     * start/stop messages as necessary. this method gets called for each cycle
-     * of the event loop when a trial is started. written as a helper method to
-     * call check without lick_count. supports creating subclasses of
+     * start/stop messages as necessary. This method gets called for each cycle
+     * of the event loop when a trial is started. Written as a helper method to
+     * call check without lick_count. Supports creating subclasses of
      * ContextList with logic based on lick_count added.
      *
-     * @param position   current position along the track
-     * @param time       time (in s) since the start of the trial
-     * @param lap        current lap number since the start of the trial
-     * @param lick_count current number of licks, this trial
-     * @param msg_buffer a Java array of type String to buffer and send messages
-     *                   to be logged in the the tdml file being written for
-     *                   this trial. messages should be placed in index 0 of the
+     * @param position   Current position on the track (in mm).
+     * @param time       Time (in seconds) since the start of the trial.
+     * @param lap        Current lap number since the start of the trial.
+     * @param lick_count Current number of licks, this trial.
+     * @param msg_buffer Array to buffer and send messages
+     *                   to be logged in the .tdml file being written for
+     *                   this trial. Messages should be placed in index 0 of the
      *                   message buffer and must be JSON formatted strings.
-     * @return           returns true to indicate that the trial has started.
+     * @return           <code>true</code> to indicate that the trial has started.
      *                   Note: all messages to the behavior comm are sent from
      *                   within this method returning true or false indicates
      *                   the state of the context, but does not actually
@@ -575,16 +595,38 @@ public class BasicContextList extends PApplet implements ContextList {
         return check(position, time, lap, msg_buffer);
     }
 
-    public boolean check(float position, float time, int lap, int lick_count,
-                         HashMap<Integer, Integer> sensor_counts,
-                         JSONObject[] msg_buffer) {
+    /**
+     * Check the state of the contexts contained in this list and send the
+     * start/stop messages as necessary. This method gets called for each cycle
+     * of the event loop when a trial is started. Written as a helper method to
+     * call check without <tt>lick_count</tt> or <tt>sensor_counts</tt>.
+     * Supports creating subclasses of ContextList with logic based on
+     * <tt>lick_count</tt> and <tt>sensor_counts</tt> added.
+     *
+     * @param position   Current position on the track (in mm).
+     * @param time       Time (in seconds) since the start of the trial.
+     * @param lap        Current lap number since the start of the trial.
+     * @param lick_count Current number of licks, this trial.
+     * @param sensor_counts ?
+     * @param msg_buffer Array to buffer and send messages
+     *                   to be logged in the .tdml file being written for
+     *                   this trial. Messages should be placed in index 0 of the
+     *                   message buffer and must be JSON formatted strings.
+     * @return           <code>true</code> to indicate that the trial has started.
+     *                   Note: all messages to the behavior comm are sent from
+     *                   within this method returning true or false indicates
+     *                   the state of the context, but does not actually
+     *                   influence the connected arduinos or UI.
+     */
+    public boolean check(float position, float time, int lap, int lick_count, HashMap<Integer,
+            Integer> sensor_counts, JSONObject[] msg_buffer) {
 
         return check(position, time, lap, msg_buffer);
     }
 
     /**
      * Check the state of the contexts contained in this list and send the
-     * start/stop messages as necessary. this method gets called for each cycle
+     * start/stop messages as necessary. This method gets called for each cycle
      * of the event loop when a trial is started.
      *
      * @param position   current position along the track
@@ -594,16 +636,15 @@ public class BasicContextList extends PApplet implements ContextList {
      *                   to be logged in the the tdml file being written for
      *                   this trial. messages should be placed in index 0 of the
      *                   message buffer and must be JSON formatted strings.
-     * @return           returns true to indicate that the trial has started.
+     * @return           <code>true</code> to indicate that the trial has started.
      *                   Note: all messages to the behavior comm are sent from
      *                   within this method returning true or false indicates
      *                   the state of the context, but does not actually
      *                   influence the connected arduinos or UI.
      */
-    protected boolean check(float position, float time, int lap,
-            JSONObject[] msg_buffer) {
+    protected boolean check(float position, float time, int lap, JSONObject[] msg_buffer) {
         boolean inZone = false;
-        int i=0;
+        int i = 0;
 
         // This loop checks to see if any of the individual contexts are
         // triggered to be active both in space and time
@@ -657,14 +698,26 @@ public class BasicContextList extends PApplet implements ContextList {
         return (this.active != -1);
     }
 
+    /**
+     *
+     * @return <code>true</code> if there is currently an active context or <code>false</code>
+     * if all contexts are suspended.
+     */
     public boolean isActive() {
-        return (this.active != -1);
+        return this.active != -1;
     }
 
+    /**
+     *
+     * @return The index of the currently active context.
+     */
     public int activeIdx() {
         return this.active;
     }
 
+    /**
+     * Suspend all contexts and send a "send stop" message.
+     */
     public void suspend() {
         this.active = -1;
         this.status = "sent stop";
@@ -672,8 +725,11 @@ public class BasicContextList extends PApplet implements ContextList {
     }
 
     /**
-     * Stop this context. Called at the end of trials to ensure that the context
-     * is shut off.
+     * Todo: seems to do the same thing as suspend. What are the parameters for?
+     * Stop this context. Called at the end of trials to ensure that the context is shut off.
+     *
+     * @param time ?
+     * @param msg_buffer ?
      */
     public void stop(float time, JSONObject[] msg_buffer) {
         this.active = -1;
@@ -682,9 +738,17 @@ public class BasicContextList extends PApplet implements ContextList {
         this.sendMessage(this.stopString);
     }
 
+    /**
+     * Todo: does this send a message to the arduino?
+     *
+     * @param message ?
+     */
     public void sendMessage(String message) {
         this.comm.sendMessage(message);
     }
 
+    /**
+     * ?
+     */
     public void shutdown() { }
 }
