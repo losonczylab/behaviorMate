@@ -5,123 +5,140 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
- * ContextList class. Controlls activating and stopping contexts as the animal
- * progresses along the track. See {@link #ContextList(check)} for how this
- * logic is controlled.
+ * Controls activating and stopping contexts as the animal progresses along the track.
+ * See {@link #check(float, float, int, JSONObject[])} for how this logic is controlled.
  */
 
 //TODO: This doesn't need to extend PApplet (and probably shouldn't)
 public class BasicContextList extends PApplet implements ContextList {
     /**
-     * list of type context to hold the timing and position information about
-     * specific locations this context is active. Contexts become inactive after
-     * they're triggered and resent with each lap.
+     * <code>ArrayList</code> of <code>Context</code> objects holding information regarding the
+     * time and location different contexts should be active. Contexts become inactive after
+     * they're triggered and resent with each lap. Only 1 <code>Context</code> in this
+     * <code>ArrayList</code> may be active at any given moment.
      */
     protected ArrayList<Context> contexts;
 
     /**
-     * distance (in mm) around each location that contexts span.
+     * Distance (in mm) around each location that context spans.
      */
     protected int radius;
 
+    /**
+     * ?
+     */
     protected float scale;
 
     /**
-     * amount fo time (in seconds) that a context may remain active once it has
-     * been triggered.
+     * Amount of time (in seconds) that a context may remain active once it has been triggered.
      */
     protected float duration;
 
     /**
-     * interger corresponding to the index of the curretly active context in the
-     * ArrayList of contexts. if -1 then no context is currently active.
+     * Integer corresponding to the index of the currently active context in the
+     * <code>ArrayList</code> of contexts. If -1 then no context is currently active.
      */
     protected int active;
 
     /**
-     * stores the time the last update was sent to this context.
+     * Stores the time the last update was sent to this context.
+     * Todo: is the time in seconds or milliseconds?
      */
     protected float sent;
 
     /**
-     * if true a message has been sent and the ContextList is waiting for a
-     * response
+     * If true, a message has been sent and the ContextList is waiting for a response.
      */
     protected boolean waiting;
 
     /**
-     * counts the number of tries to send a message to the arduino so the
-     * context can send reset messages if nothing is getting through
+     * Counts the number of tries to send a message to the arduino so the
+     * context can send reset messages if nothing is getting through.
+     * Todo: is this the number of times to resend message before resetting messages?
      */
     protected int tries;
 
     /**
-     * a status string to be displayed in the UI.
+     * A status string to be displayed in the UI.
      */
     protected String status;
 
     /**
-     * if set to true, the location of the contexts will be shuffled between
+     * If set to true, the location of the contexts will be shuffled between
      * laps or when the ContextList is reset.
      */
     protected boolean shuffle_contexts;
 
     /**
-     * the length of each lap (in mm).
+     * The length of each lap (in mm).
      */
     protected float track_length;
 
     /**
-     * the color to represent the current context in the UI.
+     * The color to represent the current context in the UI. Stored as an array of 3 ints,
+     * representing red, green, and blue pixels.
      */
     protected int[] display_color;
 
     /**
-     * the radius to represent this context as in the UI.
+     * The radius to represent this context as in the UI.
+     * Todo: why not just use BasicContextList.radius? Is this a scaled version of radius?
      */
     protected float display_radius;
 
     /**
      * UdpClient for sending messages to which relate to this context.
+     * Todo: possible better description: Used to send messages to the arduino.
      */
     protected UdpClient comm;
 
+    /**
+     * ?
+     */
     protected String comm_id;
 
     /**
-     * a String identifier to identify this context to the UI as well as in the
-     * behavior file.
+     * An identifier for use with the UI and the behavior file.
      */
     protected String id;
 
     /**
-     * the message to send via UDP at the start of each of these context.
+     * UDP message to be sent at the start of each <code>Context</code> in the
+     * <code>ContextList</code>
      */
     protected String startString;
 
     /**
-     * the message to send via UDP at the end of each of these context.
+     * UDP message to be sent at the end of each <code>Context</code> in the
+     * <code>ContextList</code>
      */
     protected String stopString;
 
+    /**
+     * Contains configuration information for this instance's <code>ContextList</code>.
+     */
     protected JSONObject context_info;
 
+    /**
+     * ?
+     */
     protected Boolean fixed_duration;
 
+    /**
+     * ?
+     */
     protected JSONObject log_json;
 
     /**
      * Constructor.
      *
-     * @param display      display object which controlls the UI
-     * @param context_info json object containing the configureation information
-     *                     for this context from the settings.json file
-     * @param track_length the length of the track (in mm).
-     * @param comm         client to post messages which configure as well as
-     *                     starts and stop the context
+     * @param context_info Contains configuration information for this context from the
+     *                     settings file.
+     * @param track_length The length of the track (in mm).
+     * @param comm_id      ?
+     *
      */
-    public BasicContextList(JSONObject context_info,
-            float track_length, String comm_id) {
+    public BasicContextList(JSONObject context_info, float track_length, String comm_id) {
         this.contexts = new ArrayList<Context>();
         this.comm = null;
         this.comm_id = comm_id;
@@ -195,6 +212,10 @@ public class BasicContextList extends PApplet implements ContextList {
         //sendCreateMessages();
     }
 
+    /**
+     *
+     * @return
+     */
     public UdpClient getComm() {
         return this.comm;
     }

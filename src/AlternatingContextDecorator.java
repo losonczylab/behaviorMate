@@ -2,32 +2,33 @@ import processing.data.JSONObject;
 
 /**
  * AlternatingContextList class. Disables contexts based on lap count.
+ * Todo: convert to be compatible with BasicContextList
  */
 public class AlternatingContextDecorator extends SuspendableContextDecorator {
 
     /**
-     * the index to count to in order to suspend the context.
+     * The context list will be suspended every <tt>n_lap</tt> laps, otherwise it will be active.
      */
     protected int n_lap;
 
+    /**
+     * Delay toggling the suspend state of the context list until <tt>offset_lap</tt>
+     * laps have passed.
+     */
     protected int offset_lap;
 
     /**
      * Constructor.
      *
-     * @param display      display object which controlls the UI
-     * @param context_info json object containing the configureation information
-     *                     for this context from the settings.json file.
+     * @param context_list ContextList instance the decorator will wrap.
+     * @param context_info JSONObject containing the configuration information
+     *                     for this instance's <code>ContextList</code> from the settings file.
      *                     context_info should have the parameter <tt>n_lap</tt>
-     *                     set in order to indicate when to turn off. this value
-     *                     defaults to 2 (meaning the context will be active on
-     *                     alternating laps)
-     * @param track_length the length of the track (in mm).
-     * @param comm         client to post messages which configure as well as
-     *                     starts and stop the context
+     *                     set in order to indicate when to turn off. This value
+     *                     defaults to 2, meaning the context will be active on
+     *                     alternating laps.
      */
-    public AlternatingContextDecorator(ContextList context_list,
-                                       JSONObject context_info) {
+    public AlternatingContextDecorator(ContextList context_list, JSONObject context_info) {
         super(context_list);
         this.n_lap = context_info.getInt("n_lap", 2);
         this.offset_lap = context_info.getInt("offset_lap", 0);
@@ -35,34 +36,20 @@ public class AlternatingContextDecorator extends SuspendableContextDecorator {
 
 
     /**
-     * Check the state of the list as well as the  contexts contained in this
-     * and decide if they should be actived or not. Send the start/stop messages
-     * as necessary. this method gets called for each cycle of the event loop
-     * when a trial is started.
+     * Check if the context list should be active or suspended based on the current lap.
      *
      * @param position   current position along the track
-     * @param time       time (in s) since the start of the trial
+     * @param time       time (in seconds) since the start of the trial
      * @param lap        current lap number since the start of the trial
      * @param msg_buffer a Java array of type String to buffer and send messages
-     *                   to be logged in the the tdml file being written for
-     *                   this trial. messages should be placed in index 0 of the
-     *                   message buffer and must be JSON formatted strings.
-     * @return           returns true to indicate that the trial has started.
-     *                   Note: all messages to the behavior comm are sent from
-     *                   within this method returning true or false indicates
-     *                   the state of the context, but does not actually
-     *                   influence the connected arduinos or UI.
+     *                   to be logged in the .tdml file being written for
+     *                   this trial. Messages should be placed in index 0 of the
+     *                   message buffer and must be JSON-formatted strings.
+     * @return           true if the context should be suspended, false otherwise.
      */
-    public boolean check_suspend(float position, float time, int lap,
-                                 int lick_count, JSONObject[] msg_buffer) {
+    public boolean check_suspend(float position, float time, int lap, int lick_count,
+                                 JSONObject[] msg_buffer) {
 
-        // check if the lap count means that the context list should be
-        // suspended or unsuspended.
-        int adj_lap = lap - offset_lap;
-        if (adj_lap%this.n_lap == 0) {
-            return false;
-        } else {
-            return true;
-        }
+        return !((lap - offset_lap) % n_lap == 0);
     }
 }

@@ -6,43 +6,42 @@ import processing.data.JSONObject;
 public class AlternatingContextList extends BasicContextList {
 
     /**
-     * store weither the context is currently active for this lap, or suspended
+     * True if the context is suspended, false otherwise.
      */
     protected boolean suspended;
 
     /**
-     * the color to display the context as in the UI on laps when it is not
-     * suspended.
+     * The color to display the context as in the UI on laps when it is active.
      */
     protected int[] display_color_active;
 
     /**
-     * the color to display the context as on laps when it is suspended.
+     * The color to display the context as on laps when it is suspended.
      */
     protected int[] display_color_suspended;
 
     /**
-     * the index to count to in order to suspend the context.
+     * The context will be suspended every <tt>n_lap</tt> laps.
      */
     protected int n_lap;
 
+    /**
+     * Delay toggling the suspend state of the context until <tt>offset_lap</tt>
+     * laps have passed.
+     */
     protected int offset_lap;
 
     /**
-     * Constructor.
-     *
-     * @param context_info json object containing the configureation information
-     *                     for this context from the settings.json file.
+     * @param context_info JSONObject containing the configuration information
+     *                     for this context from the settings file.
      *                     context_info should have the parameter <tt>n_lap</tt>
-     *                     set in order to indicate when to turn off. this value
-     *                     defaults to 2 (meaning the context will be active on
-     *                     alternating laps)
+     *                     set in order to indicate when to turn off. If <tt>n_lap</tt>
+     *                     and <tt>offset_lap</tt> are not defined in <tt>context_info</tt>,
+     *                     the corresponding class attributes will be set to 2 and 0, respectively.
      * @param track_length the length of the track (in mm).
-     * @param comm         client to post messages which configure as well as
-     *                     starts and stop the context
+     * @param comm_id ?
      */
-    public AlternatingContextList(JSONObject context_info,
-            float track_length, String comm_id) {
+    public AlternatingContextList(JSONObject context_info, float track_length, String comm_id) {
         super(context_info, track_length, comm_id);
         this.suspended = false;
         this.display_color_active = display_color;
@@ -50,7 +49,6 @@ public class AlternatingContextList extends BasicContextList {
         this.n_lap = context_info.getInt("n_lap", 2);
         this.offset_lap = context_info.getInt("offset_lap", 0);
     }
-
 
     public void suspend() {
         this.suspended = true;
@@ -64,8 +62,8 @@ public class AlternatingContextList extends BasicContextList {
     }
 
     /**
-     * Check the state of the list as well as the  contexts contained in this
-     * and decide if they should be actived or not. Send the start/stop messages
+     * Check the state of the list as well as the contexts contained in this
+     * and decide if they should be activated or not. Send the start/stop messages
      * as necessary. this method gets called for each cycle of the event loop
      * when a trial is started.
      *
@@ -82,17 +80,16 @@ public class AlternatingContextList extends BasicContextList {
      *                   the state of the context, but does not actually
      *                   influence the connected arduinos or UI.
      */
-    public boolean check(float position, float time, int lap,
-            JSONObject[] msg_buffer) {
+    public boolean check(float position, float time, int lap, JSONObject[] msg_buffer) {
 
-        // check if the lap count means that the context list should be
-        // suspended or unsuspended.
+        // check if the lap count means that the context list should be suspended or unsuspended.
         int adj_lap = lap - offset_lap;
-        if ((adj_lap%this.n_lap == 0) && suspended) {
+        // Todo: what is the logic behind this if-else block?
+        if ((adj_lap % this.n_lap == 0) && suspended) {
             this.suspended = false;
             this.status = "stopped";
             this.display_color = this.display_color_active;
-        } else if ((adj_lap%this.n_lap != 0) && !suspended) {
+        } else if ((adj_lap % this.n_lap != 0) && !suspended) {
             this.suspended = true;
             this.status = "suspended";
             this.display_color = this.display_color_suspended;
@@ -112,3 +109,4 @@ public class AlternatingContextList extends BasicContextList {
         return super.check(position, time, lap, msg_buffer);
     }
 }
+
