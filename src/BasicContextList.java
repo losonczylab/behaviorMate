@@ -419,8 +419,7 @@ public class BasicContextList extends PApplet implements ContextList {
 
     /**
      *
-     * @return the string representing the current status of the contexts in
-     * this list.
+     * @return the string representing the current status of the contexts in the list.
      */
     public String getStatus() {
         return this.status;
@@ -465,8 +464,7 @@ public class BasicContextList extends PApplet implements ContextList {
     }
 
     /**
-     * Moves the context at the given index in <code>contexts</code>,
-     * to the provided location (in mm).
+     * Moves the context at the given index in <code>contexts</code> to the provided location (in mm).
      *
      * @param index The index of the context in <code>contexts</code>
      * @param location The new location of the context, in mm.
@@ -486,6 +484,11 @@ public class BasicContextList extends PApplet implements ContextList {
         contexts = new ArrayList<Context>();
     }
 
+    /**
+     * ?
+     *
+     * @param msg_buffer ?
+     */
     public void trialStart(JSONObject[] msg_buffer) { }
 
     /**
@@ -572,8 +575,8 @@ public class BasicContextList extends PApplet implements ContextList {
      * Check the state of the contexts contained in this list and send the
      * start/stop messages as necessary. This method gets called for each cycle
      * of the event loop when a trial is started. Written as a helper method to
-     * call check without lick_count. Supports creating subclasses of
-     * ContextList with logic based on lick_count added.
+     * call <code>check()</code> without <tt>lick_count</tt>. Supports creating subclasses of
+     * ContextList with logic based on <tt>lick_count</tt> added.
      *
      * @param position   Current position on the track (in mm).
      * @param time       Time (in seconds) since the start of the trial.
@@ -601,7 +604,7 @@ public class BasicContextList extends PApplet implements ContextList {
      * of the event loop when a trial is started. Written as a helper method to
      * call check without <tt>lick_count</tt> or <tt>sensor_counts</tt>.
      * Supports creating subclasses of ContextList with logic based on
-     * <tt>lick_count</tt> and <tt>sensor_counts</tt> added.
+     * <tt>lick_count</tt> and <tt>sensor_counts</tt> added.S
      *
      * @param position   Current position on the track (in mm).
      * @param time       Time (in seconds) since the start of the trial.

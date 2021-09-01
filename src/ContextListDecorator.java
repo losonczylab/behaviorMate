@@ -2,6 +2,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import processing.data.JSONObject;
 
+/**
+ * Class for wrapping an instance of a class that implements the <code>ContextList</code> interface
+ * and providing additional functionality. All methods simply call the corresponding method of the
+ * wrapped <code>ContextList</code>. Subclasses of <code>ContextListDecorator</code> will override
+ * some or all of these rather than using the wrapped class' implementation.
+ */
 public class ContextListDecorator implements ContextList {
 
     protected ContextList context_list;

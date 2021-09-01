@@ -2,17 +2,17 @@ import java.util.HashMap;
 import processing.data.JSONObject;
 
 /**
- * AlternatingContextList class. Disables contexts based on lap count.
+ * Allows the wrapped <code>ContextList</code> to be suspended.
  */
 public abstract class SuspendableContextDecorator extends ContextListDecorator {
 
     /**
-     * store weither the context is currently active for this lap, or suspended
+     * Store whether the context is currently active for this lap, or suspended.
      */
     private boolean suspended;
 
     /**
-     * the color to display the context as on laps when it is suspended.
+     * The color of the context on the display when it is suspended.
      */
     protected int[] display_color_suspended;
 

@@ -45,36 +45,75 @@ import processing.awt.PSurfaceAWT.SmoothCanvas;
 import processing.core.PApplet;
 import processing.core.PSurface;
 
+// Todo: this file seems to have too many classes. Should probably be broken up
 
+/**
+ * Used to create a panel containing a label with a text field below it. This is used for
+ * changing the project name, mouse name, valve, and duration.
+ */
 class LabeledTextField extends JPanel {
+    /**
+     * Text field for entering values.
+     */
     private JTextField textField;
 
+    /**
+     *
+     * @param text The text of the label above the text field.
+     * @param value The default text of the text field.
+     * @param width The width of the text field.
+     */
     public LabeledTextField(String text, String value, int width) {
         super(new BorderLayout());
-        JLabel label = new JLabel(text);
-        this.textField = new JTextField(value, width);
+        JLabel label = new JLabel("$"+text);
+        this.textField = new JTextField("#"+value, width);
         add(label, BorderLayout.NORTH);
         JPanel text_container2 = new JPanel(new FlowLayout());
         text_container2.add(textField);
         add(text_container2, BorderLayout.CENTER);
     }
 
+    /**
+     * Constructs a LabeledTextField with a blank text field.
+     *
+     * @param text The text of the label above the text field.
+     * @param width The width of the text field.
+     */
     public LabeledTextField(String text, int width) {
         this(text, "", width);
     }
 
+    /**
+     * Used to enable or disable the text field.
+     *
+     * @param enabled Pass <code>true</code> to enable the text field and <code>false</code> to
+     *                disable it.
+     */
     public void setEnabled(boolean enabled) {
         this.textField.setEnabled(enabled);
     }
 
+    /**
+     *
+     * @return The text of the text field.
+     */
     public String getText() {
         return this.textField.getText();
     }
 
+    /**
+     * Sets the text of the text field.
+     *
+     * @param text The new text of the text field.
+     */
     public void setText(String text) {
         this.textField.setText(text);
     }
 
+    /**
+     *
+     * @return The integer written in the text field by the user if it is a valid integer.
+     */
     public int getInt() {
         try {
             return Integer.parseInt(this.getText());
@@ -85,17 +124,45 @@ class LabeledTextField extends JPanel {
     }
 }
 
+/**
+ * Class for creating the panel containing the 3 buttons for calibrating, resetting,
+ * and zeroing position.
+ */
 class CalibrateBeltForm extends JPanel implements ActionListener {
+
+    /**
+     * ?
+     */
     private TreadmillController treadmillController;
+
+    /**
+     * Button to calibrate position.
+     */
     private JButton jButton;
+
+    /**
+     * Button for resetting position.
+     */
     private JButton resetButton;
+
+    /**
+     * Button for zeroing position.
+     * Todo: what's the difference between calibrating, resetting, and zeroing position?
+     */
     private JButton zeroButton;
+
+    /**
+     * ?
+     */
     private boolean calibrating;
 
+    /**
+     * ?
+     * @param treadmillController ?
+     */
     public CalibrateBeltForm(TreadmillController treadmillController) {
         super(new FlowLayout());
         this.treadmillController = treadmillController;
-
 
         jButton = new JButton("Calibrate Position");
         jButton.addActionListener(this);
@@ -136,18 +203,31 @@ class CalibrateBeltForm extends JPanel implements ActionListener {
         calibrating = false;
     }
 
+    /**
+     * Used to enable or disable all 3 buttons.
+     * @param enabled <code>true</code> will enable all buttons and <code>false</code> will disable
+     *                all buttons.
+     */
     public void setEnabled(boolean enabled) {
         jButton.setEnabled(enabled);
         resetButton.setEnabled(enabled);
         zeroButton.setEnabled(enabled);
     }
 
+    /**
+     * ?
+     */
     public void endCalibration() {
         treadmillController.EndBeltCalibration();
         jButton.setText("Calibrate Position");
         this.calibrating = false;
     }
 
+    /**
+     * Implemented method of the ActionListener interface.
+     *
+     * @param e The ActionEvent that occurred in the java application.
+     */
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == jButton) {
             if (calibrating) {
@@ -166,47 +246,56 @@ class CalibrateBeltForm extends JPanel implements ActionListener {
 }
 
 
-class ZeroPositionForm extends JPanel implements ActionListener {
-    private TreadmillController treadmillController;
-    private JButton testValveButton;
-    private boolean blocked;
+//class ZeroPositionForm extends JPanel implements ActionListener {
+//    private TreadmillController treadmillController;
+//    private JButton testValveButton;
+//    private boolean blocked;
+//
+//    public ZeroPositionForm(TreadmillController treadmillController) {
+//        super(new FlowLayout());
+//        this.treadmillController = treadmillController;
+//
+//        testValveButton = new JButton("Zero Position");
+//        testValveButton.addActionListener(this);
+//        JPanel button_container = new JPanel(new GridLayout(0,1));
+//        button_container.add(testValveButton);
+//        add(button_container);
+//    }
+//
+//    public void setEnabled(boolean enabled) {
+//        if (!enabled) {
+//            this.blocked = true;
+//            testValveButton.setText("Enable");
+//        } else {
+//            this.blocked = false;
+//            testValveButton.setText("Zero Position");
+//        }
+//        //testValveButton.setEnabled(enabled);
+//    }
+//
+//    public void actionPerformed(ActionEvent e) {
+//        if (blocked) {
+//            setEnabled(true);
+//        } else {
+//            treadmillController.ZeroPosition();
+//        }
+//    }
+//}
 
-    public ZeroPositionForm(TreadmillController treadmillController) {
-        super(new FlowLayout());
-        this.treadmillController = treadmillController;
-
-        testValveButton = new JButton("Zero Position");
-        testValveButton.addActionListener(this);
-        JPanel button_container = new JPanel(new GridLayout(0,1));
-        button_container.add(testValveButton);
-        add(button_container);
-    }
-
-    public void setEnabled(boolean enabled) {
-        if (!enabled) {
-            this.blocked = true;
-            testValveButton.setText("Enable");
-        } else {
-            this.blocked = false;
-            testValveButton.setText("Zero Position");
-        }
-        //testValveButton.setEnabled(enabled);
-    }
-
-    public void actionPerformed(ActionEvent e) {
-        if (blocked) {
-            setEnabled(true);
-        } else {
-            treadmillController.ZeroPosition();
-        }
-    }
-}
-
+/**
+ * Class for making panel containing the LabeledTextFields for the Valve and Duration fields
+ * and the button for opening the valve.
+ */
 class ValveTestForm extends JPanel implements ActionListener {
+
     private TreadmillController treadmillController;
     private LabeledTextField valveText;
     private LabeledTextField durationText;
     private JButton testValveButton;
+
+    /**
+     *
+     */
     private boolean blocked;
 
     public ValveTestForm(TreadmillController treadmillController) {
@@ -214,8 +303,7 @@ class ValveTestForm extends JPanel implements ActionListener {
         this.treadmillController = treadmillController;
 
         JPanel center_panel = new JPanel(new GridLayout(0,1));
-        valveText = new LabeledTextField(
-            "Valve", ""+treadmillController.getRewardPin(), 14);
+        valveText = new LabeledTextField("Valve", ""+treadmillController.getRewardPin(), 14);
         durationText = new LabeledTextField("Duration", "200", 14);
         center_panel.add(valveText);
         center_panel.add(durationText);
@@ -256,22 +344,62 @@ class ValveTestForm extends JPanel implements ActionListener {
     }
 }
 
+/**
+ *
+ */
 class TrialListener {
+
+    /**
+     *
+     */
     private ControlPanel controlPanel;
+
+    /**
+     *
+     */
     private CommentsBox commentsBox;
     private TreadmillController controller;
+
+    /**
+     *
+     */
     private Process arduino_controller;
+
+    /**
+     *
+     */
     private String arduino_controller_path;
     private String controller_settings;
 
+    /**
+     *
+     */
     private Process position_controller;
     private String position_settings;
 
+    /**
+     *
+     */
     class ArduinoProcess {
+
+        /**
+         *
+         */
         private String arduino_controller_path;
+
+        /**
+         *
+         */
         private Process p;
+
+        /**
+         *
+         */
         private String settings;
 
+        /**
+         *
+         */
         public ArduinoProcess(String arduino_controller_path, String settings)
                 throws JSONException, DataFormatException {
             this.settings = createArduinoSettings(settings);
@@ -354,8 +482,7 @@ class TrialListener {
         this.controller = controller;
     }
 
-    public void setArduinoController(String arduino_path,
-            JSONObject controllers) {
+    public void setArduinoController(String arduino_path, JSONObject controllers) {
         if (arduino_controllers != null) {
             for (ArduinoProcess process : arduino_controllers.values()) {
                 process.destroy();
@@ -442,20 +569,22 @@ class TrialListener {
                 Object[] options = {"Delete", "Save"};
 
                 int selectedValue = JOptionPane.showOptionDialog(
-                    null, "<html>Save File<br>" + _filepath + "?</html>",
-                   "Trial Ended", 0, JOptionPane.INFORMATION_MESSAGE, null,
-                   options, options[1]);
+                        null,
+                        "<html>Save File<br>" + _filepath + "?</html>",
+                        "Trial Ended",
+                        0,
+                        JOptionPane.INFORMATION_MESSAGE, null, options, options[1]);
                 if (selectedValue == 0) {
                     int option_value = JOptionPane.showConfirmDialog(
-                        null, "Confirm Delete\n" + _filepath, "Delete File",
+                        null,
+                        "Confirm Delete\n" + _filepath,
+                        "Delete File",
                         JOptionPane.YES_NO_OPTION);
                     if (option_value == 0) {
                         File f = new File(_filepath);
                         if (!f.delete()) {
-                            JOptionPane.showMessageDialog(
-                                null, "Failed to delete file");
+                            JOptionPane.showMessageDialog(null, "Failed to delete file");
                         }
-
                     }
                 }
             }
@@ -485,7 +614,10 @@ class TrialListener {
     }
 }
 
-
+/**
+ * Class for containing the entire right side (except the Comments section) of the
+ * BehaviorMate application, from the "Project Name" label to the "Start" button.
+ */
 class ControlPanel extends JPanel implements ActionListener {
     private LabeledTextField mouseNameBox;
     private LabeledTextField experimentGroupBox;
@@ -503,7 +635,7 @@ class ControlPanel extends JPanel implements ActionListener {
     private JFrame parent;
 
     public ControlPanel(JFrame parent, TreadmillController treadmillController,
-            SettingsLoader settingsLoader) {
+                        SettingsLoader settingsLoader) {
         this.treadmillController = treadmillController;
         this.settingsLoader = settingsLoader;
         settingsLoader.addActionListener(this);
@@ -774,6 +906,7 @@ class ControlPanel extends JPanel implements ActionListener {
     }
 }
 
+// Todo: how section work?
 class CommentsBox extends JPanel implements ActionListener {
     JComboBox<String> fileSelect;
     JButton saveButton;
@@ -891,7 +1024,9 @@ class CommentsBox extends JPanel implements ActionListener {
     }
 }
 
-
+/**
+ * Todo: what is this for?
+ */
 class KeyboardListener implements KeyEventDispatcher {
     private TreadmillController treadmillController;
     private HashMap<Character, String> commentTable;
@@ -928,11 +1063,20 @@ class KeyboardListener implements KeyEventDispatcher {
     }
 }
 
+/**
+ * Main class
+ */
 public class BehaviorMate {
     static SettingsLoader settingsLoader;
     static JFrame startFrame;
 
+    /**
+     *
+     * @param filename
+     * @return
+     */
     public static JSONObject parseJsonFile(String filename) {
+        // What does this regular expression do?
         String extension = filename.replaceAll("^.*\\.(.*)$", "$1");
         if (extension.equals("tdml")) {
             return parseTdmlSettings(filename);
@@ -949,8 +1093,7 @@ public class BehaviorMate {
                 }
             }
         } catch (IOException e) {
-            String message = "Failed to parse: " + filename +
-                "\n" + e.toString();
+            String message = "Failed to parse: " + filename + "\n" + e.toString();
             JOptionPane.showMessageDialog(null, message);
         }
 
@@ -966,6 +1109,12 @@ public class BehaviorMate {
         return jsonObj;
     }
 
+    /**
+     *
+     * @param filename
+     * @param tag
+     * @return
+     */
     public static JSONObject parseJsonFile(String filename, String tag) {
         JSONObject json  = parseJsonFile(filename);
 
@@ -982,6 +1131,11 @@ public class BehaviorMate {
         return json;
     }
 
+    /**
+     *
+     * @param filename
+     * @return
+     */
     public static JSONObject parseTdmlSettings(String filename) {
         String jsonData = "";
         BufferedReader br = null;
@@ -1010,6 +1164,11 @@ public class BehaviorMate {
         return null;
     }
 
+    /**
+     *
+     * @param filename
+     * @return
+     */
     public static JSONObject parseJson(String filename) {
         String jsonData = "";
         BufferedReader br = null;
@@ -1039,6 +1198,10 @@ public class BehaviorMate {
         return jsonObj;
     }
 
+    /**
+     *
+     * @param settingsLoader
+     */
     private static void startTreadmill(SettingsLoader settingsLoader) {
         String settingsFile = settingsLoader.getSelectedFile();
         String settingsTag = settingsLoader.getSelectedTag();
@@ -1063,11 +1226,10 @@ public class BehaviorMate {
 
         TreadmillController treadmillController;
 
-        treadmillController = new TreadmillController(settings.toString(),
-            system_settings.toString(), tl);
+        treadmillController = new TreadmillController(
+                settings.toString(), system_settings.toString(), tl);
 
-        ControlPanel control_panel = new ControlPanel(frame,
-            treadmillController, settingsLoader);
+        ControlPanel control_panel = new ControlPanel(frame, treadmillController, settingsLoader);
         tl.setControlPanel(control_panel);
         tl.setController(treadmillController);
 
@@ -1103,8 +1265,7 @@ public class BehaviorMate {
 
     public static void main(String[] args) {
         try {
-            UIManager.setLookAndFeel(
-                "com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
+            UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
         } catch (Exception e) {}
 
         String system_type = System.getProperty("os.name");

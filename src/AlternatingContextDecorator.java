@@ -1,7 +1,7 @@
 import processing.data.JSONObject;
 
 /**
- * AlternatingContextList class. Disables contexts based on lap count.
+ * Wraps a BasicContextList. Disables contexts based on lap count.
  * Todo: convert to be compatible with BasicContextList
  */
 public class AlternatingContextDecorator extends SuspendableContextDecorator {
@@ -18,8 +18,6 @@ public class AlternatingContextDecorator extends SuspendableContextDecorator {
     protected int offset_lap;
 
     /**
-     * Constructor.
-     *
      * @param context_list ContextList instance the decorator will wrap.
      * @param context_info JSONObject containing the configuration information
      *                     for this instance's <code>ContextList</code> from the settings file.
