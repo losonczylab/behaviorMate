@@ -71,7 +71,7 @@ public class AlternatingContextList extends BasicContextList {
      * @param time       time (in s) since the start of the trial
      * @param lap        current lap number since the start of the trial
      * @param msg_buffer a Java array of type String to buffer and send messages
-     *                   to be logged in the the tdml file being written for
+     *                   to be logged in the the .tdml file being written for
      *                   this trial. messages should be placed in index 0 of the
      *                   message buffer and must be JSON formatted strings.
      * @return           returns true to indicate that the trial has started.
