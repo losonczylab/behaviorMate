@@ -65,8 +65,8 @@ class LabeledTextField extends JPanel {
      */
     public LabeledTextField(String text, String value, int width) {
         super(new BorderLayout());
-        JLabel label = new JLabel("$"+text);
-        this.textField = new JTextField("#"+value, width);
+        JLabel label = new JLabel(text);
+        this.textField = new JTextField(value, width);
         add(label, BorderLayout.NORTH);
         JPanel text_container2 = new JPanel(new FlowLayout());
         text_container2.add(textField);
@@ -137,6 +137,7 @@ class CalibrateBeltForm extends JPanel implements ActionListener {
 
     /**
      * Button to calibrate position.
+     * Todo: should probably be renamed positionButton
      */
     private JButton jButton;
 
@@ -158,6 +159,7 @@ class CalibrateBeltForm extends JPanel implements ActionListener {
 
     /**
      * ?
+     *
      * @param treadmillController ?
      */
     public CalibrateBeltForm(TreadmillController treadmillController) {
@@ -298,6 +300,11 @@ class ValveTestForm extends JPanel implements ActionListener {
      */
     private boolean blocked;
 
+    /**
+     * ?
+     *
+     * @param treadmillController ?
+     */
     public ValveTestForm(TreadmillController treadmillController) {
         super(new FlowLayout());
         this.treadmillController = treadmillController;
@@ -316,6 +323,11 @@ class ValveTestForm extends JPanel implements ActionListener {
         add(button_container);
     }
 
+    /**
+     * ?
+     *
+     * @param enabled ?
+     */
     public void setEnabled(boolean enabled) {
         if (!enabled) {
             this.blocked = true;
@@ -327,6 +339,11 @@ class ValveTestForm extends JPanel implements ActionListener {
         //testValveButton.setEnabled(enabled);
     }
 
+    /**
+     * ?
+     *
+     * @param e ?
+     */
     public void actionPerformed(ActionEvent e) {
         int valve = valveText.getInt();
         int duration = durationText.getInt();
@@ -339,66 +356,46 @@ class ValveTestForm extends JPanel implements ActionListener {
         }
     }
 
+    /**
+     * ?
+     *
+     * @param pin_number ?
+     */
     public void setPin(int pin_number) {
         valveText.setText(""+pin_number);
     }
 }
 
 /**
- *
+ * ?
  */
 class TrialListener {
 
-    /**
-     *
-     */
     private ControlPanel controlPanel;
-
-    /**
-     *
-     */
     private CommentsBox commentsBox;
     private TreadmillController controller;
-
-    /**
-     *
-     */
     private Process arduino_controller;
-
-    /**
-     *
-     */
     private String arduino_controller_path;
     private String controller_settings;
-
-    /**
-     *
-     */
     private Process position_controller;
     private String position_settings;
 
     /**
-     *
+     * ?
      */
     class ArduinoProcess {
 
-        /**
-         *
-         */
         private String arduino_controller_path;
-
-        /**
-         *
-         */
         private Process p;
-
-        /**
-         *
-         */
         private String settings;
 
         /**
+         * ?
          *
+         * @param arduino_controller_path ?
+         * @param settings ?
+         * @throws JSONException ?
+         * @throws DataFormatException ?
          */
         public ArduinoProcess(String arduino_controller_path, String settings)
                 throws JSONException, DataFormatException {
@@ -407,6 +404,9 @@ class TrialListener {
             startProcess();
         }
 
+        /**
+         * ?
+         */
         public void destroy() {
             if (this.p != null) {
                 if (this.p.isAlive()) {
@@ -416,6 +416,14 @@ class TrialListener {
             }
         }
 
+        /**
+         * ?
+         *
+         * @param controller_info ?
+         * @return ?
+         * @throws JSONException
+         * @throws DataFormatException
+         */
         private String createArduinoSettings(String controller_info)
                 throws JSONException, DataFormatException {
             JSONObject controller_json = new JSONObject(controller_info);
@@ -440,6 +448,9 @@ class TrialListener {
             return controller_info;
         }
 
+        /**
+         * ?
+         */
         public void startProcess() {
             String[] cmd = {arduino_controller_path, "", ""};
             if (this.settings != null) {
@@ -460,7 +471,9 @@ class TrialListener {
 
     private HashMap<String, ArduinoProcess> arduino_controllers;
 
-
+    /**
+     * ?
+     */
     public TrialListener() {
         controlPanel = null;
         commentsBox = null;
@@ -470,18 +483,39 @@ class TrialListener {
         arduino_controllers = null;
     }
 
+    /**
+     * ?
+     *
+     * @param controlPanel ?
+     */
     public void setControlPanel(ControlPanel controlPanel) {
         this.controlPanel = controlPanel;
     }
 
+    /**
+     * ?
+     *
+     * @param commentsBox ?
+     */
     public void setCommentsBox(CommentsBox commentsBox) {
         this.commentsBox = commentsBox;
     }
 
+    /**
+     * ?
+     *
+     * @param controller ?
+     */
     public void setController(TreadmillController controller) {
         this.controller = controller;
     }
 
+    /**
+     * ?
+     *
+     * @param  ?
+     * @param controllers ?
+     */
     public void setArduinoController(String arduino_path, JSONObject controllers) {
         if (arduino_controllers != null) {
             for (ArduinoProcess process : arduino_controllers.values()) {
@@ -514,21 +548,39 @@ class TrialListener {
         }
     }
 
+    /**
+     * ?
+     *
+     * @param arduino_path ?
+     * @param controllers ?
+     * @throws JSONException
+     */
     public void setArduinoController(String arduino_path, String controllers)
             throws JSONException {
         setArduinoController(arduino_path, new JSONObject(controllers));
     }
 
+    /**
+     * ?
+     *
+     * @param logFile ?
+     */
     public void started(File logFile) {
         if (commentsBox != null) {
             commentsBox.setCurrentFile(logFile);
         }
     }
 
+    /**
+     * ?
+     */
     public void initialized() {
         controlPanel.refreshSettings();
     }
 
+    /**
+     * ?
+     */
     public void ended() {
         if (controlPanel != null) {
             controlPanel.setEnabled(true);
@@ -540,6 +592,11 @@ class TrialListener {
         }
     }
 
+    /**
+     * ?
+     *
+     * @param message ?
+     */
     public void exception(String message) {
         this.controller.endExperiment();
         if (message.length() > 100) {
@@ -548,6 +605,11 @@ class TrialListener {
         JOptionPane.showMessageDialog(null, message);
     }
 
+    /**
+     * ?
+     *
+     * @param message ?
+     */
     public void alert(String message) {
         if (message.length() > 100) {
             message = new StringBuilder(message).insert(100, "\n").toString();
@@ -561,6 +623,11 @@ class TrialListener {
         t.start();
     }
 
+    /**
+     * ?
+     *
+     * @param filepath ?
+     */
     public void showDeleteDialog(String filepath) {
         final String _filepath = filepath;
 
@@ -593,6 +660,9 @@ class TrialListener {
         t.start();
     }
 
+    /**
+     * ?
+     */
     public void resetComms() {
         if (arduino_controllers != null) {
             for (ArduinoProcess process : arduino_controllers.values()) {
@@ -605,6 +675,9 @@ class TrialListener {
         }
     }
 
+    /**
+     * ?
+     */
     public void shutdown() {
         if (arduino_controllers != null) {
             for (ArduinoProcess process : arduino_controllers.values()) {
@@ -634,6 +707,13 @@ class ControlPanel extends JPanel implements ActionListener {
     private boolean attrsCompleted;
     private JFrame parent;
 
+    /**
+     * ?
+     *
+     * @param parent ?
+     * @param treadmillController ?
+     * @param settingsLoader ?
+     */
     public ControlPanel(JFrame parent, TreadmillController treadmillController,
                         SettingsLoader settingsLoader) {
         this.treadmillController = treadmillController;
@@ -692,10 +772,18 @@ class ControlPanel extends JPanel implements ActionListener {
         showAttrsForm();
     }
 
+    /**
+     * ?
+     *
+     * @param pin_number ?
+     */
     public void setTestValve(int pin_number) {
         valveTestForm.setPin(pin_number);
     }
 
+    /**
+     * ?
+     */
     public void showAttrsForm() {
         if (trialAttrsForm.showForm()) {
             attrsCompleted = false;
@@ -730,6 +818,11 @@ class ControlPanel extends JPanel implements ActionListener {
         }
     }
 
+    /**
+     * ?
+     *
+     * @param enabled ?
+     */
     public void setEnabled(boolean enabled) {
         if (!enabled) {
             mouseNameBox.setEnabled(false);
@@ -750,6 +843,14 @@ class ControlPanel extends JPanel implements ActionListener {
         }
     }
 
+    /**
+     * ?
+     *
+     * @param filename ?
+     * @param tag ?
+     * @return ?
+     * @throws JSONException
+     */
     public static JSONObject findSettings(String filename, String tag)
             throws JSONException {
         JSONObject settings = BehaviorMate.parseJsonFile(filename, tag);
@@ -805,6 +906,9 @@ class ControlPanel extends JPanel implements ActionListener {
         return settings;
     }
 
+    /**
+     * ?
+     */
     public void refreshSettings() {
         String version = "Behavior Mate ";
         try {
@@ -848,6 +952,9 @@ class ControlPanel extends JPanel implements ActionListener {
         showAttrsForm();
     }
 
+    /**
+     * ?
+     */
     public void startTrial() {
         this.calibrateBeltForm.endCalibration();
 
@@ -887,6 +994,11 @@ class ControlPanel extends JPanel implements ActionListener {
         }
     }
 
+    /**
+     * ?
+     *
+     * @param e ?
+     */
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == startButton) {
             startTrial();
@@ -906,7 +1018,7 @@ class ControlPanel extends JPanel implements ActionListener {
     }
 }
 
-// Todo: how section work?
+// Todo: how does this section work?
 class CommentsBox extends JPanel implements ActionListener {
     JComboBox<String> fileSelect;
     JButton saveButton;
@@ -924,6 +1036,11 @@ class CommentsBox extends JPanel implements ActionListener {
     JTextArea nextCommentArea;
     TreadmillController treadmillController;
 
+    /**
+     * ?
+     *
+     * @param treadmillController ?
+     */
     public CommentsBox(TreadmillController treadmillController) {
         currentFile = null;
         currentItem = null;
@@ -961,6 +1078,11 @@ class CommentsBox extends JPanel implements ActionListener {
         fileSelect.addItem(nextItem);
     }
 
+    /**
+     * ?
+     *
+     * @param file ?
+     */
     public void setCurrentFile(File file) {
         if (fileSelect.getSelectedItem() == nextItem) {
             currentItemText = commentArea.getText();
@@ -988,6 +1110,11 @@ class CommentsBox extends JPanel implements ActionListener {
         fileSelect.addActionListener(this);
     }
 
+    /**
+     * ?
+     *
+     * @param option ?
+     */
     public void addOption(String option) {
         if (option.equals(nextItem)) {
             fileSelect.addItem(nextItem);
@@ -997,6 +1124,11 @@ class CommentsBox extends JPanel implements ActionListener {
         }
     }
 
+    /**
+     * ?
+     *
+     * @param e ?
+     */
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == saveButton) {
             if (commentArea.getText().equals("")) {
@@ -1034,11 +1166,22 @@ class KeyboardListener implements KeyEventDispatcher {
     private final Class textfieldclass = new JTextField().getClass();
     private final Class commentclass = new JTextArea().getClass();
 
+    /**
+     * ?
+     *
+     * @param treadmillController ?
+     */
     public KeyboardListener(TreadmillController treadmillController) {
         this.treadmillController = treadmillController;
         commentTable = new HashMap<Character, String>();
     }
 
+    /**
+     * ?
+     *
+     * @param e ?
+     * @return ?
+     */
     public boolean dispatchKeyEvent(KeyEvent e) {
         JTextField test = new JTextField();
         if (e.getID() == KeyEvent.KEY_PRESSED) {
@@ -1071,8 +1214,9 @@ public class BehaviorMate {
     static JFrame startFrame;
 
     /**
+     * Placeholder
      *
-     * @param filename
+     * @param filename Name of the file to be parsed, including the extension.
      * @return
      */
     public static JSONObject parseJsonFile(String filename) {
@@ -1110,10 +1254,12 @@ public class BehaviorMate {
     }
 
     /**
+     * Extracts the JSON literal with the key <tt>tag</tt> from the file named <tt>filename</tt>.
      *
-     * @param filename
-     * @param tag
-     * @return
+     * @param filename Name of the file to be parsed, including the extension.
+     * @param tag Key of the JSON literal to be extracted.
+     * @return The JSON literal as <code>JSONObject</code> if the key is found, otherwise
+     * <code>null</code>.
      */
     public static JSONObject parseJsonFile(String filename, String tag) {
         JSONObject json  = parseJsonFile(filename);
@@ -1121,8 +1267,7 @@ public class BehaviorMate {
         try {
             json = json.getJSONObject(tag);
         } catch (JSONException e) {
-            String message = "Failed to find tag: " + tag +
-                "\n" + e.toString();
+            String message = "Failed to find tag: " + tag + "\n" + e.toString();
             JOptionPane.showMessageDialog(null, message);
 
             json = null;
@@ -1132,9 +1277,10 @@ public class BehaviorMate {
     }
 
     /**
+     * ?
      *
-     * @param filename
-     * @return
+     * @param filename Name of the file to be parsed, including the extension.
+     * @return ?
      */
     public static JSONObject parseTdmlSettings(String filename) {
         String jsonData = "";
@@ -1165,9 +1311,10 @@ public class BehaviorMate {
     }
 
     /**
+     * ?
      *
-     * @param filename
-     * @return
+     * @param filename Name of the file to be parsed, including the extension.
+     * @return ?
      */
     public static JSONObject parseJson(String filename) {
         String jsonData = "";
@@ -1199,8 +1346,9 @@ public class BehaviorMate {
     }
 
     /**
+     * ?
      *
-     * @param settingsLoader
+     * @param settingsLoader ?
      */
     private static void startTreadmill(SettingsLoader settingsLoader) {
         String settingsFile = settingsLoader.getSelectedFile();
@@ -1262,7 +1410,11 @@ public class BehaviorMate {
         ps.startThread();
     }
 
-
+    /**
+     * ?
+     *
+     * @param args ?
+     */
     public static void main(String[] args) {
         try {
             UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");

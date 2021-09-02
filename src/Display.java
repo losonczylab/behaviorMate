@@ -5,7 +5,6 @@ import java.util.Arrays;
 
 /**
  * Class for displaying the current behavior of the animal on the track to the screen.
- *
  */
 public class Display extends PApplet {
     private float lickRate;
@@ -39,6 +38,9 @@ public class Display extends PApplet {
     private static int NUM_VALVES = 10;
     private static int NUM_SENSORS = 10;
 
+    /**
+     * Constructs a new <code>Display</code> object with all rate and count variables set to 0.
+     */
     public Display() {
         lickRate = 0;
         lapRate = 0;
@@ -70,17 +72,27 @@ public class Display extends PApplet {
         this.totalTime = "";
     }
 
+    // repeatingIntArray(5, 1) returns an int array with 1 repeated 5 times
     private static int[] repeatingIntArray(int size, int element) {
         int[] out = new int[size];
         Arrays.fill(out, element);
         return out;
     }
 
+    /**
+     * Remove all contexts being displayed.
+     */
     void resetContexts() {
         //contextsContainer = new ArrayList<ContextList>();
         contextsContainer.clear(); // likely better practice to call clear() than constructing new ArrayList
     }
 
+    /**
+     * Set the length of the track in millimeters.
+     *
+     * @param trackLength The length of the track in millimeters. Must be greater than 0 or an
+     *                    <code>IllegalArgumentException</code> will be thrown.
+     */
     // Todo: these setters should likely have error checking
     void setTrackLength(float trackLength) {
         if (trackLength <= 0) {
@@ -90,6 +102,11 @@ public class Display extends PApplet {
         displayScale = 300f/trackLength; // .0 not needed
     }
 
+    /**
+     * Used to set the String identifier of the mouse.
+     *
+     * @param mouseName ID of the mouse running the track. Cannot be blank.
+     */
     void setMouseName(String mouseName) {
         if (mouseName == null || mouseName.isBlank()) {
             throw new IllegalArgumentException("Argument mouseName can't be null or an empty string.");
@@ -97,6 +114,11 @@ public class Display extends PApplet {
         this.mouseName = mouseName;
     }
 
+    /**
+     * Used to increment the number of recorded licks.
+     *
+     * @param count When <code>true</code>, the lick count will be incremented by 1.
+     */
     void addLick(boolean count) {
         lickRate = min(200, lickRate+50);
         if (count) {
@@ -104,6 +126,11 @@ public class Display extends PApplet {
         }
     }
 
+    /**
+     * Placeholder
+     *
+     * @param dy ?
+     */
     // Todo: can dy be negative?
     void setPositionRate(float dy) {
         if (dy == 0) {
@@ -114,11 +141,22 @@ public class Display extends PApplet {
 
     }
 
+    /**
+     * ?
+     *
+     * @param schedule ?
+     */
     // Todo: what is a schedule?
     void setSchedule(String schedule) {
         this.schedule = schedule;
     }
 
+    /**
+     * Set the number laps the mouse has completed.
+     *
+     * @param count The updated lap count. Negative values will raise an
+     *              <code>IllegalArgumentException</code>.
+     */
     // Todo: can this be 0?
     void setLapCount(int count) {
         if (count < 0) {
@@ -127,6 +165,12 @@ public class Display extends PApplet {
         lapCount = count;
     }
 
+    /**
+     * Set the total number of licks recorded.
+     *
+     * @param count The updated lick count. Negative values will raise an
+     *              <code>IllegalArgumentException</code>.
+     */
     void setLickCount(int count) {
         if (count < 0) {
             throw new IllegalArgumentException("Argument count must be nonnegative.");
@@ -134,6 +178,11 @@ public class Display extends PApplet {
         lickCount = count;
     }
 
+    /**
+     * ?
+     *
+     * @param count
+     */
     void setRewardCount(int count) {
         if (count < 0) {
             throw new IllegalArgumentException("Argument count must be nonnegative.");
@@ -141,6 +190,11 @@ public class Display extends PApplet {
         rewardCount = count;
     }
 
+    /**
+     * ?
+     *
+     * @param time
+     */
     void setTotalTime(int time) {
         if (time < 0) {
             throw new IllegalArgumentException("Argument time must be nonnegative.");
@@ -150,6 +204,11 @@ public class Display extends PApplet {
         totalTime = "/" + String.valueOf(time); // this is probably better practice than implicit conversion
     }
 
+    /**
+     * ?
+     *
+     * @param message ?
+     */
     // Todo: can this be blank?
     void setBottomMessage(String message) {
         if (mouseName == null) {
@@ -158,6 +217,12 @@ public class Display extends PApplet {
         this.bottom_message = message;
     }
 
+    /**
+     * Sets the state of the valve connected to the given pin.
+     *
+     * @param pin ? Todo: what are the possible pins
+     * @param state Valid states are 0, 1, and -1.
+     */
     void setValveState(int pin, int state) {
         if (pin < 0 || !(state == 0 || state == 1 || state == -1)) {
             throw new IllegalArgumentException(
@@ -176,6 +241,12 @@ public class Display extends PApplet {
         }
     }
 
+    /**
+     * Sets the state of the sensor connected to the given pin.
+     *
+     * @param pin ? Todo: what are the possible pins
+     * @param state Valid states are 0, 1, and -1.
+     */
     void setSensorState(int pin, int state) {
         if (pin < 0 || !(state == 0 || state == 1 || state == -1)) {
             throw new IllegalArgumentException(
@@ -194,6 +265,9 @@ public class Display extends PApplet {
         }
     }
 
+    /**
+     * Sets all valve states to 0.
+     */
     void clearValveStates() {
         // this.valve_states = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
            this.valve_states = repeatingIntArray(NUM_VALVES, 0);
@@ -201,6 +275,9 @@ public class Display extends PApplet {
            this.valve_ids = repeatingIntArray(NUM_VALVES, -1);
     }
 
+    /**
+     * Sets all sensor states to 0.
+     */
     void clearSensorStates() {
         // this.sensor_states = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
            this.sensor_states = repeatingIntArray(NUM_SENSORS, 0);
@@ -208,18 +285,33 @@ public class Display extends PApplet {
            this.sensor_ids = repeatingIntArray(NUM_SENSORS, -1);
     }
 
+    /**
+     * Increment the total reward count.
+     */
     void addReward() {
         rewardRate = min(200, rewardRate+50);
         rewardCount++;
     }
 
+    /**
+     * ?
+     *
+     * @param scale ?
+     */
     void setPositionScale(float scale) {
-        if (scale <= 0) {
-            throw new IllegalArgumentException("Argument scale must be greater than 0.");
-        }
+//        if (scale <= 0) {
+//            throw new IllegalArgumentException("Argument scale must be greater than 0.");
+//        }
+        // Todo: the above exception was thrown. Is it ok for scale to be negative?
         this.position_scale = scale;
     }
 
+    /**
+     * ?
+     *
+     * @param tag ?
+     * @param position_error ?
+     */
     void setCurrentTag(String tag, float position_error) {
         if (tag == null || tag.isBlank()) {
             throw new IllegalArgumentException("Argument tag cannot be null or blank.");
@@ -229,6 +321,11 @@ public class Display extends PApplet {
         lapErrorRate = Math.min(200*Math.abs(position_error)/15, 200);
     }
 
+    /**
+     * ?
+     *
+     * @param tag ?
+     */
     void setCurrentTag(String tag) {
         if (tag == null || tag.isBlank()) {
             throw new IllegalArgumentException("Argument tag cannot be null or blank.");
@@ -236,6 +333,11 @@ public class Display extends PApplet {
         setCurrentTag(tag, 0);
     }
 
+    /**
+     * ?
+     *
+     * @param position ?
+     */
     void setLastLap(float position) {
         if (position < 0) {
             throw new IllegalArgumentException("Argument position cannot be negative.");
@@ -243,6 +345,11 @@ public class Display extends PApplet {
         lastLap = position;
     }
 
+    /**
+     * ?
+     *
+     * @param contexts ?
+     */
     public void setContextLocations(ContextList contexts) {
         if (contexts == null) {
             throw new IllegalArgumentException("Argument contexts cannot be null.");
@@ -251,11 +358,17 @@ public class Display extends PApplet {
         contextsContainer.add(contexts);
     }
 
+    /**
+     * Draw the UI elements for the first time on the <code>PApplet</code> object.
+     *
+     * @param app The <code>PApplet</code> to draw the UI on.
+     */
     void prepGraphics(PApplet app) {
         this.pg = app.createGraphics(app.width, app.height);
         this.pg.beginDraw();
         this.pg.background(0);
-
+        // Draw the information panel in the top right of screen tracking position, lick count,
+        // and more.
         this.pg.textSize(18);
         this.pg.text("Position: ", text_offset, 20);
         this.pg.text("Lick Count: ", text_offset, 40);
@@ -282,6 +395,11 @@ public class Display extends PApplet {
         this.pg.endDraw();
     }
 
+    /**
+     * Placeholder
+     *
+     * @param app The <code>PApplet</code> to draw the UI on.
+     */
     private void drawValveStates(PApplet app) {
         for (int i = 0; i < 5; i++) {
             if (this.valve_states[i] == 1) {
@@ -314,6 +432,11 @@ public class Display extends PApplet {
 
     }
 
+    /**
+     * Placeholder
+     *
+     * @param app The <code>PApplet</code> to draw the UI on.
+     */
     private void drawSensorStates(PApplet app) {
         for (int i = 0; i < 5; i++) {
             if (this.sensor_states[i] == 1) {
@@ -348,6 +471,14 @@ public class Display extends PApplet {
 
     }
 
+    /**
+     * Update the UI.
+     *
+     * @param app The <code>PApplet</code> to draw the UI on.
+     * @param dy ?
+     * @param position The position of the mouse from the start of the track in millimeters.
+     * @param time ?
+     */
     void update(PApplet app, float dy, float position, float time) {
         //float t = app.millis();
         //TODO: running more slow with performance hack
@@ -426,7 +557,7 @@ public class Display extends PApplet {
         app.fill(color(204,204,0));
         app.rect(map_offset, 200, 300, 10);
         int yoffset = 140;
-        for (int i=0; i < contextsContainer.size(); i++) {
+        for (int i = 0; i < contextsContainer.size(); i++) {
             if (i == 3) {
                 yoffset += 40;
             }

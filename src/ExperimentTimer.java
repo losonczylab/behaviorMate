@@ -1,8 +1,8 @@
 import processing.core.PApplet;
 
 /**
- * Time the experiment, offset the current millis of the program's clock, by
- * the start of the experiment
+ * Time the experiment, offset the current millis of the program's clock, by the start of the
+ * experiment.
  */
 public class ExperimentTimer extends PApplet {
     private int startTime;

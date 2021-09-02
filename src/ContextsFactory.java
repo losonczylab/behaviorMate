@@ -8,8 +8,6 @@ import processing.data.JSONArray;
 public final class ContextsFactory {
 
     /**
-     * Creates a ContextList based on the "class" field in context_info field.
-     *
      * @param tc           <code>TreadmillController</code> running the experiment
      * @param display      Controls the UI
      * @param context_info Contains the configuration information for this <code>ContextList</code> from the
