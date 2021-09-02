@@ -1,6 +1,7 @@
 import processing.core.PApplet;
 import processing.core.PGraphics;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Class for displaying the current behavior of the animal on the track to the screen.
@@ -35,6 +36,9 @@ public class Display extends PApplet {
     private String totalTime;
     private String bottom_message;
 
+    private static int NUM_VALVES = 10;
+    private static int NUM_SENSORS = 10;
+
     public Display() {
         lickRate = 0;
         lapRate = 0;
@@ -52,14 +56,24 @@ public class Display extends PApplet {
         bottom_message = "";
         displayScale = 300.0f/1.0f;
         this.laser_radius = 0;
-        this.valve_states = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-        this.valve_ids = new int[] { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
-        this.sensor_states = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-        this.sensor_ids = new int[] { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+        // this.valve_states = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+           this.valve_states = repeatingIntArray(NUM_VALVES, 0);
+        // this.valve_ids = new int[] { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+           this.valve_ids = repeatingIntArray(NUM_VALVES, -1);
+        // this.sensor_states = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+           this.sensor_states = repeatingIntArray(NUM_SENSORS, 0);
+        // this.sensor_ids = new int[] { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+           this.sensor_ids = repeatingIntArray(NUM_SENSORS, -1);
         contextsContainer = new ArrayList<ContextList>();
 
         this.schedule = "";
         this.totalTime = "";
+    }
+
+    private static int[] repeatingIntArray(int size, int element) {
+        int[] out = new int[size];
+        Arrays.fill(out, element);
+        return out;
     }
 
     void resetContexts() {
@@ -181,13 +195,17 @@ public class Display extends PApplet {
     }
 
     void clearValveStates() {
-        this.valve_states = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-        this.valve_ids = new int[] { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+        // this.valve_states = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+           this.valve_states = repeatingIntArray(NUM_VALVES, 0);
+        // this.valve_ids = new int[] { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+           this.valve_ids = repeatingIntArray(NUM_VALVES, -1);
     }
 
     void clearSensorStates() {
-        this.sensor_states = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-        this.sensor_ids = new int[] { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+        // this.sensor_states = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+           this.sensor_states = repeatingIntArray(NUM_SENSORS, 0);
+        // this.sensor_ids = new int[] { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+           this.sensor_ids = repeatingIntArray(NUM_SENSORS, -1);
     }
 
     void addReward() {
@@ -196,24 +214,39 @@ public class Display extends PApplet {
     }
 
     void setPositionScale(float scale) {
+        if (scale <= 0) {
+            throw new IllegalArgumentException("Argument scale must be greater than 0.");
+        }
         this.position_scale = scale;
     }
 
     void setCurrentTag(String tag, float position_error) {
+        if (tag == null || tag.isBlank()) {
+            throw new IllegalArgumentException("Argument tag cannot be null or blank.");
+        }
         currentTag = tag;
         lapRate = 200;
         lapErrorRate = Math.min(200*Math.abs(position_error)/15, 200);
     }
 
     void setCurrentTag(String tag) {
+        if (tag == null || tag.isBlank()) {
+            throw new IllegalArgumentException("Argument tag cannot be null or blank.");
+        }
         setCurrentTag(tag, 0);
     }
 
     void setLastLap(float position) {
+        if (position < 0) {
+            throw new IllegalArgumentException("Argument position cannot be negative.");
+        }
         lastLap = position;
     }
 
     public void setContextLocations(ContextList contexts) {
+        if (contexts == null) {
+            throw new IllegalArgumentException("Argument contexts cannot be null.");
+        }
         contexts.setDisplayScale(this.displayScale);
         contextsContainer.add(contexts);
     }
