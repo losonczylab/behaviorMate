@@ -46,6 +46,7 @@ public class JointContextList extends BasicContextList {
     }
 
     /**
+     * ?
      *
      * @param contexts ?
      */
@@ -73,6 +74,9 @@ public class JointContextList extends BasicContextList {
         this.update();
     }
 
+    /**
+     * ?
+     */
     public void update() {
         if (this.joint_list.size() != this.size()) {
             super.clear();
@@ -90,13 +94,11 @@ public class JointContextList extends BasicContextList {
         }
     }
 
+    // Todo: can these unimplemented methods be commented out or were they overridden purposely so
+    //  they would do nothing?
     public void move(int index, int location) { }
-
     public void shuffle() { }
-
     protected void add(int location) { }
-
     public void clear() { }
-
     public void reset() { }
 }

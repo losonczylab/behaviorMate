@@ -23,7 +23,7 @@ public class DelayedContextDecorator extends SuspendableContextDecorator {
     protected float start_time;
 
     /**
-     * @param context_list ContextList instance the decorator will wrap.
+     * @param context_list <code>ContextList</code> instance the decorator will wrap.
      * @param context_info JSONObject containing the configuration information
      *                     for this instance's <code>ContextList</code> from the settings file.
      *                     context_info should have the parameter <tt>delay</tt> set
