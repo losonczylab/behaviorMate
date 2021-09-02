@@ -32,13 +32,13 @@ public class AlternatingContextList extends BasicContextList {
     protected int offset_lap;
 
     /**
-     * @param context_info JSONObject containing the configuration information
-     *                     for this context from the settings file.
-     *                     context_info should have the parameter <tt>n_lap</tt>
-     *                     set in order to indicate when to turn off. If <tt>n_lap</tt>
-     *                     and <tt>offset_lap</tt> are not defined in <tt>context_info</tt>,
-     *                     the corresponding class attributes will be set to 2 and 0, respectively.
-     * @param track_length the length of the track (in mm).
+     * @param context_info JSONObject containing the configuration information for this context from
+     *                     the settings file. <tt>context_info</tt> should have the parameter
+     *                     <tt>n_lap</tt> set in order to indicate when to turn off. If
+     *                     <tt>n_lap</tt> and <tt>offset_lap</tt> are not defined in
+     *                     <tt>context_info</tt>, the corresponding class attributes will be set to
+     *                     2 and 0, respectively.
+     * @param track_length The length of the track (in mm).
      * @param comm_id ?
      */
     public AlternatingContextList(JSONObject context_info, float track_length, String comm_id) {
@@ -50,6 +50,9 @@ public class AlternatingContextList extends BasicContextList {
         this.offset_lap = context_info.getInt("offset_lap", 0);
     }
 
+    /**
+     *
+     */
     public void suspend() {
         this.suspended = true;
         this.status = "suspended";
@@ -62,23 +65,20 @@ public class AlternatingContextList extends BasicContextList {
     }
 
     /**
-     * Check the state of the list as well as the contexts contained in this
-     * and decide if they should be activated or not. Send the start/stop messages
-     * as necessary. this method gets called for each cycle of the event loop
-     * when a trial is started.
+     * Check the state of the list as well as the contexts contained in this and decide if they
+     * should be activated or not. Send the start/stop messages as necessary. this method gets
+     * called for each cycle of the event loop when a trial is started.
      *
-     * @param position   current position along the track
-     * @param time       time (in s) since the start of the trial
-     * @param lap        current lap number since the start of the trial
-     * @param msg_buffer a Java array of type String to buffer and send messages
-     *                   to be logged in the the .tdml file being written for
-     *                   this trial. messages should be placed in index 0 of the
-     *                   message buffer and must be JSON formatted strings.
-     * @return           returns true to indicate that the trial has started.
-     *                   Note: all messages to the behavior comm are sent from
-     *                   within this method returning true or false indicates
-     *                   the state of the context, but does not actually
-     *                   influence the connected arduinos or UI.
+     * @param position   Current position along the track in millimeters.
+     * @param time       Time (in s) since the start of the trial.
+     * @param lap        Current lap number since the start of the trial.
+     * @param msg_buffer A Java <code>String</code> array of type to buffer and send messages to be
+     *                   logged in the .tdml file being written for this trial. messages should
+     *                   be placed at index 0 of the message buffer and must be JSON-formatted strings.
+     * @return           <code>true</code> to indicate that the trial has started. Note: all messages
+     *                   to the behavior comm are sent from within this method returning true or false
+     *                   indicates the state of the context, but does not actually influence the
+     *                   connected arduinos or UI.
      */
     public boolean check(float position, float time, int lap, JSONObject[] msg_buffer) {
 

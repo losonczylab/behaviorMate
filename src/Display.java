@@ -92,8 +92,8 @@ public class Display extends PApplet {
      *
      * @param trackLength The length of the track in millimeters. Must be greater than 0 or an
      *                    <code>IllegalArgumentException</code> will be thrown.
+     * @throws IllegalArgumentException
      */
-    // Todo: these setters should likely have error checking
     void setTrackLength(float trackLength) {
         if (trackLength <= 0) {
             throw new IllegalArgumentException("Argument trackLength must be greater than 0.");
@@ -106,6 +106,7 @@ public class Display extends PApplet {
      * Used to set the String identifier of the mouse.
      *
      * @param mouseName ID of the mouse running the track. Cannot be blank.
+     * @throws IllegalArgumentException
      */
     void setMouseName(String mouseName) {
         if (mouseName == null || mouseName.isBlank()) {
@@ -145,9 +146,13 @@ public class Display extends PApplet {
      * ?
      *
      * @param schedule ?
+     * @throws IllegalArgumentException
      */
     // Todo: what is a schedule?
     void setSchedule(String schedule) {
+        if (schedule == null) {
+            throw new IllegalArgumentException("Argument schedule cannot be null.");
+        }
         this.schedule = schedule;
     }
 
@@ -156,6 +161,7 @@ public class Display extends PApplet {
      *
      * @param count The updated lap count. Negative values will raise an
      *              <code>IllegalArgumentException</code>.
+     * @throws IllegalArgumentException
      */
     // Todo: can this be 0?
     void setLapCount(int count) {
@@ -170,6 +176,7 @@ public class Display extends PApplet {
      *
      * @param count The updated lick count. Negative values will raise an
      *              <code>IllegalArgumentException</code>.
+     * @throws IllegalArgumentException
      */
     void setLickCount(int count) {
         if (count < 0) {
@@ -182,6 +189,7 @@ public class Display extends PApplet {
      * ?
      *
      * @param count
+     * @throws IllegalArgumentException
      */
     void setRewardCount(int count) {
         if (count < 0) {
@@ -194,6 +202,7 @@ public class Display extends PApplet {
      * ?
      *
      * @param time
+     * @throws IllegalArgumentException
      */
     void setTotalTime(int time) {
         if (time < 0) {
@@ -208,6 +217,7 @@ public class Display extends PApplet {
      * ?
      *
      * @param message ?
+     * @throws IllegalArgumentException
      */
     // Todo: can this be blank?
     void setBottomMessage(String message) {
@@ -222,6 +232,7 @@ public class Display extends PApplet {
      *
      * @param pin ? Todo: what are the possible pins
      * @param state Valid states are 0, 1, and -1.
+     * @throws IllegalArgumentException
      */
     void setValveState(int pin, int state) {
         if (pin < 0 || !(state == 0 || state == 1 || state == -1)) {
@@ -246,6 +257,7 @@ public class Display extends PApplet {
      *
      * @param pin ? Todo: what are the possible pins
      * @param state Valid states are 0, 1, and -1.
+     * @throws IllegalArgumentException
      */
     void setSensorState(int pin, int state) {
         if (pin < 0 || !(state == 0 || state == 1 || state == -1)) {
@@ -311,6 +323,7 @@ public class Display extends PApplet {
      *
      * @param tag ?
      * @param position_error ?
+     * @throws IllegalArgumentException
      */
     void setCurrentTag(String tag, float position_error) {
         if (tag == null || tag.isBlank()) {
@@ -325,6 +338,7 @@ public class Display extends PApplet {
      * ?
      *
      * @param tag ?
+     * @throws IllegalArgumentException
      */
     void setCurrentTag(String tag) {
         if (tag == null || tag.isBlank()) {
@@ -337,6 +351,7 @@ public class Display extends PApplet {
      * ?
      *
      * @param position ?
+     * @throws IllegalArgumentException
      */
     void setLastLap(float position) {
         if (position < 0) {
@@ -349,6 +364,7 @@ public class Display extends PApplet {
      * ?
      *
      * @param contexts ?
+     * @throws IllegalArgumentException
      */
     public void setContextLocations(ContextList contexts) {
         if (contexts == null) {

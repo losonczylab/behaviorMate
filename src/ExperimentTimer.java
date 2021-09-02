@@ -11,7 +11,7 @@ public class ExperimentTimer extends PApplet {
     private int currentTime;
 
     /**
-     * Creates a new experiment instance
+     * Constructs a new <code>ExperimentTimer</code> with the current time set to 0.
      */
     public ExperimentTimer() {
         prevTime = 0;
@@ -20,9 +20,8 @@ public class ExperimentTimer extends PApplet {
     }
 
     /**
-     * check how many seconds since the timer was started
-     *
-     * @return sends since this timer was started
+     * @return The number of seconds elapsed since the timer was started.
+     *         This updates the current time.
      */
     public float checkTime() {
         if (this.startTime == -1) {
@@ -35,8 +34,8 @@ public class ExperimentTimer extends PApplet {
     }
 
     /**
-     * start the timer. Records the current millis of the program.
-     *
+     * Start the timer. Calling <code>checkTime()</code> will return the number of seconds passed
+     * since this method was called.
      */
     public void startTimer() {
         startTime = millis();
@@ -44,8 +43,8 @@ public class ExperimentTimer extends PApplet {
     }
 
     /**
-     * @return the last time this timer was checked (without updated the current
-     * time)
+     * @return The last value returned by <code>checkTime()</code>. Does <b>not</b> update the
+     *         current time.
      */
     public float getTime() {
         return (float)currentTime/1000.0f;
