@@ -1,11 +1,10 @@
 import processing.core.PApplet;
-import processing.core.PFont;
 import processing.core.PGraphics;
 import java.util.ArrayList;
 
 /**
- * Display update to the screen showing the cureent behavior of the animial on
- * the track
+ * Class for displaying the current behavior of the animal on the track to the screen.
+ *
  */
 public class Display extends PApplet {
     private float lickRate;
@@ -64,14 +63,23 @@ public class Display extends PApplet {
     }
 
     void resetContexts() {
-        contextsContainer = new ArrayList<ContextList>();
+        //contextsContainer = new ArrayList<ContextList>();
+        contextsContainer.clear(); // likely better practice to call clear() than constructing new ArrayList
     }
 
+    // Todo: these setters should likely have error checking
     void setTrackLength(float trackLength) {
-        displayScale = 300.0f/trackLength;
+        if (trackLength <= 0) {
+            throw new IllegalArgumentException("Argument trackLength must be greater than 0.");
+        }
+        //displayScale = 300.0f/trackLength;
+        displayScale = 300f/trackLength; // .0 not needed
     }
 
     void setMouseName(String mouseName) {
+        if (mouseName == null || mouseName.isBlank()) {
+            throw new IllegalArgumentException("Argument mouseName can't be null or an empty string.");
+        }
         this.mouseName = mouseName;
     }
 
@@ -82,6 +90,7 @@ public class Display extends PApplet {
         }
     }
 
+    // Todo: can dy be negative?
     void setPositionRate(float dy) {
         if (dy == 0) {
             positionRate = positionRate/abs(positionRate) * max(0.0f, abs(positionRate)-0.5f);
@@ -91,31 +100,56 @@ public class Display extends PApplet {
 
     }
 
+    // Todo: what is a schedule?
     void setSchedule(String schedule) {
         this.schedule = schedule;
     }
 
+    // Todo: can this be 0?
     void setLapCount(int count) {
+        if (count < 0) {
+            throw new IllegalArgumentException("Argument count must be nonnegative.");
+        }
         lapCount = count;
     }
 
     void setLickCount(int count) {
+        if (count < 0) {
+            throw new IllegalArgumentException("Argument count must be nonnegative.");
+        }
         lickCount = count;
     }
 
     void setRewardCount(int count) {
+        if (count < 0) {
+            throw new IllegalArgumentException("Argument count must be nonnegative.");
+        }
         rewardCount = count;
     }
 
     void setTotalTime(int time) {
-        this.totalTime = "/"+time;
+        if (time < 0) {
+            throw new IllegalArgumentException("Argument time must be nonnegative.");
+        }
+        // this.totalTime = "/"+time;
+
+        totalTime = "/" + String.valueOf(time); // this is probably better practice than implicit conversion
     }
 
+    // Todo: can this be blank?
     void setBottomMessage(String message) {
+        if (mouseName == null) {
+            throw new IllegalArgumentException("Argument mouseName can't be null.");
+        }
         this.bottom_message = message;
     }
 
     void setValveState(int pin, int state) {
+        if (pin < 0 || !(state == 0 || state == 1 || state == -1)) {
+            throw new IllegalArgumentException(
+                    "Arguments pin must be nonnegative and state must either be 0, 1, or -1.");
+        }
+
         for (int i = 0; i < this.valve_ids.length; i++) {
             if (this.valve_ids[i] == pin) {
                 this.valve_states[i] = state;
@@ -129,6 +163,11 @@ public class Display extends PApplet {
     }
 
     void setSensorState(int pin, int state) {
+        if (pin < 0 || !(state == 0 || state == 1 || state == -1)) {
+            throw new IllegalArgumentException(
+                    "Arguments pin must be nonnegative and state must either be 0, 1, or -1.");
+        }
+
         for (int i = 0; i < this.sensor_ids.length; i++) {
             if (this.sensor_ids[i] == pin) {
                 this.sensor_states[i] = state;

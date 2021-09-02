@@ -35,13 +35,13 @@ public class BlockedShuffleDecorator extends ContextListDecorator {
      * @param context_list ContextList instance the decorator will wrap.
      * @param context_info JSONObject containing the configuration information
      *                     for this instance's <code>ContextList</code> from the settings file.
-     *                     context_info should have the parameter <tt>n_lap</tt>
-     *                     set in order to indicate when to turn off. This value
-     *                     defaults to 2, meaning the context will be active on
-     *                     alternating laps.
+     *                     <code>context_info</code>> should have the property <tt>locations</tt>
+     *                     as an array of arrays specifying the locations where the contexts should
+     *                     <i>not</i> be present. For example "locations": [[100, 200], [350, 500]],
+     *                     will prevent any contexts from being located within the 100 to 200 mm and
+     *                     350 to 500 mm regions.
      */
-    public BlockedShuffleDecorator(ContextList context_list,
-                                   JSONObject context_info) {
+    public BlockedShuffleDecorator(ContextList context_list, JSONObject context_info) {
         super(context_list);
 
         // Todo: not providing locations to this decorator should likely throw an exception

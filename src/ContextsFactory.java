@@ -2,26 +2,24 @@ import processing.data.JSONObject;
 import processing.data.JSONArray;
 
 /**
- * ContextsFactory class. Entirely static class used to create a context list
- * based on the "class" attribute in the setting.json file.
+ * Entirely static class used to create a context list based on the "class" and "decorators"
+ * attributes in the settings file.
  */
 public final class ContextsFactory {
 
     /**
      * Creates a ContextList based on the "class" field in context_info field.
      *
-     * @param tc           TreadmillController running the experiment
-     * @param display      display object which controlls the UI
-     * @param context_info json object containing the configureation information
-     *                     for this context from the settings.json file
-     * @param track_length the length of the track (in mm).
-     * @param comm         client to post messages which configure as well as
-     *                     starts and stop the context
+     * @param tc           <code>TreadmillController</code> running the experiment
+     * @param display      Controls the UI
+     * @param context_info Contains the configuration information for this <code>ContextList</code> from the
+     *                     settings file
+     * @param track_length The length of the track in mm
+     * @param comm         Client to post messages for configuring, starting, and stopping the
+     *                     <code>ContextList</code>
      *
-     * @return returns the ContextList matching the parameters specified in
-     *         context_info.
+     * @return A new <code>ContextList</code> matching the parameters specified in <tt>context_info</tt>.
      */
-
     public static ContextList Create(TreadmillController tc, Display display,
                                      JSONObject context_info, float track_length,
                                      UdpClient comm, String class_name) throws Exception {

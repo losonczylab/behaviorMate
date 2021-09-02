@@ -34,7 +34,7 @@ public class AlternatingContextDecorator extends SuspendableContextDecorator {
 
 
     /**
-     * Check if the context list should be active or suspended based on the current lap.
+     * Check if the context list should be suspended based on the current lap.
      *
      * @param position   current position along the track
      * @param time       time (in seconds) since the start of the trial
@@ -43,7 +43,8 @@ public class AlternatingContextDecorator extends SuspendableContextDecorator {
      *                   to be logged in the .tdml file being written for
      *                   this trial. Messages should be placed in index 0 of the
      *                   message buffer and must be JSON-formatted strings.
-     * @return           true if the context should be suspended, false otherwise.
+     * @return           <code>true</code> if the context should be suspended, <code>false</code>
+     *                   otherwise.
      */
     public boolean check_suspend(float position, float time, int lap, int lick_count,
                                  JSONObject[] msg_buffer) {
