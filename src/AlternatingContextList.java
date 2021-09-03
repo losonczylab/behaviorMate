@@ -6,7 +6,7 @@ import processing.data.JSONObject;
 public class AlternatingContextList extends BasicContextList {
 
     /**
-     * True if the context is suspended, false otherwise.
+     * <code>True</code> if the context is suspended, <code>false</code> otherwise.
      */
     protected boolean suspended;
 
@@ -51,7 +51,8 @@ public class AlternatingContextList extends BasicContextList {
     }
 
     /**
-     *
+     * Suspend the contexts wrapped by this <code>AlternatingContextList</code> and send a stop
+     * message to the arduino.
      */
     public void suspend() {
         this.suspended = true;

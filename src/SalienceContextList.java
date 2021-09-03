@@ -9,19 +9,56 @@ import java.io.IOException;
 import processing.data.JSONObject;
 import processing.data.JSONArray;
 
+/**
+ * ?
+ */
 public class SalienceContextList extends BasicContextList {
 
+    /**
+     * ?
+     */
     private class Event {
+
+        /**
+         * ?
+         */
         public float time;
+
+        /**
+         * ?
+         */
         public String type;
+
+        /**
+         * ?
+         */
         public String message;
+
+        /**
+         * ?
+         */
         public String text;
     }
 
+    /**
+     * ?
+     */
     private class MultiEvent extends Event {
+        /**
+         * ?
+         */
         public String[] messages;
+
+        /**
+         * ?
+         */
         public float[] times;
 
+        /**
+         * ?
+         *
+         * @return ?
+         */
         public boolean shift() {
             this.message = this.messages[0];
             this.time = this.times[0];
@@ -37,28 +74,123 @@ public class SalienceContextList extends BasicContextList {
         }
     }
 
+    /**
+     * ?
+     */
     private ArrayList<Event> schedule;
+
+    /**
+     * ?
+     */
     private Event nextEvent;
+
+    /**
+     * ?
+     */
     private TreadmillController tc;
+
+    /**
+     * ?
+     */
     protected Display display;
+
+    /**
+     * ?
+     */
     protected int[] display_color_active;
+
+    /**
+     * ?
+     */
     protected boolean repeat;
+
+    /**
+     * ?
+     */
     protected float repeat_interval;
 
+    /**
+     * ?
+     */
     float stim_time;
+
+    /**
+     * ?
+     */
     float event_time;
+
+    /**
+     * ?
+     */
     float prestim_time;
+
+    /**
+     * ?
+     */
     float poststim_time;
+
+    /**
+     * ?
+     */
     float trial_length;
+
+    /**
+     * ?
+     */
     int nblocks;
+
+    /**
+     * ?
+     */
     private Date exptStartDate;
+
+    /**
+     * ?
+     */
     private ArrayList<JSONObject> stim_array;
 
     Random random;
 
-    public SalienceContextList(TreadmillController tc, Display display,
-            JSONObject context_info, float track_length, String comm_id)
-            throws Exception {
+    /**
+     * ?
+     *
+     * @param tc ?
+     * @param display ?
+     * @param context_info JSONObject containing the configuration information for this context
+     *                     from the settings file. The following JSON literal should be defined
+     *                     in the settings file. The property key: <datatype, value> means that the key
+     *                     is optional and will default to value if not provided and should be of type
+     *                     datatype if provided.
+     *
+     * {
+     * 	"num_blocks": <int>,
+     * 	"stim_time": <float>,
+     * 	"prestim_time": <float>,
+     * 	"poststim_time": <float>,
+     * 	"repeat": <boolean, false>,
+     * 	"repeat_interval": <float, 0>,
+     * 	"sync_pin": <int, 100>,
+     * 	"intertrial_min": <int, Random(5, 10)>,
+     * 	"stims":
+     * 	        [
+     *              {
+     * 			        "name": <String>,
+     * 			        "pin": <int> or <int[]>,
+     * 			        "frequency": <int> or <int []>,
+     * 			        "duration": <int> or <int[]>,
+     * 			        "address": <String, "behavior_controller">,
+     * 			        "offset_times": <float[], null>,
+     * 			        "sync_pin": <int, 100>
+     *              }
+     *          ]
+     * }
+     *
+     * @param track_length The length of the track (in mm).
+     * @param comm_id ?
+     * @throws Exception
+     */
+    public SalienceContextList(TreadmillController tc, Display display, JSONObject context_info,
+                               float track_length, String comm_id) throws Exception {
         super(context_info, track_length, comm_id);
 
         this.tc = tc;
@@ -80,7 +212,6 @@ public class SalienceContextList extends BasicContextList {
             this.display_color_active = new int[] {150, 50, 20};
         }
 
-
         this.trial_length = prestim_time + stim_time + poststim_time;
         this.display = display;
         this.event_time = -1;
@@ -88,6 +219,9 @@ public class SalienceContextList extends BasicContextList {
 
     }
 
+    /**
+     * ?
+     */
     public void sendCreateMessages() {
         JSONArray stims = this.context_info.getJSONArray("stims");
         stim_array = new ArrayList<JSONObject>();
@@ -105,13 +239,11 @@ public class SalienceContextList extends BasicContextList {
 
                         for (int j=0; j<pins.size(); j++) {
                             JSONObject valve_json;
-                            if ((frequencies == null) ||
-                                (frequencies.getInt(j) == 0)) {
-                                valve_json = TreadmillController.setup_valve_json(
-                                    pins.getInt(j));
+                            if ((frequencies == null) || (frequencies.getInt(j) == 0)) {
+                                valve_json = TreadmillController.setup_valve_json(pins.getInt(j));
                             } else {
                                 valve_json = TreadmillController.setup_valve_json(
-                                    pins.getInt(j), frequencies.getInt(j));
+                                        pins.getInt(j), frequencies.getInt(j));
                             }
 
                             this.comm.sendMessage(valve_json.toString());
@@ -140,10 +272,8 @@ public class SalienceContextList extends BasicContextList {
         Event thisEvent = new Event();
 
         int duration = stim.getInt("duration");
-        if (stim.getString("address", "behavior_controller")
-                .equals("behavior_controller")) {
-            JSONObject open_json = TreadmillController.open_valve_json(
-                stim.getInt("pin"), duration);
+        if (stim.getString("address", "behavior_controller").equals("behavior_controller")) {
+            JSONObject open_json = TreadmillController.open_valve_json(stim.getInt("pin"), duration);
             thisEvent.message = open_json.toString();
         } else if (stim.getString("address").equals("local_controller")) {
             thisEvent.message = stim.toString();
@@ -160,8 +290,7 @@ public class SalienceContextList extends BasicContextList {
     private Event createMultiEvent(JSONObject stim, float time_counter) {
         MultiEvent thisEvent = new MultiEvent();
 
-        if (stim.getString("address", "behavior_controller")
-                .equals("behavior_controller")) {
+        if (stim.getString("address", "behavior_controller").equals("behavior_controller")) {
 
             JSONArray pins = stim.getJSONArray("pin");
 
@@ -266,7 +395,7 @@ public class SalienceContextList extends BasicContextList {
                 schedule.add(endEvent);
 
                 time_counter += (int)(random(this.context_info.getInt("intertrial_min", 5),
-                  this.context_info.getInt("intertrial_max", 10)));
+                        this.context_info.getInt("intertrial_max", 10)));
             }
 
         }
@@ -297,10 +426,7 @@ public class SalienceContextList extends BasicContextList {
 
         this.display.setSchedule(result);
         if (!this.repeat) {
-            display.setMouseName(
-                "Next Trial: " +
-                schedule.get(schedule.size()-1).time +
-                "s");
+            display.setMouseName("Next Trial: " + schedule.get(schedule.size()-1).time + "s");
         }
     }
 
@@ -321,17 +447,15 @@ public class SalienceContextList extends BasicContextList {
     }
 
 
-    public boolean check(float position, float time, int lap,
-            JSONObject[] msg_buffer) {
+    public boolean check(float position, float time, int lap, JSONObject[] msg_buffer) {
 
-        if ((this.event_time != -1) &&
-                (time > (this.event_time + this.stim_time))) {
+        if ( (this.event_time != -1) && (time > (this.event_time + this.stim_time)) ) {
             this.display_color = null;
             this.status = "post-stim";
             this.event_time = -1;
         }
 
-        if ((nextEvent != null) && (time > nextEvent.time)) {
+        if ( (nextEvent != null) && (time > nextEvent.time) ) {
             boolean removeEvent = true;
             if (nextEvent.type.equals("start")) {
                 this.status = "pre-stim";
