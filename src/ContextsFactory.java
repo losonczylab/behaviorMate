@@ -2,29 +2,25 @@ import processing.data.JSONObject;
 import processing.data.JSONArray;
 
 /**
- * ContextsFactory class. Entirely static class used to create a context list
- * based on the "class" attribute in the setting.json file.
+ * Entirely static class used to create a context list based on the "class" and "decorators"
+ * attributes in the settings file.
  */
 public final class ContextsFactory {
 
     /**
-     * Creates a ContextList based on the "class" field in context_info field.
+     * @param tc           <code>TreadmillController</code> running the experiment
+     * @param display      Controls the UI
+     * @param context_info Contains the configuration information for this <code>ContextList</code> from the
+     *                     settings file
+     * @param track_length The length of the track in mm
+     * @param comm         Client to post messages for configuring, starting, and stopping the
+     *                     <code>ContextList</code>
      *
-     * @param tc           TreadmillController running the experiment
-     * @param display      display object which controlls the UI
-     * @param context_info json object containing the configureation information
-     *                     for this context from the settings.json file
-     * @param track_length the length of the track (in mm).
-     * @param comm         client to post messages which configure as well as
-     *                     starts and stop the context
-     *
-     * @return returns the ContextList matching the parameters specified in
-     *         context_info.
+     * @return A new <code>ContextList</code> matching the parameters specified in <tt>context_info</tt>.
      */
-
     public static ContextList Create(TreadmillController tc, Display display,
-            JSONObject context_info, float track_length, UdpClient comm,
-            String class_name) throws Exception {
+                                     JSONObject context_info, float track_length, UdpClient comm,
+                                     String class_name) throws Exception {
         ContextList cl;
         JSONArray decorators = null;
 
@@ -34,65 +30,37 @@ public final class ContextsFactory {
             context_info.remove("decorators");
         }
 
+        String controller = "behavior_controller";
+        BasicContextList bcl = new BasicContextList(context_info, track_length, controller);
+
+
         if (class_name.equals( "alternating_context")) {
-            cl = new AlternatingContextDecorator(
-                new BasicContextList(
-                    context_info, track_length, "behavior_controller"),
-                context_info);
+            cl = new AlternatingContextDecorator(bcl, context_info);
         } else if (class_name.equals( "random_context")) {
-            cl = new RandomContextDecorator(
-                new BasicContextList(
-                    context_info, track_length, "behavior_controller"),
-                context_info);
+            cl = new RandomContextDecorator(bcl, context_info);
         } else if (class_name.equals( "timed_alt_context")) {
-            cl = new TimedContextDecorator(
-                new AlternatingContextDecorator(
-                    new BasicContextList(
-                        context_info, track_length, "behavior_controller"),
-                    context_info), context_info);
+            AlternatingContextDecorator acd = new AlternatingContextDecorator(bcl, context_info);
+            cl = new TimedContextDecorator(acd, context_info);
         } else if (class_name.equals( "scheduled_context")) {
-            cl = new ScheduledContextDecorator(
-                new BasicContextList(
-                    context_info, track_length, "behavior_controller"),
-                context_info);
-        } else if (class_name.equals("vr")) {
-            cl = new VrContextList(context_info, track_length);
+            cl = new ScheduledContextDecorator(bcl, context_info);
         } else if (class_name.equals("vr2")) {
             cl = new VrContextList2(tc, context_info, track_length);
         } else if (class_name.equals("vr_extended")) {
             cl = new VrExtendedContextList(tc, context_info, track_length);
         } else if (class_name.equals("vr_cue2")) {
             cl = new VrCueContextList3(tc, context_info, track_length);
-        } else if (class_name.equals("vr_cues")) {
-            return new VrCueContextList(context_info, track_length);
         } else if (class_name.equals("salience")) {
-            cl = new SalienceContextList(
-                tc, display, context_info, track_length, "behavior_controller");
+            cl = new SalienceContextList(tc, display, context_info, track_length, controller);
         } else if (class_name.equals("paired_reward_stim")) {
-            cl = new PairedRewardStimContextList(context_info, track_length,
-                                                 "behavior_controller");
+            cl = new PairedRewardStimContextList(context_info, track_length, controller);
         } else if (class_name.equals("gain_mod")) {
-            cl = new GainModifiedContextList(
-                tc, context_info, track_length);
+            cl = new GainModifiedContextList(tc, context_info, track_length);
         } else if (class_name.equals("fog_context")) {
             cl = new VrFogContext(tc, context_info, track_length);
         } else if (class_name.equals("joint_context")) {
-            cl = new JointContextList(context_info, track_length,
-                                      "behavior_controller");
+            cl = new JointContextList(context_info, track_length, controller);
         } else {
-            if (context_info.getString("type", "").equals("operant") && false) {
-                // this is so as not to confuse the arduino
-                /*boolean initial_open = false;
-                if (!context_info.isNull("initial_open")) {
-                    initial_open = context_info.getBoolean("initial_open");
-                    context_info.remove("initial_open");
-                }
-                cl = new OperantContextList(
-                    context_info, track_length, initial_open, comm);
-                */
-            } else {
-                cl = new BasicContextList(context_info, track_length, "behavior_controller");
-            }
+            cl = bcl;
         }
 
         if (decorators != null) {
@@ -103,8 +71,7 @@ public final class ContextsFactory {
                 if (decorator_class.equals("alternating_context")) {
                     cl = new AlternatingContextDecorator(cl, decorator);
                 } else if (decorator_class.equals("running_context")) {
-                    cl = new RunningContextDecorator(cl, decorator,
-                                                     track_length);
+                    cl = new RunningContextDecorator(cl, decorator, track_length);
                 } else if (decorator_class.equals("scheduled_context")) {
                     cl = new ScheduledContextDecorator(cl, decorator);
                 } else if (decorator_class.equals("timed_context")) {
@@ -122,8 +89,7 @@ public final class ContextsFactory {
                 } else if (decorator_class.equals("joint_suspend")) {
                     cl = new JointSuspendContextDecorator(cl, decorator);
                 } else {
-                    throw new IllegalArgumentException(
-                        "Decorator " + decorator_class + " not found");
+                    throw new IllegalArgumentException("Decorator "+ decorator_class +" not found");
                 }
             }
 

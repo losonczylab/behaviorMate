@@ -21,15 +21,15 @@ public class FileWriter extends PApplet {
     OutputStreamWriter osw;
     File logFile;
     String sep = "/";
-    /** Date formate for appending to log file names*/
+    // Date format for appending to log file names
     SimpleDateFormat logNameFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 
     /**
      * Create a new FileWriter. Generates a new log file at a path defined by
-     * the current time and the mouses name.
+     * the current time and the mouse's name.
      *
-     * @param pathname path to directory in which to store logfiles.
-     * @param mouse    mouse name to identify each animal
+     * @param pathname Path to the directory for storing log files.
+     * @param mouse    Identifier for each mouse.
      */
     public FileWriter(String pathname, String mouse, TrialListener tl) throws IOException {
         File directory = new File(pathname + sep + mouse);
@@ -49,6 +49,12 @@ public class FileWriter extends PApplet {
         wt.start();
     }
 
+    /**
+     * Placeholder
+     *
+     * @param filename Placeholder
+     * @throws IOException Placeholder
+     */
     public FileWriter(String filename) throws IOException {
         logFile = new File(filename);
 
@@ -59,7 +65,10 @@ public class FileWriter extends PApplet {
         this.write(logNameFormat.format(logDate));
     }
 
-
+    /**
+     *
+     * @return Placeholder
+     */
     public File getFile() {
         return new File(logFile.getAbsolutePath());
     }
@@ -95,6 +104,9 @@ public class FileWriter extends PApplet {
         }
     }
 
+    /**
+     * Placeholder
+     */
     public void close() {
         if (wt != null) {
             wt.stop_thread();
@@ -102,6 +114,9 @@ public class FileWriter extends PApplet {
         }
     }
 
+    /**
+     * Placeholder
+     */
     public class WriterThread extends Thread {
         private TrialListener tl;
         private boolean run;
@@ -114,6 +129,12 @@ public class FileWriter extends PApplet {
         private File logFile;
         private String sep = "/";
 
+        /**
+         * Placeholder
+         *
+         * @param logFile Placeholder
+         * @param tl Placeholder
+         */
         WriterThread(File logFile, TrialListener tl) {
             //Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
             this.run = true;
@@ -123,6 +144,9 @@ public class FileWriter extends PApplet {
             this.tl = tl;
         }
 
+        /**
+         * Placeholder
+         */
         public void run() {
             messageBuffer = writeQueue.poll();
             while (this.run || messageBuffer != null) {
@@ -174,6 +198,9 @@ public class FileWriter extends PApplet {
             }
         }
 
+        /**
+         * Placeholder
+         */
         public void start() {
             if (t == null) {
                 t = new Thread(this, "writeThread " + System.nanoTime());
@@ -181,14 +208,28 @@ public class FileWriter extends PApplet {
             }
         }
 
+        /**
+         * Placeholder
+         */
         public void stop_thread() {
             this.run = false;;
         }
 
+        /**
+         * Placeholder
+         *
+         * @param msg Placeholder
+         */
         public void queueMessage(String msg) {
             writeQueue.add(msg);
         }
 
+        /**
+         * Placeholder
+         *
+         * @param msg Placeholder
+         * @throws IOException
+         */
         public void write(String msg) throws IOException {
             if (logFile != null) {
                 //fos = new FileOutputStream(logFile, true);
