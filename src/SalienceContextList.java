@@ -163,26 +163,25 @@ public class SalienceContextList extends BasicContextList {
      *                     datatype if provided.
      *
      * {
-     * 	"num_blocks": <int>,
-     * 	"stim_time": <float>,
-     * 	"prestim_time": <float>,
-     * 	"poststim_time": <float>,
-     * 	"repeat": <boolean, false>,
-     * 	"repeat_interval": <float, 0>,
-     * 	"sync_pin": <int, 100>,
-     * 	"intertrial_min": <int, Random(5, 10)>,
-     * 	"stims":
-     * 	        [
-     *              {
-     * 			        "name": <String>,
-     * 			        "pin": <int> or <int[]>,
-     * 			        "frequency": <int> or <int []>,
-     * 			        "duration": <int> or <int[]>,
-     * 			        "address": <String, "behavior_controller">,
-     * 			        "offset_times": <float[], null>,
-     * 			        "sync_pin": <int, 100>
-     *              }
-     *          ]
+     * 	    "num_blocks": <int>,
+     * 	    "stim_time": <float>,
+     * 	    "prestim_time": <float>,
+     * 	    "poststim_time": <float>,
+     * 	    "repeat": <boolean, false>,
+     * 	    "repeat_interval": <float, 0>,
+     * 	    "sync_pin": <int, 100>,
+     * 	    "intertrial_min": <int, Random(5, 10)>,
+     * 	    "stims": [
+     * 	                   {
+     * 	                        "name": <String>,
+     * 			                "pin": <int> or <int[]>,
+     * 			                "frequency": <int> or <int []>,
+     * 			                "duration": <int> or <int[]>,
+     * 			                "address": <String, "behavior_controller">,
+     * 			                "offset_times": <float[], null>,
+     * 			                "sync_pin": <int, 100>
+     *                      }
+     *      ]
      * }
      *
      * @param track_length The length of the track (in mm).
@@ -267,7 +266,13 @@ public class SalienceContextList extends BasicContextList {
         createSchedule();
     }
 
-
+    /**
+     * ?
+     *
+     * @param stim ?
+     * @param time_counter ?
+     * @return ?
+     */
     private Event createEvent(JSONObject stim, float time_counter) {
         Event thisEvent = new Event();
 
@@ -286,7 +291,13 @@ public class SalienceContextList extends BasicContextList {
         return thisEvent;
     }
 
-
+    /**
+     * ?
+     *
+     * @param stim ?
+     * @param time_counter ?
+     * @return ?
+     */
     private Event createMultiEvent(JSONObject stim, float time_counter) {
         MultiEvent thisEvent = new MultiEvent();
 
@@ -337,7 +348,11 @@ public class SalienceContextList extends BasicContextList {
         return thisEvent;
     }
 
-
+    /**
+     * ?
+     *
+     * @param start_time ?
+     */
     public void createSchedule(float start_time) {
         this.schedule = new ArrayList<Event>();
 
@@ -409,10 +424,16 @@ public class SalienceContextList extends BasicContextList {
         nextEvent = schedule.get(0);
     }
 
+    /**
+     * ?
+     */
     public void createSchedule() {
         createSchedule(0f);
     }
 
+    /**
+     * ?
+     */
     public void displaySchedule() {
         String result = "";
         int i;
@@ -430,6 +451,12 @@ public class SalienceContextList extends BasicContextList {
         }
     }
 
+    /**
+     * ?
+     *
+     * @param time ?
+     * @param msg_buffer ?
+     */
     public void startTrial(float time, JSONObject[] msg_buffer) {
         JSONObject start_log = new JSONObject();
         Date dateTime = Calendar.getInstance().getTime();
@@ -438,6 +465,12 @@ public class SalienceContextList extends BasicContextList {
         msg_buffer[0] = start_log;
     }
 
+    /**
+     * ?
+     *
+     * @param time ?
+     * @param msg_buffer ?
+     */
     public void endTrial(float time, JSONObject[] msg_buffer) {
         JSONObject end_log = new JSONObject();
         Date dateTime = Calendar.getInstance().getTime();
@@ -446,7 +479,22 @@ public class SalienceContextList extends BasicContextList {
         msg_buffer[0] = end_log;
     }
 
-
+    /**
+     * Check the state of the list as well as the contexts contained in this and decide if they
+     * should be activated or not. Send the start/stop messages as necessary. this method gets
+     * called for each cycle of the event loop when a trial is started.
+     *
+     * @param position   Current position along the track in millimeters.
+     * @param time       Time (in s) since the start of the trial.
+     * @param lap        Current lap number since the start of the trial.
+     * @param msg_buffer A Java <code>String</code> array of type to buffer and send messages to be
+     *                   logged in the .tdml file being written for this trial. messages should
+     *                   be placed at index 0 of the message buffer and must be JSON-formatted strings.
+     * @return           <code>true</code> to indicate that the trial has started. Note: all messages
+     *                   to the behavior comm are sent from within this method returning true or false
+     *                   indicates the state of the context, but does not actually influence the
+     *                   connected arduinos or UI.
+     */
     public boolean check(float position, float time, int lap, JSONObject[] msg_buffer) {
 
         if ( (this.event_time != -1) && (time > (this.event_time + this.stim_time)) ) {
@@ -506,6 +554,12 @@ public class SalienceContextList extends BasicContextList {
         return false;
     }
 
+    /**
+     * ?
+     *
+     * @param time ?
+     * @param msg_buffer ?
+     */
     public void stop(float time, JSONObject[] msg_buffer) {
         createSchedule();
         super.stop(time, msg_buffer);

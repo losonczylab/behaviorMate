@@ -83,10 +83,9 @@ public abstract class SuspendableContextDecorator extends ContextListDecorator {
      * @param time Time (in seconds) since the start of the trial
      * @param lap Current lap number since the start of the trial
      * @param lick_count ?
-     * @param msg_buffer A Java array of type String to buffer and send messages
-     *                   to be logged in the .tdml file being written for
-     *                   this trial. Messages should be placed in index 0 of the
-     *                   message buffer and must be JSON-formatted strings.
+     * @param msg_buffer A Java array of type String to buffer and send messages to be logged in the
+     *                   .tdml file being written for this trial. Messages should be placed in index
+     *                   0 of the message buffer and must be JSON-formatted strings.
      * @return           ?
      */
     protected boolean check_suspend(float position, float time, int lap, int lick_count,

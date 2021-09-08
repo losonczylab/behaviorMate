@@ -11,6 +11,7 @@ import java.util.HashMap;
 
 //TODO: This doesn't need to extend PApplet (and probably shouldn't)
 public class BasicContextList extends PApplet implements ContextList {
+//public class BasicContextList implements ContextList {
     /**
      * <code>ArrayList</code> of <code>Context</code> objects holding information regarding the
      * time and location different contexts should be active. Contexts become inactive after
@@ -25,7 +26,7 @@ public class BasicContextList extends PApplet implements ContextList {
     protected int radius;
 
     /**
-     * ?
+     * ? - Used when displaying
      */
     protected float scale;
 
@@ -41,8 +42,7 @@ public class BasicContextList extends PApplet implements ContextList {
     protected int active;
 
     /**
-     * Stores the time the last update was sent to this context.
-     * Todo: is the time in seconds or milliseconds?
+     * Stores the time the last update was sent to this context in seconds.
      */
     protected float sent;
 
@@ -434,20 +434,20 @@ public class BasicContextList extends PApplet implements ContextList {
     }
 
     /**
-     * Todo: doesn't this return the location of the ith context?
-     * Accessor for a specific Context in the List.
+     * Accessor for the location of a specific Context in the List.
      *
      * @param i index of the context to return
-     * @return  the context at the supplied index.
+     * @return  The location of the context at the supplied index.
      */
     public int getLocation(int i) {
         return this.contexts.get(i).location();
     }
 
     /**
-     * Todo: I assume the description of getLocation(int) should apply to this method instead.
-     * @param i ?
-     * @return ?
+     * Accessor for a specific Context in the List.
+     *
+     * @param i index of the context to return
+     * @return  The context at the supplied index.
      */
     public Context getContext(int i) {
         return this.contexts.get(i);
@@ -718,6 +718,7 @@ public class BasicContextList extends PApplet implements ContextList {
         return this.active;
     }
 
+    // Todo: suspend should probably be removed from BasicContextList
     /**
      * Suspend all contexts and send a "send stop" message.
      */
@@ -740,7 +741,8 @@ public class BasicContextList extends PApplet implements ContextList {
         this.waiting = false;
         this.sendMessage(this.stopString);
     }
-
+    // suspend vs stop: stop means the mouse "completed" or "ran through" the context whereas
+    // suspend means it shouldn't be active for this lap
     /**
      * Todo: does this send a message to the arduino?
      *

@@ -4,29 +4,63 @@ import processing.data.JSONObject;
 import processing.data.JSONArray;
 
 /**
- * ScheduledContextList class. Disables contexts based on lap count.
+ * ?
  */
 public class TimedITIContextDecorator extends SuspendableContextDecorator {
 
+    /**
+     * ?
+     */
     protected float next_start;
 
+    /**
+     * ?
+     */
     protected int start_lap;
 
+    /**
+     * ?
+     */
     protected float iti_time;
 
+    /**
+     * ?
+     */
     protected int iti_time_min;
 
+    /**
+     * ?
+     */
     protected int iti_time_max;
 
+    /**
+     * ?
+     */
     private Random random;
 
+    /**
+     * ?
+     */
     protected TreadmillController tc;
 
+    /**
+     * ?
+     */
     protected boolean random_iti;
 
-    public TimedITIContextDecorator(
-            TreadmillController tc, ContextList context_list,
-            JSONObject context_info) {
+    /**
+     * ?
+     *
+     * @param tc ?
+     * @param context_list <code>ContextList</code> instance the decorator will wrap.
+     * @param context_info JSONObject containing the configuration information for this context
+     *                     from the settings file. The following JSON literal should be defined
+     *                     in the settings file. The property key: <datatype, value> means that the key
+     *                     is optional and will default to value if not provided and should be of type
+     *                     datatype if provided.
+     */
+    public TimedITIContextDecorator(TreadmillController tc, ContextList context_list,
+                                    JSONObject context_info) {
         super(context_list);
 
         this.tc = tc;
@@ -47,7 +81,10 @@ public class TimedITIContextDecorator extends SuspendableContextDecorator {
         this.start_lap = 0;
     }
 
-
+    /**
+     *
+     * @return The string representing the current status of the contexts.
+     */
     public String getStatus() {
         if (!this.isSuspended()) {
             return this.context_list.getStatus();
@@ -57,26 +94,19 @@ public class TimedITIContextDecorator extends SuspendableContextDecorator {
     }
 
     /**
-     * Check the state of the list as well as the  contexts contained in this
-     * and decide if they should be actived or not. Send the start/stop messages
-     * as necessary. this method gets called for each cycle of the event loop
-     * when a trial is started.
+     * ?
      *
-     * @param position   current position along the track
-     * @param time       time (in s) since the start of the trial
-     * @param lap        current lap number since the start of the trial
-     * @param msg_buffer a Java array of type String to buffer and send messages
-     *                   to be logged in the the tdml file being written for
-     *                   this trial. messages should be placed in index 0 of the
-     *                   message buffer and must be JSON formatted strings.
-     * @return           returns true to indicate that the trial has started.
-     *                   Note: all messages to the behavior comm are sent from
-     *                   within this method returning true or false indicates
-     *                   the state of the context, but does not actually
-     *                   influence the connected arduinos or UI.
+     * @param position Current position along the track
+     * @param time Time (in seconds) since the start of the trial
+     * @param lap Current lap number since the start of the trial
+     * @param lick_count ?
+     * @param msg_buffer A Java array of type String to buffer and send messages to be logged in the
+     *                   .tdml file being written for this trial. Messages should be placed in index
+     *                   0 of the message buffer and must be JSON-formatted strings.
+     * @return           ?
      */
-    public boolean check_suspend(float position, float time, int lap,
-                                 int lick_count, JSONObject[] msg_buffer) {
+    public boolean check_suspend(float position, float time, int lap, int lick_count,
+                                 JSONObject[] msg_buffer) {
         if (this.isSuspended()) {
             if (time > this.next_start) {
                 this.start_lap = lap;
@@ -98,6 +128,11 @@ public class TimedITIContextDecorator extends SuspendableContextDecorator {
         return this.isSuspended();
     }
 
+    /**
+     * Resets the state of the contexts. Contexts which have been triggered are
+     * reactivated and allowed to be triggered again. If <code>shuffle_contexts</code>
+     * is <code>true</code>, the contexts will be shuffled.
+     */
     public void end() {
         this.next_start = 0;
         this.start_lap = 0;

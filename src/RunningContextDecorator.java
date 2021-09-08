@@ -88,8 +88,8 @@ public class RunningContextDecorator extends SuspendableContextDecorator {
      * @param time       Time (in s) since the start of the trial.
      * @param lap        Current lap number since the start of the trial.
      * @param lick_count ?
-     * @param msg_buffer A Java <code>String</code> array of type to buffer and send messages to be
-     *                   logged in the .tdml file being written for this trial. messages should
+     * @param msg_buffer A Java <code>String</code> array to buffer and send messages to be
+     *                   logged in the .tdml file being written for this trial. Messages should
      *                   be placed at index 0 of the message buffer and must be JSON-formatted strings.
      * @return           ?
      */

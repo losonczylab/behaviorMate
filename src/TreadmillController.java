@@ -23,170 +23,240 @@ import processing.data.JSONArray;
  * Wrapper class for JSONObject to allow for JSONObjects to be returned by
  * reference during calls to UDPComm
  */
+// Todo: I don't any JSONBuffer objects being returned by any methods in this file.
+//       Is this done in another file?
 class JSONBuffer {
-    /* Wrapper class for JSONObject which allows for json to be returned by
-       reference during method calls */
 
+    /**
+     * The object to be wrapped.
+     */
     public JSONObject json;
 }
 
-
+/**
+ * ?
+ */
 public class TreadmillController extends PApplet {
 
     /**
-     * event listener to send messages back to the UI wrapper.
+     * Event listener to send messages back to the UI wrapper.
      */
     TrialListener trialListener;
 
     /**
-     * object for writing behavior log - tdml file.
+     * Used to write to the behavior log and to the .tdml file.
      */
     FileWriter fWriter;
 
+    /**
+     * ?
+     */
     JSONObject[] msg_buffer = {null};
 
     /**
-     * udp client for reveiving position updates
+     * Used to receive position updates.
      */
     UdpClient position_comm;
 
     /**
-     * udp clident for behavior updates.
+     * Used to receive behavior updates.
      */
     UdpClient behavior_comm;
 
+    /**
+     * ?
+     */
     UdpClient reset_comm;
 
+    /**
+     * ?
+     */
     long last_reset_time;
 
     //TODO: incorporate behavior_comm and position_comm into this list?
+    //          --> maybe use a HashMap?
     ArrayList<UdpClient> comms;
 
+    /**
+     * ?
+     */
     long comms_check_time;
 
+    /**
+     * ?
+     */
     long comms_check_interval;
 
     /**
-     * object showing the current state of the trial.
+     * Used to show the current state of the trial.
      */
     Display display;
 
     /**
-     * timer for converting the start time of the experiment with the start of
-     * the current trial.
+     * Used to convert the start time of the experiment to the start time of the current trial.
      */
+    // Todo: what's the difference between a trial and an experiment.
+    //  Does an experiment contain multiple trials?
     ExperimentTimer timer;
 
+//    /**
+//     * json object with all the settings related to this trail. Stored at the
+//     * top of each of the behavior logs
+//     */
     /**
-     * json object with all the settings related to this trail. Stored at the
-     * top of each of the behavior logs
+     * Contains all settings related to the current trial. Stored at the beginning of each behavior log.
      */
     JSONObject settings_json;
+
     /**
-     * json object with all the settings related to the computer specifically.
-     * Not saved when each trial is ran.
+     * Contains all settings related to the system BehaviorMate is being run on. This is not saved
+     * when trials are run.
      */
     JSONObject system_json;
 
     /**
-     * 1-D position of the mouse along track.
+     * 1-D position of the mouse along track in millimeters.
      */
     float position;
 
+    /**
+     * ?
+     */
     float offset_position;
 
+    /**
+     * ?
+     */
     boolean zero_position_boundary;
 
     /**
-     * distance run since last lap reset (allowed to be negative). Used to check that
-     * animal is not backing over reset tag.
+     * Distance run since last lap reset (allowed to be negative). Used to ensure animal is not
+     * backing over reset tag.
      */
     float distance;
 
+    /**
+     * ?
+     */
     float offset_distance;
 
     /**
-     * scale to convert position updates from rotary encoder to mm traversed on the
-     * track
+     * Used to convert position updates from rotary encoder to millimeters traversed along the track.
      */
     float position_scale;
 
+    /**
+     * ?
+     */
     float stored_position_scale;
 
     /**
-     * length of the track in mm. "track_length" in settings.
+     * The length of the track in millimeters. Set to the "track_length" property in the settings file.
      */
     float track_length;
 
     /**
-     * RFID tag string to indicate that a lap has been compleded and position
-     * should be reset to 0.
+     * RFID tag string indicating that a lap has been completed and position should be reset to 0.
      */
     String lap_tag;
 
     /**
-     * force a lap_reset if the position is more then track_length*lap_tolerance past
-     * track_length. Defaults to 0 if lap_reset_tag is not set, 0.99 if not present in
-     * settings.json
+     * A lap_reset will be forced if
+     * <tt>position</tt> + <tt>lap_tolerance</tt>*<tt>track_length</tt> >  <tt>track_length</tt>.
+     * Defaults to 0.99 if the <tt>lap_reset_tag</tt> property is not set in the settings file.
      */
     float lap_tolerance;
 
     /**
-     * number of laps the animal has run.
+     * Number of laps completed by the test animal.
      */
     int lap_count;
 
+    /**
+     * ?
+     */
     boolean lock_lap;
 
+    /**
+     * ?
+     */
     int lick_count;
 
+    /**
+     * ?
+     */
     HashMap<Integer, Integer> sensor_counts;
 
     /**
-     * length of the trial. signals the trial to end. "trial_length" in the settings
-     * file.
+     * Length of the trial in ?. Used to determine when the trial should end. Set to the value of the
+     * <tt>trial_length</tt> property in the settings file.
      */
+    // Todo: is this in seconds?
     int trial_duration;
 
+    /**
+     * ?
+     */
     int lap_limit;
 
+    /**
+     * ?
+     */
     boolean position_reset;
 
+    /**
+     * ?
+     */
     boolean belt_calibration_mode;
 
+    /**
+     * ?
+     */
     float current_calibration;
 
+    /**
+     * ?
+     */
     int n_calibrations;
 
+    /**
+     * ?
+     */
     HashMap<Character, String> commentKeys;
 
+    /**
+     * ?
+     */
     int lap_offset;
 
+    /**
+     * ?
+     */
     float lap_correction;
 
     /**
-     * Indicates weither the trial has been started. used to evaluate if contexts
-     * should be turned on as well if the file writer to be used.
+     * A value of <code>indicates</code> the trial has started. Used to determine when contexts
+     * should be enabled and if the file writer should be used.
      */
     boolean started = false;
 
     /**
-     * pin number for the reward locations
+     * Pin number for the reward locations.
      */
     int reward_valve;
 
     /**
-     * the pin number that the lickport is attached to.
+     * Pin number lickport is attached to.
      */
     int lickport_pin;
 
     /**
-     * Read buffer for position messages
+     * Read buffer for position messages.
      */
     JSONBuffer position_buffer = new JSONBuffer();
 
     /**
-     * Read buffer for behavior messages
+     * Read buffer for behavior messages.
      */
     JSONBuffer json_buffer = new JSONBuffer();
 
@@ -195,28 +265,53 @@ public class TreadmillController extends PApplet {
      */
     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
+    /**
+     * ?
+     */
     ArrayList<ContextList> contexts;
 
-    public TreadmillController(String settings_string, String system_string,
-            TrialListener el) {
+    /**
+     * ?
+     *
+     * @param settings_string ?
+     * @param system_string ?
+     * @param el ?
+     */
+    public TreadmillController(String settings_string, String system_string, TrialListener el) {
         this.trialListener = el;
         this.settings_json = parseJSONObject(settings_string);
         this.system_json = parseJSONObject(system_string);
     }
 
+    /**
+     * ?
+     *
+     * @param el ?
+     */
     public TreadmillController(TrialListener el) {
         this.trialListener = el;
     }
 
+    /**
+     *
+     * @return The pin number for the reward locations.
+     */
     public int getRewardPin() {
         return reward_valve;
     }
 
+    /**
+     * ?
+     *
+     * @param messages ?
+     * @param mouse_name ?
+     * @throws Exception
+     */
     protected void sendMessages(JSONArray messages, String mouse_name) throws Exception {
         for (int i= 0; i < messages.size(); i++) {
             JSONObject messageInfo = messages.getJSONObject(i);
-            UdpClient client = new UdpClient(messageInfo.getString("ip"),
-                messageInfo.getInt("port"), messageInfo.getString("id"));
+            UdpClient client = new UdpClient(
+                    messageInfo.getString("ip"), messageInfo.getInt("port"), messageInfo.getString("id"));
             JSONObject message = messageInfo.getJSONObject("message");
             message.setString("filename", fWriter.getFile().getName());
             message.setString("mouse", mouse_name);
@@ -225,18 +320,22 @@ public class TreadmillController extends PApplet {
         }
     }
 
-
+    /**
+     * ?
+     *
+     * @param alert ?
+     * @return ?
+     */
     public boolean testComms(boolean alert) {
         noLoop();
         System.out.println("testing comms");
         JSONObject test_arduino = new JSONObject();
         test_arduino.setJSONObject("communicator", new JSONObject());
-        test_arduino.getJSONObject(
-            "communicator").setString("action", "test");
+        test_arduino.getJSONObject("communicator").setString("action", "test");
         behavior_comm.sendMessage(test_arduino.toString());
 
         int i;
-        for (i=0; i<50 && !behavior_comm.receiveMessage(json_buffer); i++) {
+        for (i = 0; i<50 && !behavior_comm.receiveMessage(json_buffer); i++) {
             delay(20);
         }
 
@@ -260,6 +359,11 @@ public class TreadmillController extends PApplet {
 
     }
 
+    /**
+     * ?
+     *
+     * @return ?
+     */
     public boolean testComms() {
         return testComms(true);
     }
@@ -899,16 +1003,18 @@ public class TreadmillController extends PApplet {
 
         if (!settings_json.isNull("contexts")) {
             delay(10);
-            VrContextList vr_context = null;
-            ArrayList<VrCueContextList> cue_lists = new ArrayList<VrCueContextList>();;
+            VrContextList2 vr_context = null;
+            ArrayList<VrCueContextList3> cue_lists = new ArrayList<VrCueContextList3>();;
 
             JSONArray contexts_array = settings_json.getJSONArray("contexts");
-            for (int i=0; i < contexts_array.size(); i++) {
+            for (int i = 0; i < contexts_array.size(); i++) {
                 JSONObject context_info = contexts_array.getJSONObject(i);
+//                ContextList context_list = ContextsFactory.Create(
+//                        this, display, context_info, track_length, behavior_comm,
+//                        context_info.getString("class", "context"));
+                String context_class = context_info.getString("class", "context");
                 ContextList context_list = ContextsFactory.Create(
-                    this, display, context_info,
-                    track_length, behavior_comm,
-                    context_info.getString("class", "context"));
+                        this, display, context_info, track_length, behavior_comm, context_class);
                 contexts.add(context_list);
 
                 if (!context_list.setupComms(comms)) {

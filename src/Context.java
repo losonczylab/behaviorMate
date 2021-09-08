@@ -11,7 +11,8 @@ public class Context {
     int location;
 
     /**
-     * The amount of time the context is active after it has been triggered.
+     * The amount of time, in seconds, the context is active after it has been triggered. Will be
+     * set to the <tt>max_duration</tt> property in the settings file.
      */
     float duration;
 
@@ -22,7 +23,7 @@ public class Context {
     int radius;
 
     /**
-     * ?
+     * The most recent time the context was activated in seconds.
      */
     float started_time;
 
@@ -31,25 +32,27 @@ public class Context {
      */
     boolean triggered;
 
-    /**
-     * ?
-     */
-    boolean ended;
+//    /**
+//     *
+//     */
+//    boolean ended;
 
     /**
      * ?
      */
-    int id;
+    //int id;
 
     /**
-     * ?
+     * <code>True</code> will cause the context to be active for exactly the time specified in the
+     * duration attribute. If <code>false</code>, the context will be active for <i>up to</i> the
+     * time in the duration attribute if it is in the proper location.
      */
     private boolean fixed_duration;
 
-    /**
-     * ?
-     */
-    private int started_lap;
+//    /**
+//     * ?
+//     */
+//    private int started_lap;
 
     /**
      * ?
@@ -69,13 +72,12 @@ public class Context {
         this.location = location;
         this.duration = duration;
         this.radius = radius;
-        this.id = id;
         this.fixed_duration = fixed_duration;
-
         this.triggered = false;
         this.enabled = true;
         this.started_time = -1;
-        this.started_lap = -1;
+        //this.started_lap = -1;
+        //this.id = id;
     }
 
     /**
@@ -134,9 +136,11 @@ public class Context {
     }
 
     // assumes position has already been checked
-
+    // every cycle in the event loop the check() method is called on each context of the contextlist
     /**
-     * @param time ? Todo: Is this is the current time in milliseconds?
+     * Based on the time should the context be on? This assumes position has already been checked.
+     *
+     * @param time The current time in seconds Todo: Is this is the current time in milliseconds?
      * @return <code>true</code> if the context should be active, <code>false</code> otherwise.
      */
     protected boolean checkTime(float time) {
@@ -146,7 +150,7 @@ public class Context {
         }
 
         if (this.started_time == -1) {
-            this.started_time = time;
+            this.started_time = time; // this means the context should be active
             return true;
         }
 
@@ -161,9 +165,10 @@ public class Context {
     }
 
     /**
-     * @param position ?
-     * @param time ?
-     * @return ?
+     * @param position The current position of the mouse in millimeters.
+     * @param time The current time in seconds.
+     * @return <code>True</code> if the fixed-duration context should be active, <code>false</code>
+     * otherwise.
      */
     private boolean check_fixed_duration(float position, float time) {
         // Todo: Should this not also check that position < (this.location + this.radius)
@@ -188,11 +193,11 @@ public class Context {
     }
 
     /**
-     * ?
+     * Checks that both the positional and time requirements for the context have been met.
      *
-     * @param position ?
-     * @param time?
-     * @return ?
+     * @param position The current position of the mouse in millimeters.
+     * @param time The current time.
+     * @return <code>True</code> if the context should be active, <code>false</code> otherwise.
      */
     public boolean check(float position, float time) {
         if (fixed_duration) {
@@ -218,9 +223,9 @@ public class Context {
     }
 
     /**
-     * ?
+     * Changes the location at which the context will be activated.
      *
-     * @param location ?
+     * @param location The new location of the context in millimeters.
      */
     public void move(int location) {
         this.location = location;

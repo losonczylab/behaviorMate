@@ -2,7 +2,6 @@ import processing.data.JSONObject;
 
 /**
  * Wraps a BasicContextList. Disables contexts based on lap count.
- * Todo: convert to be compatible with BasicContextList
  */
 public class AlternatingContextDecorator extends SuspendableContextDecorator {
 
