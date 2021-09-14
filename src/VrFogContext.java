@@ -2,20 +2,53 @@ import processing.data.JSONObject;
 import processing.data.JSONArray;
 import java.util.ArrayList;
 
+/**
+ * ?
+ */
 public class VrFogContext extends VrContext {
+    /**
+     * ?
+     */
     protected ArrayList<Integer> fog_starts;
+
+    /**
+     * ?
+     */
     protected ArrayList<Integer> fog_ends;
+
+    /**
+     * ?
+     */
     protected ArrayList<Integer> fog_locations;
 
+    /**
+     * ?
+     */
     protected int fog_start;
+
+    /**
+     * ?
+     */
     protected int fog_end;
+
+
     protected int fog_location_idx;
 
+    /**
+     * ?
+     */
     protected JSONObject fog_message;
 
-    public VrFogContext(
-            TreadmillController tc, JSONObject context_info,
-            float track_length) throws Exception {
+    /**
+     * ?
+     *
+     * @param tc ?
+     * @param context_info ?
+     * @param track_length ?
+     * @throws Exception
+     */
+    public VrFogContext(TreadmillController tc, JSONObject context_info, float track_length)
+            throws Exception {
 
         super(tc, context_info, track_length);
 
@@ -54,9 +87,15 @@ public class VrFogContext extends VrContext {
         this.stopString = fog_json.toString();
     }
 
-
-    protected void updateVr(boolean is_active, float position, float time,
-                            int lap) {
+    /**
+     * ?
+     *
+     * @param is_active ?
+     * @param position ?
+     * @param time ?
+     * @param lap ?
+     */
+    protected void updateVr(boolean is_active, float position, float time, int lap) {
         if (is_active) {
             float x = (
                 position - (this.getLocation(this.active) - this.getRadius())

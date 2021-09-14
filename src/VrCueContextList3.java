@@ -4,15 +4,35 @@ import processing.data.JSONObject;
 import processing.data.JSONArray;
 import java.util.ArrayList;
 
+/**
+ * ?
+ */
 public class VrCueContextList3 extends VrContext {
-
+    /**
+     * ?
+     */
     protected ArrayList<Integer> object_locations;
+
+    /**
+     * ?
+     */
     protected int true_size;
+
+    /**
+     * ?
+     */
     protected float display_radius_unscale;
 
-    public VrCueContextList3(
-            TreadmillController tc, JSONObject context_info,
-            float track_length) throws Exception {
+    /**
+     * ?
+     *
+     * @param tc ?
+     * @param context_info ?
+     * @param track_length ?
+     * @throws Exception
+     */
+    public VrCueContextList3(TreadmillController tc, JSONObject context_info, float track_length)
+            throws Exception {
         super(tc, context_info, track_length);
 
         JSONArray objects = this.context_info.getJSONArray("objects");
@@ -21,13 +41,13 @@ public class VrCueContextList3 extends VrContext {
         this.shuffle_contexts = this.context_info.getBoolean("shuffle", false);
         object_locations = new ArrayList<Integer>();
         for (int i = 0; i < objects.size(); i++) {
-            this.object_locations.add(
-                objects.getJSONObject(i).getJSONArray("Position").getInt(1)*10);
+            this.object_locations.add(objects.getJSONObject(i).getJSONArray("Position").getInt(1)*10);
         }
-
     }
 
-
+    /**
+     * ?
+     */
     public void setupVr() {
         this.sendMessage(this.stopString);
         JSONObject setup_msg = new JSONObject();
@@ -42,7 +62,9 @@ public class VrCueContextList3 extends VrContext {
         }
     }
 
-
+    /**
+     * ?
+     */
     public void move(int index, int location) {
         if (this.comms == null) {
             return;
@@ -66,17 +88,23 @@ public class VrCueContextList3 extends VrContext {
         }
     }
 
-
+    /**
+     * ?
+     */
     public int size() {
         return this.true_size;
     }
 
-
+    /**
+     * ?
+     */
     public int getLocation(int i) {
         return this.object_locations.get(i);
     }
 
-
+    /**
+     * ?
+     */
     public void setDisplayScale(float scale) {
         this.scale = scale;
         this.display_radius = this.display_radius_unscale * scale;

@@ -4,14 +4,35 @@ import processing.data.JSONObject;
 import processing.data.JSONArray;
 import java.util.ArrayList;
 
+/**
+ * ?
+ */
 public class VrExtendedContextList extends VrContextList2 {
+    /**
+     * ?
+     */
     protected int lap_factor;
+
+    /**
+     * ?
+     */
     protected int backtrack;
+
+    /**
+     * ?
+     */
     protected float previous_position;
 
-    public VrExtendedContextList(
-            TreadmillController tc, JSONObject context_info,
-            float track_length) throws Exception {
+    /**
+     * ?
+     *
+     * @param tc ?
+     * @param context_info ?
+     * @param track_length ?
+     * @throws Exception
+     */
+    public VrExtendedContextList(TreadmillController tc, JSONObject context_info, float track_length)
+            throws Exception {
         super(tc, context_info, track_length);
 
         this.lap_factor = 2;
@@ -19,8 +40,19 @@ public class VrExtendedContextList extends VrContextList2 {
         this.previous_position = -1;
     }
 
-    public boolean check(float position, float time, int lap,
-                         JSONObject[] msg_buffer) {
+    /**
+     * ?
+     *
+     * @param position   current position along the track
+     * @param time       time (in s) since the start of the trial
+     * @param lap        current lap number since the start of the trial
+     * @param msg_buffer a Java array of type String to buffer and send messages
+     *                   to be logged in the the tdml file being written for
+     *                   this trial. messages should be placed in index 0 of the
+     *                   message buffer and must be JSON formatted strings.
+     * @return
+     */
+    public boolean check(float position, float time, int lap, JSONObject[] msg_buffer) {
         boolean inZone = false;
         int i=0;
         for (; i < this.contexts.size(); i++) {
@@ -30,11 +62,11 @@ public class VrExtendedContextList extends VrContextList2 {
             }
         }
 
-        if ((this.previous_position != -1) &&
-                (position - this.previous_position > this.track_length/2)) {
+        if ((this.previous_position != -1)
+                && (position - this.previous_position > this.track_length/2)) {
             this.backtrack--;
-        } else if ((this.backtrack < 0) &&
-                (this.previous_position - position > this.track_length/2)) {
+        } else if ((this.backtrack < 0)
+                && (this.previous_position - position > this.track_length/2)) {
             this.backtrack++;
         }
         this.previous_position = position;
@@ -42,11 +74,10 @@ public class VrExtendedContextList extends VrContextList2 {
         lap = Math.abs(lap + this.backtrack);
         System.out.println(this.backtrack + " - " + lap);
 
-        float adj_position = lap%this.lap_factor*this.track_length + position;
+        float adj_position = lap % this.lap_factor*this.track_length + position;
         if ((this.active != -1) && (position != previous_location)) {
             position_data.setFloat("y", adj_position/10);
-            position_json.setJSONObject(
-                "position", position_data);
+            position_json.setJSONObject("position", position_data);
             this.status = ""+(int)adj_position + " " + this.backtrack + " " + lap;
 
             sendMessage(position_json.toString());
@@ -79,10 +110,15 @@ public class VrExtendedContextList extends VrContextList2 {
             msg_buffer[0] = log_json;
         }
 
-
         return (this.active != -1);
     }
 
+    /**
+     * ?
+     *
+     * @param time ?
+     * @param msg_buffer ?
+     */
     public void stop(float time, JSONObject[] msg_buffer) {
         this.backtrack = 0;
         this.previous_position = -1;
