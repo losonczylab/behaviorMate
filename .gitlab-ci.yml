@@ -1,17 +1,9 @@
 image: openjdk
 pages:
   script:
-    - ls
     - mkdir public
     - cd ..
-    - ls
     - javadoc -sourcepath BehaviorMate/src/* -classpath "BehaviorMate/lib/*" -d BehaviorMate/public -private -doctitle "BehaviorMate" -windowtitle "BehaviorMate" -author -bottom "© Copyright 2021, Losonczy Lab, Jack Bowler" || NO_CONTAINER=1
-    - cd BehaviorMate
-    - ls public
-    # WORKS: - javadoc -sourcepath ./src/* -classpath "./lib/*" -d public -private -doctitle "BehaviorMate" -windowtitle "BehaviorMate" -author -bottom "© Copyright 2021, Losonczy Lab, Jack Bowler" || NO_CONTAINER=1
-    # WORKS: - javadoc -sourcepath ./src/* -classpath "./lib/*" -d public -private -doctitle "BehaviorMate" || NO_CONTAINER=1
-    #- javadoc --help -doctitle "<p>$PACKAGE</p>" -windowtitle "$PACKAGE"
-    #javadoc -classpath "$PACKAGE/lib/*" -sourcepath "$PACKAGE/src/*" -subpackages $PACKAGE -d public -private  || NO_CONTAINER=1
   artifacts:
     paths:
       - public
