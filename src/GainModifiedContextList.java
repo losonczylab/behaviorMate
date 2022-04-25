@@ -65,7 +65,6 @@ public class GainModifiedContextList extends BasicContextList {
         if (variable_scale && (lap != current_lap)) {
             this.position_scale_mod = this.position_scale_list.get(
                 lap % position_scale_list.size());
-            System.out.println(this.position_scale_mod);
             current_lap = lap;
         }
 
