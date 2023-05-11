@@ -4,14 +4,21 @@
     "example": { // name for each profile of in this setting file
         "controllers": {
             "behavior_controller": {
-                "ip": "127.0.0.1",
+                "ip": "192.168.1.101",
+                //"ip": "127.0.0.1",
                 "send_port": 5000,
+                //"send_port": 4096,
                 "receive_port": 5000
             },
             "position_controller": {
-                "ip": "127.0.0.1",
+                "ip": "192.168.1.102",
                 "send_port": 5005,
                 "receive_port": 5005
+            },
+            "frame_sync": {
+                "ip": "192.168.1.103",
+                "send_port": 5010,
+                "receive_port": 5010
             }
         },
         "reward": {
@@ -30,7 +37,15 @@
                 "sensitivity": 6,
                 "reset_pin": 5
             },
-
+            //{
+            //    "type": "piezoport", // rfid tag reader for ID-12LA reader
+            //    "pin": 0,            // pin is the reset pin on the ID-12LA breakout
+            //    "lick_threshold": 20,
+            //    "lick_duration": 10
+            //},
+            //{
+            //    "pin": 15 // for a TTL pulse sensor all that is needed is pin
+            //},
         ],
         // "contexts" are time/space localized events that can be configured to
         // occur along the track. See Context Manager in the behavior arduino
@@ -66,6 +81,12 @@
                 "display_color": [104,204,104], // color to make display
                                                 // indicating the location of
                                                 // this context
+                //"decorators": [
+                //    {
+                //        "class": "blocked_shuffle",
+                //        "locations": [[500, 1500]]
+                //    }
+                //]
             }
         ],
         "sync_pin": 23, // a ttl pulse is delivered at the beginning of each
