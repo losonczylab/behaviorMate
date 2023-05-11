@@ -1,3 +1,5 @@
 .vs/
 behaviorData/
 logs/
+.idea/
+behaviorMate.iml
