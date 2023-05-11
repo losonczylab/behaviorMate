@@ -9,6 +9,7 @@ Logging experimental events in a time-stamped file
 
 ## Dependencies
 Java 8
+
 Windows 10+
 
 ## Citing behaviorMate
