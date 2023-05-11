@@ -12,6 +12,10 @@ Java 8
 
 Windows 10+
 
+## Installation
+
+
+
 ## Citing behaviorMate
 If you use SIMA for your research, please cite the following paper in any resulting publications:
 
