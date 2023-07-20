@@ -2,17 +2,49 @@ import processing.data.JSONObject;
 import processing.data.JSONArray;
 import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ * Wraps a BasicContextList. Disperses contexts randomly <b>outside</b> the "blocked" region
+ * designated in the settings file. For example, if the blocked region of the track is between
+ * 0 and 300 mm, contexts will be randomly dispersed between 300 mm and the end of the track.
+ * This class supports multiple "blocked segments." For example, 100 to 300 mm and 500 to 550 mm
+ * can be blocked in a single trial.
+ */
 public class BlockedShuffleDecorator extends ContextListDecorator {
 
+    /**
+     * Contains the start of each blocked segment.
+     */
     protected int[] blocked_locations_starts;
+
+    /**
+     * Contains the end of each blocked segment.
+     */
     protected int[] blocked_locations_ends;
+
+    /**
+     * Contains the width of each blocked segment.
+     */
     protected int[] blocked_location_widths;
+
+    /**
+     * The sum of the width of all blocked segments.
+     */
     protected int blocked_size;
 
-    public BlockedShuffleDecorator(ContextList context_list,
-                                   JSONObject context_info) {
+    /**
+     * @param context_list ContextList instance the decorator will wrap.
+     * @param context_info JSONObject containing the configuration information
+     *                     for this instance's <code>ContextList</code> from the settings file.
+     *                     <code>context_info</code>> should have the property <tt>locations</tt>
+     *                     as an array of arrays specifying the locations where the contexts should
+     *                     <i>not</i> be present. For example "locations": [[100, 200], [350, 500]],
+     *                     will prevent any contexts from being located within the 100 to 200 mm and
+     *                     350 to 500 mm regions.
+     */
+    public BlockedShuffleDecorator(ContextList context_list, JSONObject context_info) {
         super(context_list);
 
+        // Todo: not providing locations to this decorator should likely throw an exception
         if (context_info.isNull("locations")) {
             this.blocked_locations_starts = new int[0];
             this.blocked_locations_ends = new int[0];
@@ -33,13 +65,15 @@ public class BlockedShuffleDecorator extends ContextListDecorator {
 
         blocked_size = 0;
         for (int i=0; i < this.blocked_locations_starts.length; i++) {
-            blocked_size += this.blocked_locations_ends[i] -
-                            this.blocked_locations_starts[i];
+            blocked_size += this.blocked_locations_ends[i] - this.blocked_locations_starts[i];
         }
 
         this.shuffle();
     }
 
+    /**
+     * Randomize the locations of the contexts within the non-blocked region.
+     */
     public void shuffle() {
         // return immediately if there are no contexts to shuffle
         if (this.context_list.size() == 0) {
@@ -100,11 +134,17 @@ public class BlockedShuffleDecorator extends ContextListDecorator {
         }
     }
 
+    /**
+     * Resets the wrapped <code>BasicContextList</code> and shuffles the contexts.
+     */
     public void reset() {
         this.context_list.reset();
         shuffle();
     }
 
+    /**
+     * ?
+     */
     public void end() {
         this.context_list.end();
         shuffle();

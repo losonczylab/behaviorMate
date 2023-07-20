@@ -9,19 +9,56 @@ import java.io.IOException;
 import processing.data.JSONObject;
 import processing.data.JSONArray;
 
+/**
+ * ?
+ */
 public class SalienceContextList extends BasicContextList {
 
+    /**
+     * ?
+     */
     private class Event {
+
+        /**
+         * ?
+         */
         public float time;
+
+        /**
+         * ?
+         */
         public String type;
+
+        /**
+         * ?
+         */
         public String message;
+
+        /**
+         * ?
+         */
         public String text;
     }
 
+    /**
+     * ?
+     */
     private class MultiEvent extends Event {
+        /**
+         * ?
+         */
         public String[] messages;
+
+        /**
+         * ?
+         */
         public float[] times;
 
+        /**
+         * ?
+         *
+         * @return ?
+         */
         public boolean shift() {
             this.message = this.messages[0];
             this.time = this.times[0];
@@ -37,28 +74,122 @@ public class SalienceContextList extends BasicContextList {
         }
     }
 
+    /**
+     * ?
+     */
     private ArrayList<Event> schedule;
+
+    /**
+     * ?
+     */
     private Event nextEvent;
+
+    /**
+     * ?
+     */
     private TreadmillController tc;
+
+    /**
+     * ?
+     */
     protected Display display;
+
+    /**
+     * ?
+     */
     protected int[] display_color_active;
+
+    /**
+     * ?
+     */
     protected boolean repeat;
+
+    /**
+     * ?
+     */
     protected float repeat_interval;
 
+    /**
+     * ?
+     */
     float stim_time;
+
+    /**
+     * ?
+     */
     float event_time;
+
+    /**
+     * ?
+     */
     float prestim_time;
+
+    /**
+     * ?
+     */
     float poststim_time;
+
+    /**
+     * ?
+     */
     float trial_length;
+
+    /**
+     * ?
+     */
     int nblocks;
+
+    /**
+     * ?
+     */
     private Date exptStartDate;
+
+    /**
+     * ?
+     */
     private ArrayList<JSONObject> stim_array;
 
     Random random;
 
-    public SalienceContextList(TreadmillController tc, Display display,
-            JSONObject context_info, float track_length, String comm_id)
-            throws Exception {
+    /**
+     * ?
+     *
+     * @param tc ?
+     * @param display ?
+     * @param context_info JSONObject containing the configuration information for this context
+     *                     from the settings file. The following JSON literal should be defined
+     *                     in the settings file. The property key: <datatype, value> means that the key
+     *                     is optional and will default to value if not provided and should be of type
+     *                     datatype if provided.
+     *
+     * {
+     * 	    "num_blocks": <int>,
+     * 	    "stim_time": <float>,
+     * 	    "prestim_time": <float>,
+     * 	    "poststim_time": <float>,
+     * 	    "repeat": <boolean, false>,
+     * 	    "repeat_interval": <float, 0>,
+     * 	    "sync_pin": <int, 100>,
+     * 	    "intertrial_min": <int, Random(5, 10)>,
+     * 	    "stims": [
+     * 	                   {
+     * 	                        "name": <String>,
+     * 			                "pin": <int> or <int[]>,
+     * 			                "frequency": <int> or <int []>,
+     * 			                "duration": <int> or <int[]>,
+     * 			                "address": <String, "behavior_controller">,
+     * 			                "offset_times": <float[], null>,
+     * 			                "sync_pin": <int, 100>
+     *                      }
+     *      ]
+     * }
+     *
+     * @param track_length The length of the track (in mm).
+     * @param comm_id ?
+     * @throws Exception
+     */
+    public SalienceContextList(TreadmillController tc, Display display, JSONObject context_info,
+                               float track_length, String comm_id) throws Exception {
         super(context_info, track_length, comm_id);
 
         this.tc = tc;
@@ -80,7 +211,6 @@ public class SalienceContextList extends BasicContextList {
             this.display_color_active = new int[] {150, 50, 20};
         }
 
-
         this.trial_length = prestim_time + stim_time + poststim_time;
         this.display = display;
         this.event_time = -1;
@@ -88,6 +218,9 @@ public class SalienceContextList extends BasicContextList {
 
     }
 
+    /**
+     * ?
+     */
     public void sendCreateMessages() {
         JSONArray stims = this.context_info.getJSONArray("stims");
         stim_array = new ArrayList<JSONObject>();
@@ -105,13 +238,11 @@ public class SalienceContextList extends BasicContextList {
 
                         for (int j=0; j<pins.size(); j++) {
                             JSONObject valve_json;
-                            if ((frequencies == null) ||
-                                (frequencies.getInt(j) == 0)) {
-                                valve_json = TreadmillController.setup_valve_json(
-                                    pins.getInt(j));
+                            if ((frequencies == null) || (frequencies.getInt(j) == 0)) {
+                                valve_json = TreadmillController.setup_valve_json(pins.getInt(j));
                             } else {
                                 valve_json = TreadmillController.setup_valve_json(
-                                    pins.getInt(j), frequencies.getInt(j));
+                                        pins.getInt(j), frequencies.getInt(j));
                             }
 
                             this.comm.sendMessage(valve_json.toString());
@@ -135,15 +266,19 @@ public class SalienceContextList extends BasicContextList {
         createSchedule();
     }
 
-
+    /**
+     * ?
+     *
+     * @param stim ?
+     * @param time_counter ?
+     * @return ?
+     */
     private Event createEvent(JSONObject stim, float time_counter) {
         Event thisEvent = new Event();
 
         int duration = stim.getInt("duration");
-        if (stim.getString("address", "behavior_controller")
-                .equals("behavior_controller")) {
-            JSONObject open_json = TreadmillController.open_valve_json(
-                stim.getInt("pin"), duration);
+        if (stim.getString("address", "behavior_controller").equals("behavior_controller")) {
+            JSONObject open_json = TreadmillController.open_valve_json(stim.getInt("pin"), duration);
             thisEvent.message = open_json.toString();
         } else if (stim.getString("address").equals("local_controller")) {
             thisEvent.message = stim.toString();
@@ -156,12 +291,17 @@ public class SalienceContextList extends BasicContextList {
         return thisEvent;
     }
 
-
+    /**
+     * ?
+     *
+     * @param stim ?
+     * @param time_counter ?
+     * @return ?
+     */
     private Event createMultiEvent(JSONObject stim, float time_counter) {
         MultiEvent thisEvent = new MultiEvent();
 
-        if (stim.getString("address", "behavior_controller")
-                .equals("behavior_controller")) {
+        if (stim.getString("address", "behavior_controller").equals("behavior_controller")) {
 
             JSONArray pins = stim.getJSONArray("pin");
 
@@ -208,7 +348,11 @@ public class SalienceContextList extends BasicContextList {
         return thisEvent;
     }
 
-
+    /**
+     * ?
+     *
+     * @param start_time ?
+     */
     public void createSchedule(float start_time) {
         this.schedule = new ArrayList<Event>();
 
@@ -266,7 +410,7 @@ public class SalienceContextList extends BasicContextList {
                 schedule.add(endEvent);
 
                 time_counter += (int)(random(this.context_info.getInt("intertrial_min", 5),
-                  this.context_info.getInt("intertrial_max", 10)));
+                        this.context_info.getInt("intertrial_max", 10)));
             }
 
         }
@@ -280,10 +424,16 @@ public class SalienceContextList extends BasicContextList {
         nextEvent = schedule.get(0);
     }
 
+    /**
+     * ?
+     */
     public void createSchedule() {
         createSchedule(0f);
     }
 
+    /**
+     * ?
+     */
     public void displaySchedule() {
         String result = "";
         int i;
@@ -297,13 +447,16 @@ public class SalienceContextList extends BasicContextList {
 
         this.display.setSchedule(result);
         if (!this.repeat) {
-            display.setMouseName(
-                "Next Trial: " +
-                schedule.get(schedule.size()-1).time +
-                "s");
+            display.setMouseName("Next Trial: " + schedule.get(schedule.size()-1).time + "s");
         }
     }
 
+    /**
+     * ?
+     *
+     * @param time ?
+     * @param msg_buffer ?
+     */
     public void startTrial(float time, JSONObject[] msg_buffer) {
         JSONObject start_log = new JSONObject();
         Date dateTime = Calendar.getInstance().getTime();
@@ -312,6 +465,12 @@ public class SalienceContextList extends BasicContextList {
         msg_buffer[0] = start_log;
     }
 
+    /**
+     * ?
+     *
+     * @param time ?
+     * @param msg_buffer ?
+     */
     public void endTrial(float time, JSONObject[] msg_buffer) {
         JSONObject end_log = new JSONObject();
         Date dateTime = Calendar.getInstance().getTime();
@@ -320,18 +479,31 @@ public class SalienceContextList extends BasicContextList {
         msg_buffer[0] = end_log;
     }
 
+    /**
+     * Check the state of the list as well as the contexts contained in this and decide if they
+     * should be activated or not. Send the start/stop messages as necessary. this method gets
+     * called for each cycle of the event loop when a trial is started.
+     *
+     * @param position   Current position along the track in millimeters.
+     * @param time       Time (in s) since the start of the trial.
+     * @param lap        Current lap number since the start of the trial.
+     * @param msg_buffer A Java <code>String</code> array of type to buffer and send messages to be
+     *                   logged in the .tdml file being written for this trial. messages should
+     *                   be placed at index 0 of the message buffer and must be JSON-formatted strings.
+     * @return           <code>true</code> to indicate that the trial has started. Note: all messages
+     *                   to the behavior comm are sent from within this method returning true or false
+     *                   indicates the state of the context, but does not actually influence the
+     *                   connected arduinos or UI.
+     */
+    public boolean check(float position, float time, int lap, JSONObject[] msg_buffer) {
 
-    public boolean check(float position, float time, int lap,
-            JSONObject[] msg_buffer) {
-
-        if ((this.event_time != -1) &&
-                (time > (this.event_time + this.stim_time))) {
+        if ( (this.event_time != -1) && (time > (this.event_time + this.stim_time)) ) {
             this.display_color = null;
             this.status = "post-stim";
             this.event_time = -1;
         }
 
-        if ((nextEvent != null) && (time > nextEvent.time)) {
+        if ( (nextEvent != null) && (time > nextEvent.time) ) {
             boolean removeEvent = true;
             if (nextEvent.type.equals("start")) {
                 this.status = "pre-stim";
@@ -382,6 +554,12 @@ public class SalienceContextList extends BasicContextList {
         return false;
     }
 
+    /**
+     * ?
+     *
+     * @param time ?
+     * @param msg_buffer ?
+     */
     public void stop(float time, JSONObject[] msg_buffer) {
         createSchedule();
         super.stop(time, msg_buffer);

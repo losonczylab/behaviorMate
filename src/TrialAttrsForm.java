@@ -35,7 +35,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import java.lang.NumberFormatException;
 
-
+/**
+ * ?
+ */
 public class TrialAttrsForm extends JDialog implements ActionListener {
     private JButton fileChooserButton;
     private JComboBox comboBox;
@@ -45,6 +47,9 @@ public class TrialAttrsForm extends JDialog implements ActionListener {
     private String selectedFile;
     private String selectedTag;
     private ActionListener actionListener;
+    /**
+     * ?
+     */
     private JSONObjectInput fieldsInput;
     private JPanel input_container;
 
@@ -54,6 +59,9 @@ public class TrialAttrsForm extends JDialog implements ActionListener {
         public Object getValue();
     }
 
+    /**
+     * ?
+     */
     private class LabeledInput extends JPanel implements JSONInputField {
         private JLabel label;
         private JTextField textField;
@@ -73,7 +81,9 @@ public class TrialAttrsForm extends JDialog implements ActionListener {
         }
     }
 
-
+    /**
+     * ?
+     */
     class JSONArrayInput extends JSONObjectInput implements JSONInputField {
         private JButton addFieldButton;
         private ActionListener al;
@@ -112,6 +122,11 @@ public class TrialAttrsForm extends JDialog implements ActionListener {
             revalidate();
         }
 
+        /**
+         * ?
+         *
+         * @return ?
+         */
         public JSONArray getValue() {
             JSONArray result = new JSONArray();
             JSONObject field;
@@ -157,6 +172,9 @@ public class TrialAttrsForm extends JDialog implements ActionListener {
 
     }
 
+    /**
+     * ?
+     */
     class JSONObjectInput extends JPanel implements JSONInputField {
         protected ArrayList<JSONInputField> inputBoxes;
         protected JSONArray fields;
@@ -175,6 +193,11 @@ public class TrialAttrsForm extends JDialog implements ActionListener {
             }
         }
 
+        /**
+         * ?
+         *
+         * @param field ?
+         */
         protected void addInput(JSONObject field) {
             String key;
             try {
@@ -222,6 +245,11 @@ public class TrialAttrsForm extends JDialog implements ActionListener {
             return inputBoxes.size();
         }
 
+        /**
+         * ?
+         *
+         * @return ?
+         */
         public JSONArray getValue() {
             for (int i=0; i<fields.length(); i++) {
                 try {
@@ -274,9 +302,11 @@ public class TrialAttrsForm extends JDialog implements ActionListener {
         }
     }
 
-
-
-
+    /**
+     * ?
+     *
+     * @param parent ?
+     */
     public TrialAttrsForm(Component parent) {
         setTitle("Trial Attributes");
 
@@ -301,6 +331,11 @@ public class TrialAttrsForm extends JDialog implements ActionListener {
         setSize(550, 300);
     }
 
+    /**
+     * ?
+     *
+     * @param jsonObj ?
+     */
     public void loadForm(JSONObject jsonObj) {
         JSONArray fields = null;
         fieldsInput = null;
@@ -354,6 +389,11 @@ public class TrialAttrsForm extends JDialog implements ActionListener {
         }
     }
 
+    /**
+     * ?
+     *
+     * @param args ?
+     */
     public static void main(String[] args) {
         try {
             UIManager.setLookAndFeel(

@@ -5,35 +5,77 @@ import processing.data.JSONArray;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+/**
+ * ?
+ */
 public class VrContextList2 extends BasicContextList {
+    /**
+     * ?
+     */
     protected float previous_location;
+
+    /**
+     * ?
+     */
     protected UdpClient[] comms;
+
+    /**
+     * ?
+     */
     protected JSONObject position_json;
+
+    /**
+     * ?
+     */
     protected JSONObject position_data;
+
+    /**
+     * ?
+     */
     protected String[] comm_ids;
+
+    /**
+     * ?
+     */
     protected String sceneName;
+
+    /**
+     * ?
+     */
     protected float startPosition;
+
+    /**
+     * ?
+     */
     protected JSONObject vr_config;
 
+    /**
+     * ?
+     */
     protected TreadmillController tc;
 
-    public VrContextList2(
-            TreadmillController tc, JSONObject context_info,
-            float track_length) throws Exception {
+    /**
+     * ?
+     *
+     * @param tc ?
+     * @param context_info ?
+     * @param track_length ?
+     * @throws Exception
+     */
+    public VrContextList2(TreadmillController tc, JSONObject context_info, float track_length)
+            throws Exception {
         super(context_info, track_length, null);
 
         this.tc = tc;
         this.vr_config = null;
-        this.comm_ids = context_info.getJSONArray(
-            "display_controllers").getStringArray();
+        this.comm_ids = context_info.getJSONArray("display_controllers").getStringArray();
         this.context_info = context_info;
 
         this.sceneName = context_info.getString("scene_name", "_vrMate_main");
 
         position_data = new JSONObject();
         position_json = new JSONObject();
-        this.log_json.getJSONObject("context")
-                     .setString("scene", this.sceneName);
+        this.log_json.getJSONObject("context").setString("scene", this.sceneName);
 
         this.previous_location = -1;
 
@@ -50,6 +92,9 @@ public class VrContextList2 extends BasicContextList {
         this.startPosition = context_info.getFloat("start_position", -1.0f);
     }
 
+    /**
+     * ?
+     */
     public void setupVr() {
         JSONObject scene_msg = new JSONObject();
         scene_msg.setString("action", "editContext");
@@ -94,9 +139,13 @@ public class VrContextList2 extends BasicContextList {
         }
     }
 
+    /**
+     * ?
+     *
+     * @param vr_file ?
+     */
     public void setupVr(String vr_file) {
-        this.vr_config = parseJSONObject(
-            BehaviorMate.parseJsonFile(vr_file).toString());
+        this.vr_config = parseJSONObject(BehaviorMate.parseJsonFile(vr_file).toString());
         JSONArray objects = vr_config.getJSONArray("objects");
         JSONObject msg_json = new JSONObject();
         msg_json.setString("action", "editContext");
@@ -134,6 +183,12 @@ public class VrContextList2 extends BasicContextList {
         }
     }
 
+    /**
+     * ?
+     *
+     * @param comms channel to post messages for configuring, starting or stopping contexts.
+     * @return
+     */
     public boolean setupComms(ArrayList<UdpClient> comms) {
         this.comms = new UdpClient[comm_ids.length];
         for (int i = 0; i < comm_ids.length; i++) {
@@ -164,9 +219,19 @@ public class VrContextList2 extends BasicContextList {
         return true;
     }
 
-
-    public boolean check(float position, float time, int lap,
-                         JSONObject[] msg_buffer) {
+    /**
+     * ?
+     *
+     * @param position   current position along the track
+     * @param time       time (in s) since the start of the trial
+     * @param lap        current lap number since the start of the trial
+     * @param msg_buffer a Java array of type String to buffer and send messages
+     *                   to be logged in the the tdml file being written for
+     *                   this trial. messages should be placed in index 0 of the
+     *                   message buffer and must be JSON formatted strings.
+     * @return ?
+     */
+    public boolean check(float position, float time, int lap, JSONObject[] msg_buffer) {
         boolean inZone = false;
         int i=0;
         for (; i < this.contexts.size(); i++) {
@@ -213,6 +278,11 @@ public class VrContextList2 extends BasicContextList {
         return (this.active != -1);
     }
 
+    /**
+     * ?
+     *
+     * @param msg_buffer ?
+     */
     public void trialStart(JSONObject[] msg_buffer) {
         setupVr();
 
@@ -222,6 +292,9 @@ public class VrContextList2 extends BasicContextList {
         msg_buffer[0] = config_msg;
     }
 
+    /**
+     * ?
+     */
     public void end() {
         JSONObject end_msg = new JSONObject();
         end_msg.setString("context", this.id);
@@ -229,6 +302,9 @@ public class VrContextList2 extends BasicContextList {
         this.sendMessage(end_msg.toString());
     }
 
+    /**
+     * ?
+     */
     public void suspend() {
         this.active = -1;
         this.status = "off";
@@ -240,6 +316,12 @@ public class VrContextList2 extends BasicContextList {
         this.tc.writeLog(this.log_json);
     }
 
+    /**
+     * ?
+     *
+     * @param time ?
+     * @param msg_buffer ?
+     */
     public void stop(float time, JSONObject[] msg_buffer) {
         if (this.active != -1) {
             this.log_json.getJSONObject("context").setString("action", "stop");
@@ -251,6 +333,11 @@ public class VrContextList2 extends BasicContextList {
         sendMessage(this.stopString);
     }
 
+    /**
+     * ?
+     *
+     * @param message ?
+     */
     public void sendMessage(String message) {
         if (this.comms == null) {
             System.out.println("comms null");
@@ -274,6 +361,9 @@ public class VrContextList2 extends BasicContextList {
         }
     }
 
+    /**
+     * ?
+     */
     public void shutdown() {
         JSONObject end_msg = new JSONObject();
         end_msg.setString("context", this.id);

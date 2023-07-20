@@ -1,16 +1,42 @@
 import processing.data.JSONObject;
 import java.util.ArrayList;
 
+/**
+ * Placeholder
+ */
 public class JointContextList extends BasicContextList {
 
+    /**
+     * ?
+     */
     protected String joint_list_id;
+
+    /**
+     * ?
+     */
     protected ContextList joint_list;
 
+    /**
+     * ?
+     */
     protected int offset;
+
+    /**
+     * ?
+     */
     protected boolean fix_radius;
 
-    public JointContextList(JSONObject context_info,
-                            float track_length, String comm_id) {
+    /**
+     * ?
+     *
+     * @param context_info JSONObject containing the configuration information for this context
+     *                     from the settings file. <tt>context_info</tt> should have the parameter
+     *                     <tt>joint_id</tt> set to do ?. <tt>radius</tt> and <tt>offset</tt> are each
+     *                     optional and will default to 0 if not provided.
+     * @param track_length The length of the track (in mm).
+     * @param comm_id ?
+     */
+    public JointContextList(JSONObject context_info, float track_length, String comm_id) {
         super(context_info, track_length, comm_id);
         this.joint_list_id = context_info.getString("joint_id");
 
@@ -19,6 +45,11 @@ public class JointContextList extends BasicContextList {
         this.offset = context_info.getInt("offset", 0);
     }
 
+    /**
+     * ?
+     *
+     * @param contexts ?
+     */
     public void registerContexts(ArrayList<ContextList> contexts) {
         this.joint_list = null;
         for (int i = 0; i < contexts.size(); i++) {
@@ -43,6 +74,9 @@ public class JointContextList extends BasicContextList {
         this.update();
     }
 
+    /**
+     * ?
+     */
     public void update() {
         if (this.joint_list.size() != this.size()) {
             super.clear();
@@ -60,13 +94,11 @@ public class JointContextList extends BasicContextList {
         }
     }
 
+    // Todo: can these unimplemented methods be commented out or were they overridden purposely so
+    //  they would do nothing?
     public void move(int index, int location) { }
-
     public void shuffle() { }
-
     protected void add(int location) { }
-
     public void clear() { }
-
     public void reset() { }
 }

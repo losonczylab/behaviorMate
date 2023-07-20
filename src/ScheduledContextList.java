@@ -4,48 +4,38 @@ import processing.data.JSONObject;
 import processing.data.JSONArray;
 
 /**
- * ScheduledContextList class. Disables contexts based on lap count.
+ * ?
  */
 public class ScheduledContextList extends BasicContextList {
 
     /**
-     * store weither the context is currently active for this lap, or suspended
+     * <code>True</code> if the context is suspended, <code>false</code> otherwise.
      */
     protected boolean suspended;
 
     /**
-     * the color to display the context as in the UI on laps when it is not
-     * suspended.
+     * The color to display the context as in the UI on laps when it is active.
      */
     protected int[] display_color_active;
 
     /**
-     * the color to display the context as on laps when it is suspended.
+     * The color to display the context as on laps when it is suspended.
      */
     protected int[] display_color_suspended;
 
     /**
-     * the index to count to in order to suspend the context.
+     * ?
      */
-
     protected ArrayList<Integer> lap_list;
 
     /**
-     * Constructor.
-     *
-     * @param display      display object which controlls the UI
-     * @param context_info json object containing the configureation information
-     *                     for this context from the settings.json file.
-     *                     context_info should have the parameter
-     *                     <tt>lap_list</tt> whih is a list of integers
-     *                     corresponding to the laps in which this context is
-     *                     not suspended.
-     * @param track_length the length of the track (in mm).
-     * @param comm         client to post messages which configure as well as
-     *                     starts and stop the context
+     * @param context_info JSONObject containing the configuration information for this context from
+     *                     the settings file. <tt>context_info</tt> should have the <tt>lap_list</tt>
+     *                     key defined.
+     * @param track_length The length of the track (in mm).
+     * @param comm_id ?
      */
-    public ScheduledContextList(JSONObject context_info,
-            float track_length, String comm_id) {
+    public ScheduledContextList(JSONObject context_info, float track_length, String comm_id) {
         super(context_info, track_length, comm_id);
         this.suspended = false;
         this.display_color_active = display_color;
@@ -64,7 +54,10 @@ public class ScheduledContextList extends BasicContextList {
         }
     }
 
-
+    /**
+     * Suspend the contexts wrapped by this <code>RandomContextList</code> and send a stop
+     * message to the arduino.
+     */
     public void suspend() {
         this.suspended = true;
         this.status = "suspended";
@@ -77,10 +70,9 @@ public class ScheduledContextList extends BasicContextList {
     }
 
     /**
-     * Check the state of the list as well as the  contexts contained in this
-     * and decide if they should be actived or not. Send the start/stop messages
-     * as necessary. this method gets called for each cycle of the event loop
-     * when a trial is started.
+     * Check the state of the contexts contained in this list and send the
+     * start/stop messages as necessary. This method gets called for each cycle
+     * of the event loop when a trial is started.
      *
      * @param position   current position along the track
      * @param time       time (in s) since the start of the trial
@@ -89,14 +81,13 @@ public class ScheduledContextList extends BasicContextList {
      *                   to be logged in the the tdml file being written for
      *                   this trial. messages should be placed in index 0 of the
      *                   message buffer and must be JSON formatted strings.
-     * @return           returns true to indicate that the trial has started.
+     * @return           <code>true</code> to indicate that the trial has started.
      *                   Note: all messages to the behavior comm are sent from
      *                   within this method returning true or false indicates
      *                   the state of the context, but does not actually
      *                   influence the connected arduinos or UI.
      */
-    public boolean check(float position, float time, int lap,
-                         JSONObject[] msg_buffer) {
+    public boolean check(float position, float time, int lap, JSONObject[] msg_buffer) {
 
         // check if the lap count means that the context list should be
         // suspended or unsuspended.

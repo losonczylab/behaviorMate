@@ -10,20 +10,47 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import processing.core.PApplet;
 import processing.data.JSONObject;
 
-
+/**
+ * ?
+ */
 class UdpClient extends PApplet {
+    /**
+     * ?
+     */
     SocketAddress arduinoAddress;
     DatagramPacket incomingUdp;
+
+    /**
+     * ?
+     */
     DatagramSocket udpSocket;
+    /**
+     * ?
+     */
     ReceiveThread rt;
+
+    /**
+     * ?
+     */
     String address;
+
+    /**
+     * ?
+     */
     String id;
+
+    /**
+     * ?
+     */
     FileWriter mL;
     private boolean sending;
+
+    /**
+     * ?
+     */
     private boolean status;
 
-    public UdpClient(int arduinoPort, int receivePort, String id)
-            throws IOException {
+    public UdpClient(int arduinoPort, int receivePort, String id) throws IOException {
         String ip = "127.0.0.1";
         arduinoAddress = new InetSocketAddress("127.0.0.1", arduinoPort);
         this.address = ip + ":" + receivePort;
@@ -46,8 +73,16 @@ class UdpClient extends PApplet {
         rt.start();
     }
 
-    public UdpClient(String ip, int arduinoPort, int receivePort, String id)
-            throws IOException {
+    /**
+     * ?
+     *
+     * @param ip ?
+     * @param arduinoPort ?
+     * @param receivePort ?
+     * @param id ?
+     * @throws IOException
+     */
+    public UdpClient(String ip, int arduinoPort, int receivePort, String id) throws IOException {
         arduinoAddress = new InetSocketAddress(ip,arduinoPort);
         this.address = ip + ":" + receivePort;
         this.id = id;
@@ -70,6 +105,14 @@ class UdpClient extends PApplet {
         rt.start();
     }
 
+    /**
+     * ?
+     *
+     * @param ip ?
+     * @param arduinoPort ?
+     * @param id ?
+     * @throws IOException
+     */
     public UdpClient(String ip, int arduinoPort, String id) throws IOException {
         arduinoAddress = new InetSocketAddress(ip,arduinoPort);
         this.address = ip;
@@ -96,6 +139,11 @@ class UdpClient extends PApplet {
         this.status = status;
     }
 
+    /**
+     * ?
+     *
+     * @param message ?
+     */
     void sendMessage(String message) {
       message = message.replaceAll("[\r|\n|\\s]", "");
 
@@ -111,6 +159,12 @@ class UdpClient extends PApplet {
       }
     }
 
+    /**
+     * ?
+     *
+     * @param json ?
+     * @return ?
+     */
     public boolean receiveMessage(JSONBuffer json) {
         String message = this.rt.poll();
         if (message != null) {
@@ -128,17 +182,42 @@ class UdpClient extends PApplet {
         return false;
     }
 
+    /**
+     * ?
+     */
     public class ReceiveThread extends Thread {
         private Thread t;
+        /**
+         * ?
+         */
         private DatagramSocket sock;
+        /**
+         * ?
+         */
         private DatagramPacket incomingUdp;
+        /**
+         * ?
+         */
         private ConcurrentLinkedQueue<String> messageQueue;
         //private byte[] receiveData;
+        /**
+         * ?
+         */
         private boolean run;
         private boolean debug;
         private int receivePort;
+        /**
+         * ?
+         */
         private FileWriter mL;
 
+        /**
+         * ?
+         *
+         * @param sock ?
+         * @param receivePort ?
+         * @param mL ?
+         */
         ReceiveThread(DatagramSocket sock, int receivePort, FileWriter mL) {
             this.run = true;
             this.debug = false;
@@ -154,6 +233,11 @@ class UdpClient extends PApplet {
             messageQueue = new ConcurrentLinkedQueue<String>();
         }
 
+        /**
+         * ?
+         *
+         * @return ?
+         */
         public String poll() {
             return messageQueue.poll();
         }

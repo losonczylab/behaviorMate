@@ -4,20 +4,48 @@ import processing.data.JSONObject;
 import processing.data.JSONArray;
 
 /**
- * ScheduledContextList class. Disables contexts based on lap count.
+ * ?
  */
 public class ScheduledContextDecorator extends SuspendableContextDecorator {
 
+    /**
+     * ?
+     */
     protected ArrayList<Integer> lap_list;
 
+    /**
+     * ?
+     */
     protected int repeat;
 
+    /**
+     * ?
+     */
     protected boolean keep_on;
 
+    /**
+     * ?
+     */
     protected int last_lap;
 
-    public ScheduledContextDecorator(ContextList context_list,
-                                     JSONObject context_info) {
+    /**
+     * ?
+     *
+     * @param context_list <code>ContextList</code> instance the decorator will wrap.
+     * @param context_info JSONObject containing the configuration information for this context
+     *                     from the settings file. The following JSON literal should be defined
+     *                     in the settings file. The property key: <datatype, value> means that the key
+     *                     is optional and will default to value if not provided and should be of type
+     *                     datatype if provided.
+     *
+     * {
+     * 	    "lap_list": [ [<int[]>], [<int[]>], ... , [<int[]>] ],
+     * 	    "no_display": <boolean, false>,
+     * 	    "repeat": <int, 0>,
+     * 	    "keep_on": <boolean, false>
+     * }
+     */
+    public ScheduledContextDecorator(ContextList context_list, JSONObject context_info) {
         super(context_list);
 
         this.lap_list = new ArrayList<Integer>();
@@ -68,23 +96,18 @@ public class ScheduledContextDecorator extends SuspendableContextDecorator {
     }
 
     /**
-     * Check the state of the list as well as the  contexts contained in this
-     * and decide if they should be actived or not. Send the start/stop messages
-     * as necessary. this method gets called for each cycle of the event loop
-     * when a trial is started.
+     * Check the state of the list as well as the contexts contained in this and decide if they
+     * should be activated or not. Send the start/stop messages as necessary. this method gets
+     * called for each cycle of the event loop when a trial is started.
      *
-     * @param position   current position along the track
-     * @param time       time (in s) since the start of the trial
-     * @param lap        current lap number since the start of the trial
-     * @param msg_buffer a Java array of type String to buffer and send messages
-     *                   to be logged in the the tdml file being written for
-     *                   this trial. messages should be placed in index 0 of the
-     *                   message buffer and must be JSON formatted strings.
-     * @return           returns true to indicate that the trial has started.
-     *                   Note: all messages to the behavior comm are sent from
-     *                   within this method returning true or false indicates
-     *                   the state of the context, but does not actually
-     *                   influence the connected arduinos or UI.
+     * @param position   Current position along the track in millimeters.
+     * @param time       Time (in s) since the start of the trial.
+     * @param lap        Current lap number since the start of the trial.
+     * @param lick_count ?
+     * @param msg_buffer A Java <code>String</code> array to buffer and send messages to be
+     *                   logged in the .tdml file being written for this trial. Messages should
+     *                   be placed at index 0 of the message buffer and must be JSON-formatted strings.
+     * @return           ?
      */
     public boolean check_suspend(float position, float time, int lap,
                                  int lick_count, JSONObject[] msg_buffer) {

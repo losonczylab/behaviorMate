@@ -1,33 +1,67 @@
 import processing.data.JSONObject;
 
 /**
- * AlternatingContextList class. Disables contexts based on lap count.
+ * ?
  */
 public class RunningContextDecorator extends SuspendableContextDecorator {
 
     /**
-     * the index to count to in order to suspend the context.
+     * ?
      */
     protected float threshold;
 
+    /**
+     * ?
+     */
     protected float prev_time;
 
+    /**
+     * ?
+     */
     protected float prev_position;
 
+    /**
+     * ?
+     */
     protected int prev_lap;
 
+    /**
+     * ?
+     */
     protected float track_length;
 
+    /**
+     * ?
+     */
     protected float max_dt;
 
+    /**
+     * ?
+     */
     protected float min_dt;
 
+    /**
+     * ?
+     */
     protected float min_dy;
 
+    /**
+     * ?
+     */
     protected boolean use_abs_dy;
 
-    public RunningContextDecorator(ContextList context_list,
-                                   JSONObject context_info,
+    /**
+     * ?
+     *
+     * @param context_list <code>ContextList</code> instance the decorator will wrap.
+     * @param context_info JSONObject containing the configuration information for this context
+     *                     from the settings file. The following properties should be defined in the
+     *                     settings file: <tt>threshold</tt>, <tt>max_dt</tt>, <tt>min_dt</tt>,
+     *                     <tt>min_dy</tt>, <tt>use_abs_dy</tt>. If they are not defined they will
+     *                     default to 0, 0.1, 0.2, 5, and false, respectively.
+     * @param track_length The length of the track in millimeters.
+     */
+    public RunningContextDecorator(ContextList context_list, JSONObject context_info,
                                    float track_length) {
         super(context_list);
         this.display_color_suspended = new int[] {100, 100, 100};
@@ -45,8 +79,22 @@ public class RunningContextDecorator extends SuspendableContextDecorator {
         this.suspend();
     }
 
-    public boolean check_suspend(float position, float time, int lap,
-                                 int lick_count, JSONObject[] msg_buffer) {
+    /**
+     * Check the state of the list as well as the contexts contained in this and decide if they
+     * should be activated or not. Send the start/stop messages as necessary. this method gets
+     * called for each cycle of the event loop when a trial is started.
+     *
+     * @param position   Current position along the track in millimeters.
+     * @param time       Time (in s) since the start of the trial.
+     * @param lap        Current lap number since the start of the trial.
+     * @param lick_count ?
+     * @param msg_buffer A Java <code>String</code> array to buffer and send messages to be
+     *                   logged in the .tdml file being written for this trial. Messages should
+     *                   be placed at index 0 of the message buffer and must be JSON-formatted strings.
+     * @return           ?
+     */
+    public boolean check_suspend(float position, float time, int lap, int lick_count,
+                                 JSONObject[] msg_buffer) {
 
         if (lap != this.prev_lap) {
             position += (lap-this.prev_lap)*this.track_length;
@@ -73,6 +121,12 @@ public class RunningContextDecorator extends SuspendableContextDecorator {
         return false;
     }
 
+    /**
+     * Set instance attributes to their defaults and suspend the wrapped <code>ContextList</code>/
+     *
+     * @param time ?
+     * @param msg_buffer ?
+     */
     public void stop(float time, JSONObject[] msg_buffer) {
         this.prev_lap = 0;
         this.prev_position = 0;

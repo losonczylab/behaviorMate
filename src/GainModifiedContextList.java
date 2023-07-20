@@ -4,18 +4,40 @@ import processing.data.JSONObject;
 import processing.data.JSONArray;
 import java.util.ArrayList;
 
+/**
+ * ?
+ */
 public class GainModifiedContextList extends BasicContextList {
+    /**
+     * ?
+     */
     protected TreadmillController tc;
 
+    /**
+     * ?
+     */
     protected float position_scale;
     protected ArrayList<Float> position_scale_list;
+
+    /**
+     * ?
+     */
     protected float position_scale_mod;
     protected boolean variable_scale;
     protected int current_lap;
 
-    public GainModifiedContextList(
-            TreadmillController tc, JSONObject context_info,
-            float track_length) throws Exception {
+    /**
+     * ?
+     *
+     * @param tc ?
+     * @param context_info JSONObject containing the configuration information for this context
+     *                     from the settings file. <tt>context_info</tt> should have the parameter
+     *                     <tt>position_scale</tt> set in order to ?.
+     * @param track_length The length of the track (in mm).
+     * @throws Exception
+     */
+    public GainModifiedContextList(TreadmillController tc, JSONObject context_info,
+                                   float track_length) throws Exception {
         super(context_info, track_length, null);
 
         this.tc = tc;
@@ -50,14 +72,38 @@ public class GainModifiedContextList extends BasicContextList {
         }
     }
 
+    /**
+     * Placeholder
+     */
     public void sendCreateMessages() { }
 
+    /**
+     * Placeholder
+     *
+     * @param comms Channel to post messages for configuring, starting or stopping contexts.
+     * @return
+     */
     public boolean setupComms(ArrayList<UdpClient> comms) {
         return true;
     }
 
-    public boolean check(float position, float time, int lap,
-                         JSONObject[] msg_buffer) {
+    /**
+     * Check the state of the list as well as the contexts contained in this and decide if they
+     * should be activated or not. Send the start/stop messages as necessary. this method gets
+     * called for each cycle of the event loop when a trial is started.
+     *
+     * @param position   Current position along the track in millimeters.
+     * @param time       Time (in s) since the start of the trial.
+     * @param lap        Current lap number since the start of the trial.
+     * @param msg_buffer A Java <code>String</code> array of type to buffer and send messages to be
+     *                   logged in the .tdml file being written for this trial. messages should
+     *                   be placed at index 0 of the message buffer and must be JSON-formatted strings.
+     * @return           <code>true</code> to indicate that the trial has started. Note: all messages
+     *                   to the behavior comm are sent from within this method returning true or false
+     *                   indicates the state of the context, but does not actually influence the
+     *                   connected arduinos or UI.
+     */
+    public boolean check(float position, float time, int lap, JSONObject[] msg_buffer) {
 
         boolean inZone = false;
         int i = 0;
@@ -104,6 +150,10 @@ public class GainModifiedContextList extends BasicContextList {
         return (this.active != -1);
     }
 
+    /**
+     * Suspend all contexts.
+     * Todo: why doesn't this send a message?
+     */
     public void suspend() {
         this.active = -1;
         this.status = "stopped";
@@ -113,6 +163,10 @@ public class GainModifiedContextList extends BasicContextList {
         this.tc.writeLog(this.log_json);
     }
 
+    /**
+     * Todo: seems to do the same thing as suspend.
+     * Stop this context. Called at the end of trials to ensure that the context is shut off.
+     */
     public void stop() {
         this.active = -1;
         this.status = "stopped";
@@ -122,6 +176,7 @@ public class GainModifiedContextList extends BasicContextList {
         this.tc.writeLog(this.log_json);
     }
 
+    // Todo: why is this unimplemented?
     public void sendMessage(String message) { }
 }
 
