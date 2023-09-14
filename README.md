@@ -3,12 +3,12 @@
 ## Overview
 behaviorMate is an Open Source package for collecting time-stamped behavior data during animal experiments. It provides:
 
-User Interface for adjusting experimental parameters and viewing its current state
-Communicating asynchronously with experimental actuators (reward valves, tone generators, etc.) and sensors (rotary encoders, capacitance sensors, etc.)
-Logging experimental events in a time-stamped file
+- A user interface for adjusting experimental parameters and viewing its current state
+- Asychronous communication with experimental actuators (reward valves, tone generators, etc.) and sensors (rotary encoders, capacitance sensors, etc.)
+- Time-stamped logging to a TDML file
 
 ## Citing behaviorMate
-If you use SIMA for your research, please cite the following paper in any resulting publications:
+If you use behaviorMate for your research, please cite the following paper in any resulting publications:
 
 <behaviorMate paper citation>
 
