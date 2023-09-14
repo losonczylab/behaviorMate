@@ -8,7 +8,7 @@ Communicating asynchronously with experimental actuators (reward valves, tone ge
 Logging experimental events in a time-stamped file
 
 ## Dependencies
-Java 8
+<a href="https://www.oracle.com/java/technologies/javase/javase8-archive-downloads.html">Java 8</a>
 
 Windows 10+
 
@@ -31,7 +31,7 @@ After launching BehaviorMate, a file selector will popup for choosing the desire
 2)
     2a) Treadmill only: hit the "Calibrate" button and move treadmill manually by hand until the lap reset bar turns white on lap completion and the desired error is achieved. Add the new position scale to your settings file.
 
-    2b) VR: hit the "Reset" and "Zero" position buttons.
+    2b) VR only: hit the "Reset" and "Zero" position buttons.
 Filling out trial data fields
                 
 3) Start will start the trial. After hitting Start, the Stop button will appear. After clicking Stop, you will have the option of Saving or Deleting the collected behavior data. If saved, the data will be written to a TDML file.
