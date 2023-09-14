@@ -14,7 +14,27 @@ Windows 10+
 
 ## Installation
 
+Option 1: Download and extract zip <link>
 
+Option 2: Download and build from source <link>
+
+## Starting BehaviorMate
+
+To start the application simply click the BehaviortMate shortcut created during installation or execute the run.bat batch file in the project's root directory.
+                
+After launching BehaviorMate, a file selector will popup for choosing the desired settings file. If the settings file is invalid, the file selector will pop up again. If the selector is x'd out, the program will terminate.
+                
+## Setting Up Your Experiment
+
+1) Fill out the "Project Name" and "Mouse Name" fields. The trial will not be able to start until these are filled.
+
+2)
+    2a) Treadmill only: hit the "Calibrate" button and move treadmill manually by hand until the lap reset bar turns white on lap completion and the desired error is achieved. Add the new position scale to your settings file.
+
+    2b) VR: hit the "Reset" and "Zero" position buttons.
+Filling out trial data fields
+                
+3) Start will start the trial. After hitting Start, the Stop button will appear. After clicking Stop, you will have the option of Saving or Deleting the collected behavior data. If saved, the data will be written to a TDML file.
 
 ## Citing behaviorMate
 If you use SIMA for your research, please cite the following paper in any resulting publications:
