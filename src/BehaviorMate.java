@@ -345,14 +345,56 @@ class ValveTestForm extends JPanel implements ActionListener {
      * @param e ?
      */
     public void actionPerformed(ActionEvent e) {
-        int valve = valveText.getInt();
-        int duration = durationText.getInt();
-
+        int valve_check = valveText.getInt();
+        int duration_check = durationText.getInt();
         if (blocked) {
             setEnabled(true);
-        } else if ((valve != 0) && (duration != 0)) {
-            treadmillController.TestValve(
-                valveText.getInt(), durationText.getInt());
+        } else {
+            String[] valve_str;
+            int[] valves;
+            if (valve_check != 0) {
+                valves = new int[1];
+                valves[0] = valve_check;
+            } else {
+                valve_str = valveText.getText().split(", ");
+                valves = new int[valve_str.length];
+                try {
+                    for (int i = 0; i < valve_str.length; i++) {
+                        valves[i] = Integer.parseInt(valve_str[i]);
+                    }
+                } catch (Exception err2) {
+                    System.out.println("Unable to parse input");
+                    valves[0] = -1;
+                }
+            }
+
+            String[] duration_str;
+            int[] durations;
+            if (duration_check != 0) {
+                durations = new int[1];
+                durations[0] = duration_check;
+            } else {
+                duration_str = durationText.getText().split(", ");
+                durations = new int[duration_str.length];
+                try {
+                    for (int i = 0; i < duration_str.length; i++) {
+                        durations[i] = Integer.parseInt(duration_str[i]);
+                    }
+                } catch (Exception err2) {
+                    System.out.println("Unable to parse input");
+                    durations[0] = -1;
+                }
+            }
+
+            if ((durations[0] != -1) && (valves[0] != -1)) {
+                for (int i=0; i < valves.length; i++) {
+                    if (i > durations.length) {
+                        treadmillController.TestValve(valves[i], durations[0]);
+                    } else {
+                        treadmillController.TestValve(valves[i], durations[i]);
+                    }
+                }
+            }
         }
     }
 
@@ -1120,7 +1162,6 @@ class CommentsBox extends JPanel implements ActionListener {
             fileSelect.addItem(nextItem);
         } else {
             fileSelect.addItem(option);
-
         }
     }
 
