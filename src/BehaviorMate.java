@@ -45,11 +45,10 @@ import processing.awt.PSurfaceAWT.SmoothCanvas;
 import processing.core.PApplet;
 import processing.core.PSurface;
 
-// Todo: this file seems to have too many classes. Should probably be broken up
 
 /**
- * Used to create a panel containing a label with a text field below it. This is used for
- * changing the project name, mouse name, valve, and duration.
+ * Used to create a panel containing a label with a text field below it. This is
+ * used for changing the project name, mouse name, valve, and duration.
  */
 class LabeledTextField extends JPanel {
     /**
@@ -86,8 +85,8 @@ class LabeledTextField extends JPanel {
     /**
      * Used to enable or disable the text field.
      *
-     * @param enabled Pass <code>true</code> to enable the text field and <code>false</code> to
-     *                disable it.
+     * @param enabled Pass <code>true</code> to enable the text field and
+     *                <code>false</code> to disable it.
      */
     public void setEnabled(boolean enabled) {
         this.textField.setEnabled(enabled);
@@ -112,7 +111,8 @@ class LabeledTextField extends JPanel {
 
     /**
      *
-     * @return The integer written in the text field by the user if it is a valid integer.
+     * @return The integer written in the text field by the user if it is a
+     *         valid integer.
      */
     public int getInt() {
         try {
@@ -125,42 +125,41 @@ class LabeledTextField extends JPanel {
 }
 
 /**
- * Class for creating the panel containing the 3 buttons for calibrating, resetting,
- * and zeroing position.
+ * Class for creating the panel containing the 3 buttons for calibrating,
+ * resetting, and zeroing position.
  */
 class CalibrateBeltForm extends JPanel implements ActionListener {
 
     /**
-     * ?
+     * Pointer to the treadmill controller singleton which manages the logic of
+     * running experiments.
      */
     private TreadmillController treadmillController;
 
     /**
-     * Button to calibrate position.
+     * Button to toggle position calibration mode.
      * Todo: should probably be renamed positionButton
      */
     private JButton jButton;
 
     /**
-     * Button for resetting position.
+     * Button for resetting the position calibration back the value specified in
+     * the currently loaded settings file.
      */
     private JButton resetButton;
 
     /**
-     * Button for zeroing position.
-     * Todo: what's the difference between calibrating, resetting, and zeroing position?
+     * Button to set position to zero.
      */
     private JButton zeroButton;
 
     /**
-     * ?
+     * Store if a calibration mode is activated.
      */
     private boolean calibrating;
 
     /**
-     * ?
-     *
-     * @param treadmillController ?
+     * @param treadmillController pointer to the treadmill controller
      */
     public CalibrateBeltForm(TreadmillController treadmillController) {
         super(new FlowLayout());
@@ -193,7 +192,6 @@ class CalibrateBeltForm extends JPanel implements ActionListener {
         c.gridx = 0;
         c.gridy = 2;
         button_container.add(zeroButton, c);
-        //button_container.setPreferredSize(new Dimension(150, 50));
 
         JLabel formLabel = new JLabel("Position Controls", SwingConstants.LEFT);
         formLabel.setPreferredSize(new Dimension(120, 25));
@@ -207,8 +205,8 @@ class CalibrateBeltForm extends JPanel implements ActionListener {
 
     /**
      * Used to enable or disable all 3 buttons.
-     * @param enabled <code>true</code> will enable all buttons and <code>false</code> will disable
-     *                all buttons.
+     * @param enabled <code>true</code> will enable all buttons and
+     *                <code>false</code> will disable all buttons.
      */
     public void setEnabled(boolean enabled) {
         jButton.setEnabled(enabled);
@@ -217,7 +215,7 @@ class CalibrateBeltForm extends JPanel implements ActionListener {
     }
 
     /**
-     * ?
+     * Trigger the UI to end the current calibration.
      */
     public void endCalibration() {
         treadmillController.EndBeltCalibration();
@@ -247,46 +245,9 @@ class CalibrateBeltForm extends JPanel implements ActionListener {
     }
 }
 
-
-//class ZeroPositionForm extends JPanel implements ActionListener {
-//    private TreadmillController treadmillController;
-//    private JButton testValveButton;
-//    private boolean blocked;
-//
-//    public ZeroPositionForm(TreadmillController treadmillController) {
-//        super(new FlowLayout());
-//        this.treadmillController = treadmillController;
-//
-//        testValveButton = new JButton("Zero Position");
-//        testValveButton.addActionListener(this);
-//        JPanel button_container = new JPanel(new GridLayout(0,1));
-//        button_container.add(testValveButton);
-//        add(button_container);
-//    }
-//
-//    public void setEnabled(boolean enabled) {
-//        if (!enabled) {
-//            this.blocked = true;
-//            testValveButton.setText("Enable");
-//        } else {
-//            this.blocked = false;
-//            testValveButton.setText("Zero Position");
-//        }
-//        //testValveButton.setEnabled(enabled);
-//    }
-//
-//    public void actionPerformed(ActionEvent e) {
-//        if (blocked) {
-//            setEnabled(true);
-//        } else {
-//            treadmillController.ZeroPosition();
-//        }
-//    }
-//}
-
 /**
- * Class for making panel containing the LabeledTextFields for the Valve and Duration fields
- * and the button for opening the valve.
+ * Class for making panel containing the LabeledTextFields for the Valve and
+ * Duration fields and the button for opening the valve.
  */
 class ValveTestForm extends JPanel implements ActionListener {
 
@@ -296,21 +257,22 @@ class ValveTestForm extends JPanel implements ActionListener {
     private JButton testValveButton;
 
     /**
-     *
+     * Valve tests are blocked during trials, so the user has to activate the
+     * button prior to the valve opening on the first press in any trial.
      */
     private boolean blocked;
 
     /**
-     * ?
-     *
-     * @param treadmillController ?
+     * @param treadmillController pointer to the treadmill controller to
+     *                            interface with experiment logic.
      */
     public ValveTestForm(TreadmillController treadmillController) {
         super(new FlowLayout());
         this.treadmillController = treadmillController;
 
         JPanel center_panel = new JPanel(new GridLayout(0,1));
-        valveText = new LabeledTextField("Valve", ""+treadmillController.getRewardPin(), 14);
+        valveText = new LabeledTextField(
+            "Valve", "" + treadmillController.getRewardPin(), 14);
         durationText = new LabeledTextField("Duration", "200", 14);
         center_panel.add(valveText);
         center_panel.add(durationText);
@@ -324,9 +286,12 @@ class ValveTestForm extends JPanel implements ActionListener {
     }
 
     /**
-     * ?
+     * Change the valve test button to "enabled". Sets this.blocked to !enabled
+     * and alters the displayed text
      *
-     * @param enabled ?
+     * @param enabled if <code>true</code> set the button so it enabled and
+     * and display correct text. Otherwise, if <code>false</code> set the
+     * button to blocked mode.
      */
     public void setEnabled(boolean enabled) {
         if (!enabled) {
@@ -336,13 +301,12 @@ class ValveTestForm extends JPanel implements ActionListener {
             this.blocked = false;
             testValveButton.setText("Open Valve");
         }
-        //testValveButton.setEnabled(enabled);
     }
 
     /**
-     * ?
+     * Implement the ActionListener interface.
      *
-     * @param e ?
+     * @param e ActionEvent which has been triggered.
      */
     public void actionPerformed(ActionEvent e) {
         int valve_check = valveText.getInt();
@@ -356,6 +320,8 @@ class ValveTestForm extends JPanel implements ActionListener {
                 valves = new int[1];
                 valves[0] = valve_check;
             } else {
+                // Logic to support a list of valves & durations instead of just
+                // a single input
                 valve_str = valveText.getText().split(", ");
                 valves = new int[valve_str.length];
                 try {
@@ -374,6 +340,8 @@ class ValveTestForm extends JPanel implements ActionListener {
                 durations = new int[1];
                 durations[0] = duration_check;
             } else {
+                // Logic to support a list of valves & durations instead of just
+                // a single input
                 duration_str = durationText.getText().split(", ");
                 durations = new int[duration_str.length];
                 try {
@@ -399,17 +367,18 @@ class ValveTestForm extends JPanel implements ActionListener {
     }
 
     /**
-     * ?
+     * Set the default pin for this form. Used to auto-populate the reward pin
+     * when new settings are loaded.
      *
-     * @param pin_number ?
+     * @param pin_number Pin number to fill into the test valve form.
      */
     public void setPin(int pin_number) {
-        valveText.setText(""+pin_number);
+        valveText.setText("" + pin_number);
     }
 }
 
 /**
- * ?
+ * A class to listen to changes in the state of the UI form.
  */
 class TrialListener {
 
@@ -423,7 +392,9 @@ class TrialListener {
     private String position_settings;
 
     /**
-     * ?
+     * Depreciated class for starting up arduino USB comms driver program.
+     *
+     * TODO: This can most likely be removed.
      */
     class ArduinoProcess {
 
@@ -432,7 +403,7 @@ class TrialListener {
         private String settings;
 
         /**
-         * ?
+         * Depreciated
          *
          * @param arduino_controller_path ?
          * @param settings ?
@@ -447,7 +418,7 @@ class TrialListener {
         }
 
         /**
-         * ?
+         * Depreciated
          */
         public void destroy() {
             if (this.p != null) {
@@ -459,7 +430,7 @@ class TrialListener {
         }
 
         /**
-         * ?
+         * Depreciated
          *
          * @param controller_info ?
          * @return ?
@@ -491,7 +462,7 @@ class TrialListener {
         }
 
         /**
-         * ?
+         * Depreciated
          */
         public void startProcess() {
             String[] cmd = {arduino_controller_path, "", ""};
@@ -514,7 +485,7 @@ class TrialListener {
     private HashMap<String, ArduinoProcess> arduino_controllers;
 
     /**
-     * ?
+     * Constructor.
      */
     public TrialListener() {
         controlPanel = null;
@@ -526,34 +497,36 @@ class TrialListener {
     }
 
     /**
-     * ?
+     * Setter for the pointer to the controlPanel UI component
      *
-     * @param controlPanel ?
+     * @param controlPanel Left side of the UI panel for experiment controls
      */
     public void setControlPanel(ControlPanel controlPanel) {
         this.controlPanel = controlPanel;
     }
 
     /**
-     * ?
+     * Setter for the pointer to the commentsBox UI component
      *
-     * @param commentsBox ?
+     * @param commentsBox Box below the main UI which allows users to enter
+     *                    comments
      */
     public void setCommentsBox(CommentsBox commentsBox) {
         this.commentsBox = commentsBox;
     }
 
     /**
-     * ?
+     * Setter for the pointer to the treadmill controller
      *
-     * @param controller ?
+     * @param controller treadmill controller is a singleton that controls the
+     *                   flow of experiments/UDP comms
      */
     public void setController(TreadmillController controller) {
         this.controller = controller;
     }
 
     /**
-     * ?
+     * Depreciated
      *
      * @param  ?
      * @param controllers ?
@@ -591,7 +564,7 @@ class TrialListener {
     }
 
     /**
-     * ?
+     * Depreciated
      *
      * @param arduino_path ?
      * @param controllers ?
@@ -603,9 +576,9 @@ class TrialListener {
     }
 
     /**
-     * ?
+     * Method called just after a new trial is started.
      *
-     * @param logFile ?
+     * @param logFile the current .tdml file to write comments to
      */
     public void started(File logFile) {
         if (commentsBox != null) {
@@ -614,14 +587,14 @@ class TrialListener {
     }
 
     /**
-     * ?
+     * Method used to refresh panels when the UI is first loaded.
      */
     public void initialized() {
         controlPanel.refreshSettings();
     }
 
     /**
-     * ?
+     * Method called subsequent to the end of a trial.
      */
     public void ended() {
         if (controlPanel != null) {
@@ -635,9 +608,9 @@ class TrialListener {
     }
 
     /**
-     * ?
+     * Display an error message pup-up to the user.
      *
-     * @param message ?
+     * @param message message to display to the user describing the error.
      */
     public void exception(String message) {
         this.controller.endExperiment();
@@ -648,9 +621,10 @@ class TrialListener {
     }
 
     /**
-     * ?
+     * Alert the user with a pop-up
      *
-     * @param message ?
+     * @param message Message to display in the alert. Pop-up in a dedicated
+     *                thread so as to no block the UI.
      */
     public void alert(String message) {
         if (message.length() > 100) {
@@ -666,9 +640,11 @@ class TrialListener {
     }
 
     /**
-     * ?
+     * Show the post-trial pop-up dialog which allows users to specify if they
+     * want to save the last trial ran or delete it.
      *
-     * @param filepath ?
+     * @param filepath the path to display in the pop-up and file to delete if
+     *                 accepted.
      */
     public void showDeleteDialog(String filepath) {
         final String _filepath = filepath;
@@ -703,9 +679,11 @@ class TrialListener {
     }
 
     /**
-     * ?
+     * Reset the connection to all arduinos.
      */
     public void resetComms() {
+        // TODO: remove adruino_controllers check and always perform the reset
+        // through treadmill controller
         if (arduino_controllers != null) {
             for (ArduinoProcess process : arduino_controllers.values()) {
                 process.destroy();
@@ -718,7 +696,7 @@ class TrialListener {
     }
 
     /**
-     * ?
+     * Depreciated
      */
     public void shutdown() {
         if (arduino_controllers != null) {
@@ -730,14 +708,14 @@ class TrialListener {
 }
 
 /**
- * Class for containing the entire right side (except the Comments section) of the
- * BehaviorMate application, from the "Project Name" label to the "Start" button.
+ * Class for containing the entire left side (except the Comments section) of
+ * the BehaviorMate application, from the "Project Name" label to the "Start"
+ * button.
  */
 class ControlPanel extends JPanel implements ActionListener {
     private LabeledTextField mouseNameBox;
     private LabeledTextField experimentGroupBox;
     private ValveTestForm valveTestForm;
-    //private ZeroPositionForm zeroPositionForm;
     private CalibrateBeltForm calibrateBeltForm;
     private JButton showAttrsButton;
     private JButton refreshButton;
@@ -750,11 +728,12 @@ class ControlPanel extends JPanel implements ActionListener {
     private JFrame parent;
 
     /**
-     * ?
-     *
-     * @param parent ?
-     * @param treadmillController ?
-     * @param settingsLoader ?
+     * @param parent              Pointer to the parent JFrame holding the
+     *                            application.
+     * @param treadmillController Pointer to the singleton treadmill controller
+     *                            class which contains all the logic for
+     *                            controller behaviorMate experiments.
+     * @param settingsLoader      Pointer to the settings loader form.
      */
     public ControlPanel(JFrame parent, TreadmillController treadmillController,
                         SettingsLoader settingsLoader) {
@@ -775,9 +754,6 @@ class ControlPanel extends JPanel implements ActionListener {
         calibrateBeltForm.setPreferredSize(new Dimension(200, 100));
         add(calibrateBeltForm);
 
-        //zeroPositionForm = new ZeroPositionForm(treadmillController);
-        //zeroPositionForm.setPreferredSize(new Dimension(200, 50));
-        //add(zeroPositionForm);
         add(Box.createVerticalStrut(25));
 
         valveTestForm = new ValveTestForm(treadmillController);
@@ -808,23 +784,23 @@ class ControlPanel extends JPanel implements ActionListener {
         trialAttrsForm = new TrialAttrsForm(this);
         trialAttrsForm.addActionListener(this);
 
-        //JMenuBar menuBar = new JMenuBar();
-        //this.parent.setJMenuBar(menuBar);
-
         showAttrsForm();
     }
 
     /**
-     * ?
+     * Set the pin in the valve test form to a default value. Used to
+     * pre-populate the valve test form with the reward pin, since
+     * this is the most common use case for this form.
      *
-     * @param pin_number ?
+     * @param pin_number pin number to populate in the form.
      */
     public void setTestValve(int pin_number) {
         valveTestForm.setPin(pin_number);
     }
 
     /**
-     * ?
+     * Show the pop-up to add/modify trial attrs. Must be specified in the
+     * settings .json file
      */
     public void showAttrsForm() {
         if (trialAttrsForm.showForm()) {
@@ -834,6 +810,9 @@ class ControlPanel extends JPanel implements ActionListener {
         }
     }
 
+    /**
+     * Comping user input in the attrs form with the loaded settings.
+     */
     private void updateAttrs() {
         String trialAttrs = "";
         try {
@@ -861,9 +840,11 @@ class ControlPanel extends JPanel implements ActionListener {
     }
 
     /**
-     * ?
+     * Set the if the ControlPanel is editable or disabled.
      *
-     * @param enabled ?
+     * @param enabled if <code>true</code> set enabled for all sub-forms
+     *                otherwise, if <code>false</code> set all sub-forms to
+     *                disabled.
      */
     public void setEnabled(boolean enabled) {
         if (!enabled) {
@@ -886,12 +867,15 @@ class ControlPanel extends JPanel implements ActionListener {
     }
 
     /**
-     * ?
+     * Locates a specific settings tag within a .json file. Mixes in other tags
+     * from the same file if "uses" keyword is included in the settings.
      *
-     * @param filename ?
-     * @param tag ?
-     * @return ?
-     * @throws JSONException
+     * @param filename filename to load settings from
+     * @param tag      key in the .json to load
+     * @return         A JSONObject with the loaded settings
+     *
+     * @throws JSONException Display errors to the UI. Usually a parse error if
+     *                       there is a syntax error in the .json file
      */
     public static JSONObject findSettings(String filename, String tag)
             throws JSONException {
@@ -949,7 +933,7 @@ class ControlPanel extends JPanel implements ActionListener {
     }
 
     /**
-     * ?
+     * Refreshes/reloads the current settings from the settings file.
      */
     public void refreshSettings() {
         String version = "Behavior Mate ";
@@ -995,7 +979,7 @@ class ControlPanel extends JPanel implements ActionListener {
     }
 
     /**
-     * ?
+     * Trigger the UI to start recording a trial.
      */
     public void startTrial() {
         this.calibrateBeltForm.endCalibration();
@@ -1037,9 +1021,9 @@ class ControlPanel extends JPanel implements ActionListener {
     }
 
     /**
-     * ?
+     * Implements the ActionListener interface.
      *
-     * @param e ?
+     * @param e ActionEvent to respond to.
      */
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == startButton) {
@@ -1060,7 +1044,6 @@ class ControlPanel extends JPanel implements ActionListener {
     }
 }
 
-// Todo: how does this section work?
 class CommentsBox extends JPanel implements ActionListener {
     JComboBox<String> fileSelect;
     JButton saveButton;
@@ -1079,9 +1062,9 @@ class CommentsBox extends JPanel implements ActionListener {
     TreadmillController treadmillController;
 
     /**
-     * ?
-     *
-     * @param treadmillController ?
+     * @param treadmillController Pointer to the treadmill controller
+     *                            which implement all of the logic running
+     *                            experiments.
      */
     public CommentsBox(TreadmillController treadmillController) {
         currentFile = null;
@@ -1121,9 +1104,12 @@ class CommentsBox extends JPanel implements ActionListener {
     }
 
     /**
-     * ?
+     * Set the current file to write comments to. The file selector allows users
+     * to switch between writing to the current .tdml (related to the last-run
+     * trail/experiment) or to store the comments and write it into the next
+     * trial run (.tdml files do not exist until the Start button is pushed).
      *
-     * @param file ?
+     * @param file the current .tdml file to be added to the dropdown.
      */
     public void setCurrentFile(File file) {
         if (fileSelect.getSelectedItem() == nextItem) {
@@ -1153,9 +1139,9 @@ class CommentsBox extends JPanel implements ActionListener {
     }
 
     /**
-     * ?
+     * Add options to the file select dialog.
      *
-     * @param option ?
+     * @param option the option to add
      */
     public void addOption(String option) {
         if (option.equals(nextItem)) {
@@ -1166,9 +1152,9 @@ class CommentsBox extends JPanel implements ActionListener {
     }
 
     /**
-     * ?
+     * Event listener to implement the ActionListener interface.
      *
-     * @param e ?
+     * @param e ActionEvent to react to.
      */
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == saveButton) {
@@ -1198,7 +1184,9 @@ class CommentsBox extends JPanel implements ActionListener {
 }
 
 /**
- * Todo: what is this for?
+ * KeyboardListener to implement optional comment keys. Comment keys have to be
+ * configured in the settings file and allow uses to quickly add shortcut
+ * comments with time stamps. e.g. to mark specific behaviors like grooming.
  */
 class KeyboardListener implements KeyEventDispatcher {
     private TreadmillController treadmillController;
@@ -1208,9 +1196,7 @@ class KeyboardListener implements KeyEventDispatcher {
     private final Class commentclass = new JTextArea().getClass();
 
     /**
-     * ?
-     *
-     * @param treadmillController ?
+     * @param treadmillController pointer to the treadmill controller singleton.
      */
     public KeyboardListener(TreadmillController treadmillController) {
         this.treadmillController = treadmillController;
@@ -1218,10 +1204,10 @@ class KeyboardListener implements KeyEventDispatcher {
     }
 
     /**
-     * ?
+     * Implement the KeyEventDispatcher fnterface.
      *
-     * @param e ?
-     * @return ?
+     * @param e KeyEvent to respond to
+     * @return <code>false</code>
      */
     public boolean dispatchKeyEvent(KeyEvent e) {
         JTextField test = new JTextField();
@@ -1242,6 +1228,9 @@ class KeyboardListener implements KeyEventDispatcher {
         return false;
     }
 
+    /**
+     * Add a key to the tracked comment-key table to respond to.
+     */
     public void addKeyChar(Character key, String comment) {
         commentTable.put(key, comment);
     }
@@ -1255,13 +1244,14 @@ public class BehaviorMate {
     static JFrame startFrame;
 
     /**
-     * Placeholder
+     * Parse a .json file. Can also parse the settings from a previous
+     * experiment if passed a .tdml file.
      *
      * @param filename Name of the file to be parsed, including the extension.
-     * @return
+     * @return JSONObject representation of the json formatted text in the file.
      */
     public static JSONObject parseJsonFile(String filename) {
-        // What does this regular expression do?
+        // determine the file extension
         String extension = filename.replaceAll("^.*\\.(.*)$", "$1");
         if (extension.equals("tdml")) {
             return parseTdmlSettings(filename);
@@ -1295,12 +1285,13 @@ public class BehaviorMate {
     }
 
     /**
-     * Extracts the JSON literal with the key <tt>tag</tt> from the file named <tt>filename</tt>.
+     * Extracts the JSON literal with the key <tt>tag</tt> from the file named
+     * <tt>filename</tt>.
      *
      * @param filename Name of the file to be parsed, including the extension.
      * @param tag Key of the JSON literal to be extracted.
-     * @return The JSON literal as <code>JSONObject</code> if the key is found, otherwise
-     * <code>null</code>.
+     * @return The JSON literal as <code>JSONObject</code> if the key is found,
+     * otherwise <code>null</code>.
      */
     public static JSONObject parseJsonFile(String filename, String tag) {
         JSONObject json  = parseJsonFile(filename);
@@ -1318,10 +1309,11 @@ public class BehaviorMate {
     }
 
     /**
-     * ?
+     * Parse settings from a previous experiment's .tdml file.
      *
      * @param filename Name of the file to be parsed, including the extension.
-     * @return ?
+     * @return         JSONObject representation of the settings from a .tdml
+     *                 file
      */
     public static JSONObject parseTdmlSettings(String filename) {
         String jsonData = "";
@@ -1352,10 +1344,10 @@ public class BehaviorMate {
     }
 
     /**
-     * ?
+     * Parse a json file into a JSONObject while ignoring comment lines
      *
      * @param filename Name of the file to be parsed, including the extension.
-     * @return ?
+     * @return The JSONObject representation of the file.
      */
     public static JSONObject parseJson(String filename) {
         String jsonData = "";
@@ -1387,9 +1379,10 @@ public class BehaviorMate {
     }
 
     /**
-     * ?
+     * Initialize the UI and start the treadmill controller
      *
-     * @param settingsLoader ?
+     * @param settingsLoader The settings loader dialog to pull initial startup
+     *                       conditions from.
      */
     private static void startTreadmill(SettingsLoader settingsLoader) {
         String settingsFile = settingsLoader.getSelectedFile();
@@ -1451,14 +1444,10 @@ public class BehaviorMate {
         ps.startThread();
     }
 
-    /**
-     * ?
-     *
-     * @param args ?
-     */
     public static void main(String[] args) {
         try {
-            UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
+            UIManager.setLookAndFeel(
+                "com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
         } catch (Exception e) {}
 
         String system_type = System.getProperty("os.name");
@@ -1468,7 +1457,6 @@ public class BehaviorMate {
             } catch (Exception e) {
                 System.out.println(e);
             }
-
         }
 
         startFrame = new JFrame("BehaviorMate");
