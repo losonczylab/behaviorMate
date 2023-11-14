@@ -3,6 +3,7 @@ import java.util.Iterator;
 import processing.data.JSONObject;
 import processing.data.JSONArray;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * ?
@@ -107,6 +108,35 @@ public class VrContextList2 extends BasicContextList {
         } else {
             this.vr_config = null;
         }
+
+        if (!this.context_info.isNull("apply_filter")) {
+            JSONArray filters = null;
+            try {
+                filters = context_info.getJSONArray("apply_filter");
+            } catch (RuntimeException e) {
+                filters = new JSONArray();
+                try {
+                    filters.append(context_info.getString("apply_filter"));
+                } catch (RuntimeException e2) {
+                    filters.append(context_info.getJSONObject("apply_filter"));
+                }
+            }
+
+            for (int i = 0; i < filters.size(); i++) {
+                JSONObject msg_json = new JSONObject();
+                try {
+                    msg_json = JSONObject.parse(
+                        filters.getJSONObject(i).toString());
+                } catch (RuntimeException e) {
+                    msg_json.setString(
+                        "id", filters.getString(i));
+                }
+                msg_json.setString("action", "editContext");
+                msg_json.setString("context", this.id);
+                msg_json.setString("type", "filter");
+                sendMessage(msg_json.toString());
+            }
+        }
     }
 
     /**
@@ -129,8 +159,26 @@ public class VrContextList2 extends BasicContextList {
         }
 
         if (!vr_config.isNull("skybox")) {
+            msg_json = new JSONObject();
+            msg_json.setString("action", "editContext");
+            msg_json.setString("context", this.id);
             msg_json.setString("type", "skybox");
             msg_json.setString("skybox", vr_config.getString("skybox"));
+            sendMessage(msg_json.toString());
+        }
+
+        if (!vr_config.isNull("apply_filter")) {
+            msg_json = new JSONObject();
+            try {
+                msg_json = JSONObject.parse(
+                    vr_config.getJSONObject("apply_filter").toString());
+            } catch (Exception e) {
+                msg_json.setString("id", vr_config.getString("apply_filter"));
+            }
+
+            msg_json.setString("action", "editContext");
+            msg_json.setString("context", this.id);
+            msg_json.setString("type", "filter");
             sendMessage(msg_json.toString());
         }
     }

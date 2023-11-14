@@ -5,9 +5,9 @@
         "controllers": {
             "behavior_controller": {
                 "ip": "192.168.1.101",
-                //"ip": "127.0.0.1",
+                //"ip": "127.0.0.1", // can alternatively use localhost for testing
+                //"send_port": 5000,
                 "send_port": 5000,
-                //"send_port": 4096,
                 "receive_port": 5000
             },
             "position_controller": {
@@ -15,11 +15,11 @@
                 "send_port": 5005,
                 "receive_port": 5005
             },
-            "frame_sync": {
-                "ip": "192.168.1.103",
-                "send_port": 5010,
-                "receive_port": 5010
-            }
+            //"frame_sync": { // frame sync controller is optional and not normally used
+            //    "ip": "192.168.1.103",
+            //    "send_port": 5010,
+            //    "receive_port": 5010
+            //}
         },
         "reward": {
             "id": "reward"
@@ -34,12 +34,12 @@
                 "pin": 3,
                 "sensor": 0,
                 "lights": true,
-                "sensitivity": 6,
+                "sensitivity": 7,
                 "reset_pin": 5
             },
             //{
-            //    "type": "piezoport", // rfid tag reader for ID-12LA reader
-            //    "pin": 0,            // pin is the reset pin on the ID-12LA breakout
+            //    "type": "piezoport",
+            //    "pin": 0,
             //    "lick_threshold": 20,
             //    "lick_duration": 10
             //},
@@ -51,6 +51,22 @@
         // occur along the track. See Context Manager in the behavior arduino
         // code for more information
         "contexts": [
+            {
+                // example of a gain shift of the position scale  happening every other lap
+                "id": "gain",
+                "class": "gain_mod",
+                "gain": 2,
+                "locations": [1000],
+                "radius": 250,
+                "display_color": [100, 100, 150],
+                "decorators": [
+                    {
+                        "class": "scheduled_context",
+                        "lap_list": [1],
+                        "repeat": 2
+                    }
+                ]
+            },
             // reward zones are an example of a context and can be configured
             // in this list as well.
             {
@@ -69,9 +85,9 @@
                 "radius": 50,
                 "report_pin": 7,
                 "initial_open": false,
-                "sensor": 2, // pin number associated with the sensor to trigger
+                "sensor": 3, // pin number associated with the sensor to trigger
                              // operant context.
-                "locations": 10,
+                "locations": 2,
                 // "locations": [500, 1500], // integer or list. list - list of
                                              // locations to place context
                                              // centroids. integer - number of
@@ -81,12 +97,13 @@
                 "display_color": [104,204,104], // color to make display
                                                 // indicating the location of
                                                 // this context
-                //"decorators": [
-                //    {
-                //        "class": "blocked_shuffle",
-                //        "locations": [[500, 1500]]
-                //    }
-                //]
+                "decorators": [
+                    {
+                        "class": "scheduled_context",
+                        "lap_list": [1],
+                        "repeat": 2
+                    }
+                ]
             }
         ],
         "sync_pin": 23, // a ttl pulse is delivered at the beginning of each

@@ -20,6 +20,7 @@ public class JointSuspendContextDecorator extends SuspendableContextDecorator {
      *
      */
     protected ArrayList<SuspendableContextDecorator> master_suspendables;
+    protected boolean invert;
 
     /**
      * ?
@@ -30,11 +31,13 @@ public class JointSuspendContextDecorator extends SuspendableContextDecorator {
      *                     <tt>joint_id</tt> set to do ?. The <tt>master</tt> parameter is optional
      *                     and will default to false if not provided.
      */
-    public JointSuspendContextDecorator(ContextList context_list, JSONObject context_info) {
+    public JointSuspendContextDecorator(ContextList context_list,
+                                        JSONObject context_info) {
         super(context_list);
 
         this.joint_list_id = context_info.getString("joint_id");
         this.master = context_info.getBoolean("master", false);
+        this.invert = context_info.getBoolean("invert", false);
     }
 
     /**
@@ -140,7 +143,10 @@ public class JointSuspendContextDecorator extends SuspendableContextDecorator {
                                  JSONObject[] msg_buffer) {
 
         if (!this.master) {
-            return this.masterSuspended();
+            boolean master_suspended = this.masterSuspended();
+
+            return ((!master_suspended && this.invert) ||
+                    (master_suspended && !this.invert));
         } else {
             return false;
         }

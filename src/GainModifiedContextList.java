@@ -17,11 +17,14 @@ public class GainModifiedContextList extends BasicContextList {
      * ?
      */
     protected float position_scale;
+    protected ArrayList<Float> position_scale_list;
 
     /**
      * ?
      */
     protected float position_scale_mod;
+    protected boolean variable_scale;
+    protected int current_lap;
 
     /**
      * ?
@@ -38,9 +41,35 @@ public class GainModifiedContextList extends BasicContextList {
         super(context_info, track_length, null);
 
         this.tc = tc;
-
+        position_scale_list = null;
+        variable_scale = false;
         position_scale = tc.getPositionScale();
-        position_scale_mod = context_info.getFloat("position_scale");
+        current_lap = -1;
+
+        if (!context_info.isNull("position_scale")) {
+            try {
+                JSONArray scale_values = context_info.getJSONArray("position_scale");
+                position_scale_list = new ArrayList<Float>(scale_values.size());
+                for (int i = 0; i < scale_values.size(); i++) {
+                    position_scale_list.add(scale_values.getFloat(i));
+                }
+                variable_scale = true;
+            } catch (RuntimeException e) {
+                position_scale_mod = context_info.getFloat("position_scale");
+            }
+        } else if (!context_info.isNull("gain")){
+            try {
+                JSONArray gain_values = context_info.getJSONArray("gain");
+                position_scale_list = new ArrayList<Float>(gain_values.size());
+                for (int i = 0; i < gain_values.size(); i++) {
+                    position_scale_list.add(
+                        position_scale / gain_values.getFloat(i));
+                }
+                variable_scale = true;
+            } catch (RuntimeException e) {
+                position_scale_mod = position_scale / context_info.getFloat("gain");
+            }
+        }
     }
 
     /**
@@ -79,6 +108,12 @@ public class GainModifiedContextList extends BasicContextList {
         boolean inZone = false;
         int i = 0;
 
+        if (variable_scale && (lap != current_lap)) {
+            this.position_scale_mod = this.position_scale_list.get(
+                lap % position_scale_list.size());
+            current_lap = lap;
+        }
+
         // This loop checks to see if any of the individual contexts are
         // triggered to be active both in space and time
         for (; i < this.contexts.size(); i++) {
@@ -101,11 +136,13 @@ public class GainModifiedContextList extends BasicContextList {
                 this.tc.setPositionScale(this.position_scale);
             } else if((inZone) && (this.active != i)) {
                 this.active = i;
-                this.status = "started";
+                this.status = "on";
                 this.tc.setPositionScale(this.position_scale_mod);
 
                 this.log_json.getJSONObject("context")
                              .setString("action", "start");
+                this.log_json.getJSONObject("context")
+                             .setFloat("position_scale", this.position_scale_mod);
                 msg_buffer[0] = this.log_json;
             }
         }
@@ -120,6 +157,10 @@ public class GainModifiedContextList extends BasicContextList {
     public void suspend() {
         this.active = -1;
         this.status = "stopped";
+        this.tc.setPositionScale(this.position_scale);
+        this.log_json.getJSONObject("context")
+                     .setString("action", "stop");
+        this.tc.writeLog(this.log_json);
     }
 
     /**
@@ -129,6 +170,10 @@ public class GainModifiedContextList extends BasicContextList {
     public void stop() {
         this.active = -1;
         this.status = "stopped";
+        this.tc.setPositionScale(this.position_scale);
+        this.log_json.getJSONObject("context")
+                     .setString("action", "stop");
+        this.tc.writeLog(this.log_json);
     }
 
     // Todo: why is this unimplemented?

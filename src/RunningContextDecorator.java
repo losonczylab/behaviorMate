@@ -66,8 +66,8 @@ public class RunningContextDecorator extends SuspendableContextDecorator {
         super(context_list);
         this.display_color_suspended = new int[] {100, 100, 100};
 
-        this.threshold = context_info.getFloat("threshold", 0.0f);
-        this.max_dt = context_info.getFloat("max_dt", 0.1f);
+        this.threshold = context_info.getFloat("threshold", 0.0f); // unused
+        this.max_dt = context_info.getFloat("max_dt", 0.1f); // unused
         this.min_dt = context_info.getFloat("min_dt", 0.2f);
         this.min_dy = context_info.getFloat("min_dy", 5);
         this.use_abs_dy = context_info.getBoolean("use_abs_dy", false);

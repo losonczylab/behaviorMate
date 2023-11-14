@@ -23,8 +23,6 @@ import processing.data.JSONArray;
  * Wrapper class for JSONObject to allow for JSONObjects to be returned by
  * reference during calls to UDPComm
  */
-// Todo: I don't see any JSONBuffer objects being returned by any methods in this file.
-//       Is this done in another file?
 class JSONBuffer {
 
     /**
@@ -34,9 +32,21 @@ class JSONBuffer {
 }
 
 /**
- * ?
+ * Singleton to contain the main experimental logic. See:
+ <code>void setup()</code> for startup routine and <code>void draw()</code>
+ * for main event loop
  */
 public class TreadmillController extends PApplet {
+
+    /**
+     * Next time (ms) to refresh the UI
+     **/
+    int display_update = 0;
+
+    /**
+     * Interval (ms) between UI refreshes
+     **/
+    int display_rate = 50;
 
     /**
      * Event listener to send messages back to the UI wrapper.
@@ -49,7 +59,8 @@ public class TreadmillController extends PApplet {
     FileWriter fWriter;
 
     /**
-     * ?
+     * Buffer to pass messages from <code>ContextList</code> objects to the
+     * .tdml file
      */
     JSONObject[] msg_buffer = {null};
 
@@ -64,29 +75,34 @@ public class TreadmillController extends PApplet {
     UdpClient behavior_comm;
 
     /**
-     * ?
+     * Address to a separate circuit which can perform a hard reset on the
+     * behavior controller if comms are disconnected (not used/needed for
+     * most setups)
      */
     UdpClient reset_comm;
 
     /**
-     * ?
+     * Time of last request to reset behavior controller if comms are
+     * disconnected
      */
     long last_reset_time;
 
-    //TODO: incorporate behavior_comm and position_comm into this list?
-    //          --> maybe use a HashMap?
+    //TODO: switch to HashMap and remove separate pointers to position,
+    // behavior, and reset controllers
     /**
-     * ?
+     * List of comms with open Udp ports
      */
     ArrayList<UdpClient> comms;
 
     /**
-     * ?
+     * Time (ms) of the last comms check
      */
     long comms_check_time;
 
     /**
-     * ?
+     * Interval between sending out comms check messages to the behavior
+     * controller. Only between trials, not during. Is reduced if a comms
+     * check fails.
      */
     long comms_check_interval;
 
@@ -96,18 +112,13 @@ public class TreadmillController extends PApplet {
     Display display;
 
     /**
-     * Used to convert the start time of the experiment to the start time of the current trial.
+     * Timer to indicate the current time since trial was started.
      */
-    // Todo: what's the difference between a trial and an experiment.
-    //  Does an experiment contain multiple trials?
     ExperimentTimer timer;
 
-//    /**
-//     * json object with all the settings related to this trail. Stored at the
-//     * top of each of the behavior logs
-//     */
     /**
-     * Contains all settings related to the current trial. Stored at the beginning of each behavior log.
+     * JSONObject with all the settings related to this trail. Stored at the
+     * top of each of the behavior logs
      */
     JSONObject settings_json;
 
@@ -117,56 +128,70 @@ public class TreadmillController extends PApplet {
      */
     JSONObject system_json;
 
+    //TODO: rename offset_position->position since this is confusing and remove
+    // this
     /**
-     * 1-D position of the mouse along track in millimeters.
+     * 1-D position of the mouse along track in millimeters relative to the
+     * <code>lap_offset</code>
      */
     float position;
 
     /**
-     * ?
+     * Actual 1-D position of the mouse along track in millimeters (this is the
+     * position displayed in the UI)
      */
     float offset_position;
 
     /**
-     * ?
+     * place a hard boundary at position 0 so the mouse won't accumulate
+     * distance run in the backwards (generally <code>true</code> for VR and
+     * <code>false</code> for circular treadmill)
      */
     boolean zero_position_boundary;
 
+    // TODO: remove distance or offset_distance, having both is redundant and
+    // confusing.
     /**
-     * Distance run since last lap reset (allowed to be negative). Used to ensure animal is not
-     * backing over reset tag.
+     * Distance run since last lap reset (allowed to be negative). Used to
+     * ensure animal is not backing over reset tag.
      */
     float distance;
 
     /**
-     * ?
+     * Distance run since last lap reset (allowed to be negative). Used to
+     * ensure animal is not backing over reset tag. Offset by lap_offset
      */
     float offset_distance;
 
     /**
-     * Used to convert position updates from rotary encoder to millimeters traversed along the track.
+     * Used to convert position updates from rotary encoder ticks to millimeters
+     * traversed along the track. units: ticks / mm
      */
     float position_scale;
 
     /**
-     * ?
+     * <code>position_scale</code> as originally loaded from the settings file
+     * (used if a calibration is run and then needed to be reset)
      */
     float stored_position_scale;
 
     /**
-     * The length of the track in millimeters. Set to the "track_length" property in the settings file.
+     * The length of the track in millimeters. Set to the "track_length"
+     * property in the settings file.
      */
     float track_length;
 
     /**
-     * RFID tag string indicating that a lap has been completed and position should be reset to 0.
+     * RFID tag string indicating that a lap has been completed and position
+     * should be reset to 0.
      */
     String lap_tag;
 
     /**
      * A lap_reset will be forced if
      * <tt>position</tt> + <tt>lap_tolerance</tt>*<tt>track_length</tt> >  <tt>track_length</tt>.
-     * Defaults to 0.99 if the <tt>lap_reset_tag</tt> property is not set in the settings file.
+     * Defaults to 0.99 if the <tt>lap_reset_tag</tt> property is not set in
+     * the settings file.
      */
     float lap_tolerance;
 
@@ -176,64 +201,71 @@ public class TreadmillController extends PApplet {
     int lap_count;
 
     /**
-     * ?
+     * Prevent laps from counting (used if there's an ITI forced by Context or
+     * Decorator.)
      */
     boolean lock_lap;
 
     /**
-     * ?
+     * Licks since the start of the last trial
      */
     int lick_count;
 
     /**
-     * ?
+     * Map of sensor trigger counts since the last time a trial was started
      */
     HashMap<Integer, Integer> sensor_counts;
 
     /**
-     * Length of the trial in ?. Used to determine when the trial should end. Set to the value of the
-     * <tt>trial_length</tt> property in the settings file.
-     */
-    // Todo: is this in seconds?
+     * Length of the trial (s). Used to determine when the trial should end. Set
+     * to the value of the <tt>trial_length</tt> property in the settings file.
+    **/
     int trial_duration;
 
     /**
-     * ?
+     * Force trial end after lap_limit is reached. -1 if no limit is placed on
+     * the lap count
      */
     int lap_limit;
 
     /**
-     * ?
+     * <tt>true</tt> indicates that the lap reset device is connected to the
+     * <tt>position_controller</tt>
      */
     boolean position_reset;
 
     /**
-     * ?
+     * <tt>true</tt> indicates that the UI is current preforming a belt
+     * calibration. Only for treadmill systems with a lap reset device
+     * connected.
      */
     boolean belt_calibration_mode;
 
     /**
-     * ?
+     * Current value of the calibration. Used to calculate a rolling average
+     * during a treadmill belt calibration.
      */
     float current_calibration;
 
     /**
-     * ?
+     * Number of laps in the current treadmill belt calibration. Used to
+     * calculate a rolling average during a treadmill belt calibration.
      */
     int n_calibrations;
 
     /**
-     * ?
+     * Map of keyboard keys to comments. If comment keys are specified in the
+     * settings write the mapped message on key presses.
      */
     HashMap<Character, String> commentKeys;
 
     /**
-     * ?
+     * Position to set following a lap reset.
      */
     int lap_offset;
 
     /**
-     * ?
+     * TODO: This might no longer be used.
      */
     float lap_correction;
 
@@ -244,7 +276,7 @@ public class TreadmillController extends PApplet {
     boolean started = false;
 
     /**
-     * Pin number for the reward locations.
+     * Pin number for the reward valve.
      */
     int reward_valve;
 
@@ -269,27 +301,30 @@ public class TreadmillController extends PApplet {
     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     /**
-     * ?
+     * List of all context objects currently being checked.
      */
     ArrayList<ContextList> contexts;
 
     /**
-     * ?
+     * Constructor for the treadmill controller object.
      *
-     * @param settings_string ?
-     * @param system_string ?
-     * @param el ?
+     * @param settings_string JSON formatted string containing experiment
+     *                        specific settings
+     * @param system_string   JSON formatted string containing system specific
+     *                        settings
+     * @param el              pointer to the UI wrapper event listener
      */
-    public TreadmillController(String settings_string, String system_string, TrialListener el) {
+    public TreadmillController(String settings_string, String system_string,
+                               TrialListener el) {
         this.trialListener = el;
         this.settings_json = parseJSONObject(settings_string);
         this.system_json = parseJSONObject(system_string);
     }
 
     /**
-     * ?
+     * Constructor for the treadmill controller object.
      *
-     * @param el ?
+     * @param el pointer to the UI wrapper event listener
      */
     public TreadmillController(TrialListener el) {
         this.trialListener = el;
@@ -297,24 +332,34 @@ public class TreadmillController extends PApplet {
 
     /**
      *
-     * @return The pin number for the reward locations.
+     * @return The pin number for the reward valve.
      */
     public int getRewardPin() {
         return reward_valve;
     }
 
     /**
-     * ?
+     * Send a list of arbitrary messages to addresses NOT listed in the
+     * settings <code>controllers</code>. May be used at trial start and stop to
+     * communicate with third-party devices.
      *
-     * @param messages ?
-     * @param mouse_name ?
-     * @throws Exception
+     * @param messages List of JSONObject messages with addresses to send.
+     *                 Each message may have an <code>ip</code> field to
+     *                 specify the destination IP address (defaults to
+     *                 <code>localhost</code>) and a <code>port</code>,
+     *                 along with the <code>message</code>which contains the
+     *                 text to send.
+     * @param mouse_name Current mouse_name from the UI
+     * @throws Exception Displays errors to the UI
      */
-    protected void sendMessages(JSONArray messages, String mouse_name) throws Exception {
+    protected void sendMessages(JSONArray messages, String mouse_name)
+            throws Exception {
         for (int i= 0; i < messages.size(); i++) {
             JSONObject messageInfo = messages.getJSONObject(i);
             UdpClient client = new UdpClient(
-                    messageInfo.getString("ip"), messageInfo.getInt("port"), messageInfo.getString("id"));
+                    messageInfo.getString("ip", "127.0.0.1"),
+                    messageInfo.getInt("port"),
+                    messageInfo.getString("temp_client"));
             JSONObject message = messageInfo.getJSONObject("message");
             message.setString("filename", fWriter.getFile().getName());
             message.setString("mouse", mouse_name);
@@ -324,12 +369,20 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * ?
+     * Send a test message to the behavior controller and wait for reply. Note:
+     * this method temporarily stops the event loop from processing to wait for
+     * the response.
      *
-     * @param alert ?
-     * @return ?
+     * @param alert if <code>true</code> display an alert popup to the ui
+     * @return <code>true</code> if test message is acknowledged by the behavior
+     *         controller, <code>false</code> otherwise
      */
     public boolean testComms(boolean alert) {
+        if (behavior_comm == null) {
+            System.out.println(
+                "Warning: testComs failed since behavior controller is not defined");
+            return false;
+        }
         noLoop();
         System.out.println("testing comms");
         JSONObject test_arduino = new JSONObject();
@@ -363,9 +416,9 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * ?
+     * See <code>testComms(boolean alert)</code>. Performs comms test with popup
+     * suppressed
      *
-     * @return ?
      */
     public boolean testComms() {
         return testComms(true);
@@ -388,6 +441,7 @@ public class TreadmillController extends PApplet {
         display.setLickCount(0);
         display.setLapCount(0);
         display.setRewardCount(0);
+        display.resetFreeRewardCount();
         lap_count=0;
 
         if (fWriter != null) {
@@ -451,19 +505,28 @@ public class TreadmillController extends PApplet {
         trialListener.started(fWriter.getFile());
 
         timer.startTimer();
-        JSONObject valve_json = open_valve_json(settings_json.getInt("sync_pin"), 100);
-        behavior_comm.sendMessage(valve_json.toString());
-        behavior_comm.sendMessage(info_msg.toString());
+        if (behavior_comm != null) {
+            JSONObject valve_json = open_valve_json(
+                settings_json.getInt("sync_pin"), 100);
+            behavior_comm.sendMessage(valve_json.toString());
+            behavior_comm.sendMessage(info_msg.toString());
+        }
 
         started = true;
         return true;
     }
 
     /**
-     * ?
+     * For parsing a form into a JSONObject.
      *
-     * @param fields ?
-     * @return ?
+     * @param fields Array of JSONObjects each with 3 keys:
+                     <code>key</code>: key to be converted to JSON
+                     <code>value</code>: value to be converted to JSON
+                     <code>type</code>: String containing the datatype of the
+                     data stored in this field.
+                     Valid types: <tt>[</tt>"int", "float", "String",
+                                       "JSONObject"<tt>]</tt>
+     * @return       JSONObject reflected the entries in the form data
      */
     private JSONObject parseJSONFields(JSONArray fields) {
         JSONObject value = new JSONObject();
@@ -488,13 +551,16 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * ?
+     * Update fields in a JSONObject from form data stored in a JSONArray.
+     * Replace existing/add new. See <tt>parseJSONFields</tt> method for
+     * description of JSONArray form data.
      *
-     * @param orig ?
-     * @param update_fields ?
-     * @return ?
+     * @param orig          the original JSONObject to be updated
+     * @param update_fields the form data
+     * @return              the updated JSONObject
      */
-    private JSONObject mergeJSONFields(JSONObject orig, JSONArray update_fields) {
+    private JSONObject mergeJSONFields(JSONObject orig,
+                                       JSONArray update_fields) {
         for (int i=0; i<update_fields.size(); i++) {
             JSONObject setting = update_fields.getJSONObject(i);
             String key = setting.getString("key");
@@ -508,7 +574,8 @@ public class TreadmillController extends PApplet {
                 orig.setDouble(key, setting.getDouble("value"));
             } else if (type.equals("JSONObject")) {
                 if (!orig.isNull(key)) {
-                    orig.setJSONObject(key, mergeJSONFields(orig.getJSONObject(key),
+                    orig.setJSONObject(
+                        key, mergeJSONFields(orig.getJSONObject(key),
                         setting.getJSONArray("fields")));
                 } else {
                     orig.setJSONObject(key, parseJSONFields(
@@ -523,10 +590,12 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * ?
+     * Update the current settings with additional parameters. Overwrites
+     * currently loaded keys and adds new ones.
      *
-     * @param settings ?
-     * @throws Exception
+     * @param settings   JSON formatted string with new/additional settings
+     *                   values to update the current configuration
+     * @throws Exception Displays any error to the UI
      */
     public void addSettings(String settings) throws Exception {
         JSONArray new_settings = parseJSONArray(settings);
@@ -562,13 +631,16 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * ?
+     * Set the current configuration.
      *
-     * @param settings_string ?
-     * @param system_string ?
-     * @throws Exception
+     * @param settings_string JSON formatted string with experiment specific
+                              configurations
+     * @param system_string   JSON formatted string with the system specific
+                                   settings information.
+     * @throws Exception      Displays errors to the UI
      */
-    public void RefreshSettings(String settings_string, String system_string) throws Exception {
+    public void RefreshSettings(String settings_string,
+                                String system_string) throws Exception {
 
         this.settings_json = parseJSONObject(settings_string);
         this.system_json = parseJSONObject(system_string);
@@ -576,22 +648,25 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * ?
+     * Set the current configuration.
      *
-     * @param settings_json ?
-     * @param system_json ?
-     * @throws Exception
+     * @param settings_string JSONObject with experiment specific configurations
+     * @param system_string   JSONObject with the system specific settings
+     *                        information.
+     * @throws Exception      Displays errors to the UI
      */
-    public void RefreshSettings(JSONObject settings_json, JSONObject system_json) throws Exception {
+    public void RefreshSettings(JSONObject settings_json,
+                                JSONObject system_json) throws Exception {
         this.settings_json = settings_json;
         this.system_json = system_json;
         RefreshSettings();
     }
 
     /**
-     * ?
+     * Reset comms and reload all settings.
      *
-     * @throws Exception ?
+     * @throws Exception throws any exceptions from loading the new settings
+     *                   files to be displayed as a UI popup
      */
     public void RefreshSettings() throws Exception {
         delay(100);
@@ -605,9 +680,9 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * ?
+     * Force the UI's position to a specific offset from the start of a lap.
      *
-     * @param new_position ?
+     * @param new_position position to set the UI to.
      */
     public void setPosition(float new_position) {
         println("setting position");
@@ -619,19 +694,16 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * ?
+     * Set the position to the <code>lap_offset</code> (which defaults to 0).
      */
     public void ZeroPosition() {
         println("ZERO POSITION");
         this.setPosition(lap_offset);
-        //position = 0;
-        //offset_position = lap_offset;
-        //distance = 0;
-        //offset_distance = lap_offset;
     }
 
     /**
-     * ?
+     * Start a position scale calibration. Only for treadmill systems with a
+     * lap reset device configured.
      */
     public void CalibrateBelt() {
         belt_calibration_mode = true;
@@ -641,7 +713,7 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * ?
+     * Exit from position scale calibration mode.
      */
     public void EndBeltCalibration() {
         settings_json.setFloat("position_scale", position_scale);
@@ -650,7 +722,8 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * ?
+     * Clear the current position scale calibration and reset to the value
+     * specified in the settings file.
      */
     public void ResetCalibration() {
         if (position_scale != stored_position_scale) {
@@ -661,17 +734,19 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * Tests the valve specified in the UI text field. Linked to the TestValve button in the UI.
-     * Creates then opens the valve for the amount of time specified in the duration box.
+     * Tests the valve specified in the UI text field. Linked to the TestValve
+     * button in the UI. Creates then opens the valve for the amount of time
+     * specified in the duration box.
      */
     public void TestValve(int pin, int duration) {
         println("TEST VALVE");
 
-        //JSONObject valve_json = setup_valve_json(pin);
-        //behavior_comm.sendMessage(valve_json.toString());
-
         JSONObject valve_json = open_valve_json(pin, duration);
         behavior_comm.sendMessage(valve_json.toString());
+
+        if (pin == getRewardPin()) {
+            this.display.incrementFreeRewardCount();
+        }
     }
 
     /**
@@ -691,11 +766,13 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * ?
+     * Generates the JSONObject necessary to create a valve.
      *
-     * @param pin ?
-     * @param inverted ?
-     * @return
+     * @param pin      arduino pin number to setup the valve on
+     * @param inverted if <code>true</code> configure the pin to stay HIGH
+     *                 unless the <code>open</code> message is sent, on open
+     *                 set to low (this is inverted from the default behavior).)
+     * @return         JSONObject the arduino will use to configure the valve.
      */
     static JSONObject setup_valve_json(int pin, boolean inverted) {
         JSONObject valve_json = new JSONObject();
@@ -711,10 +788,11 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * ?
-     * @param pin ?
-     * @param frequency ?
-     * @return ?
+     * Generates the JSONObject necessary to configure a pine to play a tone.
+     *
+     * @param pin       arduino pin number with speaker for tone to play on
+     * @param frequency frequency (Hz) for the tone
+     * @return          JSONObject the arduino will use to configure the tone.
      */
     static JSONObject setup_valve_json(int pin, int frequency) {
         JSONObject valve_json = new JSONObject();
@@ -745,7 +823,8 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * Generates the JSONObject necessary to open a valve. Assumes valve has already been configured.
+     * Generates the JSONObject necessary to open a valve. Assumes valve has
+     * already been configured.
      *
      * @param  pin      Pin number of the valve to open.
      * @param  duration Amount of time to keep the valve open in milliseconds.
@@ -764,12 +843,14 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * Generates the JSONObject necessary to start a tone. Assumes tone has already been configured.
+     * Generates the JSONObject necessary to start a tone. Assumes tone has
+     * already been configured.
      *
-     * @param  pin      Pin number of the valve to open.
-     * @param  duration Amount of time to keep the valve open in milliseconds (ms).
+     * @param  pin        Pin number of the valve to open.
+     * @param  duration   Amount of time to keep the valve open in milliseconds
+     *                    (ms).
      * @param  frequency  Frequency of the tone to play in Hertz (hz).
-     * @return          JSONObject the arduino will use to open the valve.
+     * @return            JSONObject the arduino will use to open the valve.
      */
     static JSONObject open_valve_json(int pin, int duration, int frequency) {
         JSONObject valve_json = new JSONObject();
@@ -785,24 +866,26 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * Configures sensors defined in the settings file. For all sensors the following must be
-     * specified: pin, type, report_pin,
+     * Configures sensors defined in the settings file. For all sensors the
+     * following must be specified: pin, type, report_pin,
      */
     void configure_sensors() {
+        // exit immediately if there is no behavior controller or if there are
+        // no sensors specified in the settings
+        if ((behavior_comm == null) || settings_json.isNull("sensors")) {
+            return;
+        }
+
         JSONObject clear_message = new JSONObject();
         clear_message.setJSONObject("sensors", new JSONObject());
         clear_message.getJSONObject("sensors").setString("action", "clear");
         behavior_comm.sendMessage(clear_message.toString());
 
-        if (settings_json.isNull("sensors")) {
-            return;
-        }
-
         JSONArray sensors = settings_json.getJSONArray("sensors");
         for (int i=0; i < sensors.size(); i++) {
             JSONObject create_subjson = sensors.getJSONObject(i);
             if (create_subjson.getString("type", "").equals("lickport") ||
-                    (create_subjson.getString("type", "").equals("piezoport"))) {
+                (create_subjson.getString("type", "").equals("piezoport"))) {
                 lickport_pin = create_subjson.getInt("pin");
             }
             create_subjson.setString("action", "create");
@@ -816,8 +899,9 @@ public class TreadmillController extends PApplet {
 
 
     /**
-     * Configures the reward zone contexts and establishes the initial reward zone locations.
-     * Converts legacy settings files to use the new context_list format.
+     * Configures the reward zone contexts and establishes the initial reward
+     * zone locations. Converts legacy settings files to use the new
+     * context_list format.
      *
      * @throws Exception Displays errors to the UI.
      */
@@ -870,7 +954,8 @@ public class TreadmillController extends PApplet {
                     reward_info.getJSONArray("locations");
                     reward_info.remove("locations");
                 } catch (RuntimeException e) {}
-                reward_info.setInt("locations", reward_info.getInt("number", 1));
+                reward_info.setInt("locations",
+                                   reward_info.getInt("number", 1));
             }
         }
 
@@ -888,13 +973,15 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * ?
-     * @param settings_json ?
-     * @param system_json ?
-     * @throws Exception
+     * Set the settings and reconfigure the experiment
+     *
+     * @param settings_json settings specifically related to the experiment
+     * @param system_json   settings specifically related to the system/PC
+     *                      running behaviorMate
+     * @throws Exception    Display errors to the UI
      */
-    void reload_settings(JSONObject settings_json, JSONObject system_json)
-            throws Exception {
+    void reload_settings(JSONObject settings_json,
+                         JSONObject system_json) throws Exception {
         this.settings_json = settings_json;
         current_calibration = 0;
         system_json = this.system_json;
@@ -903,11 +990,11 @@ public class TreadmillController extends PApplet {
 
 
     /**
-     * ?
+     * Set the settings from a settings file and reconfigure the experiment
      *
-     * @param filename ?
-     * @param tag ?
-     * @throws Exception ?
+     * @param filename   name of the file with the JSON formatted settings
+     * @param tag        key in the settings file to load
+     * @throws Exception Display errors to the UI
      */
     void reload_settings(String filename, String tag) throws Exception {
         settings_json = loadJSONObject(filename).getJSONObject(tag);
@@ -918,9 +1005,9 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * ?
+     * Initialize comms with the controllers specified in the settings file.
      *
-     * @throws Exception
+     * @throws Exception Display errors in the UI
      */
     void startComms() throws Exception {
         comms = new ArrayList<UdpClient>();
@@ -973,12 +1060,15 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * ?
+     * Erase current configuration and reload based on the current stored
+     * settings information.
      *
-     * @throws Exception
+     * @throws Exception Display errors in the UI
      */
     void reconfigureExperiment() throws Exception {
-        //TODO: diff the new settings from the old and only make necessary updates
+        //TODO: diff the new settings from the old and only make necessary
+        // updates
+
         contexts = new ArrayList<ContextList>();
         if (display != null) {
             display.resetContexts();
@@ -1064,9 +1154,11 @@ public class TreadmillController extends PApplet {
         startComms();
         configure_sensors();
 
-        JSONObject valve_json = setup_valve_json(
-            settings_json.getInt("sync_pin"));
-        behavior_comm.sendMessage(valve_json.toString());
+        if (behavior_comm != null) {
+            JSONObject valve_json = setup_valve_json(
+                settings_json.getInt("sync_pin"));
+            behavior_comm.sendMessage(valve_json.toString());
+        }
         display.setTrackLength(track_length);
 
         if (!settings_json.isNull("reward")) {
@@ -1075,27 +1167,30 @@ public class TreadmillController extends PApplet {
 
         this.commentKeys = new HashMap<Character, String>();
         if (!settings_json.isNull("comment_keys")) {
-            JSONObject quick_comments = settings_json.getJSONObject("comment_keys");
+            JSONObject quick_comments = settings_json.getJSONObject(
+                "comment_keys");
+
             for (Object key : quick_comments.keys()) {
                 Character key_char = ((String)key).charAt(0);
-                commentKeys.put(key_char, quick_comments.getString((String)key));
+                commentKeys.put(key_char,
+                                quick_comments.getString((String)key));
             }
         }
 
         if (!settings_json.isNull("contexts")) {
             delay(10);
             VrContextList2 vr_context = null;
-            ArrayList<VrCueContextList3> cue_lists = new ArrayList<VrCueContextList3>();;
+            ArrayList<VrCueContextList3> cue_lists =
+                new ArrayList<VrCueContextList3>();
 
             JSONArray contexts_array = settings_json.getJSONArray("contexts");
             for (int i = 0; i < contexts_array.size(); i++) {
                 JSONObject context_info = contexts_array.getJSONObject(i);
-//                ContextList context_list = ContextsFactory.Create(
-//                        this, display, context_info, track_length, behavior_comm,
-//                        context_info.getString("class", "context"));
-                String context_class = context_info.getString("class", "context");
+                String context_class = context_info.getString("class",
+                                                              "context");
                 ContextList context_list = ContextsFactory.Create(
-                        this, display, context_info, track_length, behavior_comm, context_class);
+                        this, display, context_info, track_length,
+                        behavior_comm, context_class);
                 contexts.add(context_list);
 
                 if (!context_list.setupComms(comms)) {
@@ -1113,7 +1208,8 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * ?
+     * Zero out the calibration and reconfigure the experiment.
+     * TODO: this method is no longer needed
      *
      * @throws Exception
      */
@@ -1123,11 +1219,12 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * ?
+     * Log messages from behaviorMate into the .tdml file
      *
-     * @param log ?
-     * @param time ?
-     * @return ?
+     * @param log  information to log
+     * @param time time elapsed in the current trial
+
+     * @return     <tt>true</tt> on successful write
      */
     public boolean writeLog(JSONObject log, float time) {
         if (fWriter == null) {
@@ -1143,19 +1240,21 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * ?
+     * Log messages from behaviorMate into the .tdml file
      *
-     * @param log ?
-     * @return ?
+     * @param log  information to log
+     * @param time time elapsed in the current trial
+
+     * @return     <tt>true</tt> on successful write
      */
     public boolean writeLog(JSONObject log) {
         return writeLog(log, timer.getTime());
     }
 
     /**
-     * ?
+     * Add a comment to the .tdml file
      *
-     * @param comment ?
+     * @param comment text to write
      */
     public void addComment(String comment) {
         if (fWriter == null) {
@@ -1174,10 +1273,11 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * ?
+     * Add comment to the .tdml file but force a specific key instead
+     * of default <tt>behavior_mate</tt>
      *
-     * @param key ?
-     * @param comment ?
+     * @param key     key to use
+     * @param comment comment to write
      */
     public void addComment(String key, String comment) {
         if (fWriter == null) {
@@ -1191,10 +1291,11 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * ?
+     * If comment keys are configured in the settings, then log keystrokes
      *
-     * @param key ?
-     * @param pressed ?
+     * @param key     key with which was pressed
+     * @param pressed action: <code>true</code> for press <code>false</code> if
+     *                release
      */
     public void commentKey(Character key, boolean pressed) {
         if (fWriter == null) {
@@ -1221,19 +1322,19 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * ?
+     * Get the current time elapsed during this trial from the Experiment Timer.
      *
-     * @return ?
+     * @return current time (s)
      */
     public float getTime() {
         return timer.getTime();
     }
 
     /**
-     * ?
+     * Write the current stored settings into the .tdml currently being recorded
      *
-     * @param filename ?
-     * @param key ?
+     * @param filename name of the currently loaded settings
+     * @param key      key currently loaded in the settings file
      */
     public void writeSettingsInfo(String filename, String key) {
         if (fWriter == null) {
@@ -1248,17 +1349,16 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * ?
      *
-     * @return ?
+     * @return the PSurface object processing libraries are drawing to
      */
     public PSurface getPSurface() {
         return this.initSurface();
     }
 
     /**
-     * Processing function called automatically once at startup. Initializes state variables and reads
-     * the settings file.
+     * Processing function called automatically once at startup. Initializes
+     * state variables and reads the settings file.
      */
     public void setup() {
         sketchPath("");
@@ -1302,19 +1402,22 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * ?
+     * Set or unset the lap lock. Setting lap lock prevents laps from updating.
+     * Used if a Context List or Decorator forces in ITI to happen
      *
-     * @param lock_status ?
+     * @param lock_status <code>true</code>: prevent laps from counting,
+                          <code>false</code>: count laps normally
      */
     public void setLapLock(boolean lock_status) {
         lock_lap = lock_status;
     }
 
     /**
-     * ?
+     * Indicate a lap reset in the UI and log.
      *
-     * @param tag ?
-     * @param time ?
+     * @param tag  tag read by the lap_reset device. Empty string ("") indicates
+     *             no tag id was used to trigger the reset.
+     * @param time time (s) of the lap reset
      */
     public void resetLap(String tag, float time) {
         if ((started) && (!lock_lap)) {
@@ -1339,10 +1442,16 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * ?
+     * Only behavior controller and position controller send messages to the UI
+     * that need to be parsed to update the state of the trial. Messages from
+     * other controllers are logged in the .tdml, but cannot affect the state
+     * of the trial. This method dequeues messages and logs them. Note: if the
+     * position or behavior controller is passed to this method then those
+     * updates will be logged, but cannot result in updates to position or trial
+     * state.
      *
-     * @param comm ?
-     * @param time ?
+     * @param comm comm to read messages from
+     * @param time time from Experiment Timeer
      */
     protected void checkMessages(UdpClient comm, float time) {
         for (int i=0; ((i < 10) && (comm.receiveMessage(json_buffer))); i++) {
@@ -1353,6 +1462,9 @@ public class TreadmillController extends PApplet {
                 json_buffer.json.setFloat("time", time);
                 fWriter.write(json_buffer.json.toString());
             } else {
+                // if messages are received when a trial is not running, then
+                // they are not written to the .tdml file
+
                 System.out.println("WARNING! message received, " +
                                    "trial not recording");
                 System.out.println(json_buffer.json.toString());
@@ -1361,9 +1473,9 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * ?
+     * Update the <code>position_scale</code>
      *
-     * @param scale ?
+     * @param scale new position scale to use
      */
     public void setPositionScale(float scale) {
         this.position_scale = scale;
@@ -1371,19 +1483,19 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * ?
      *
-     * @return ?
+     * @return the current value of the <code>position_scale</code>. Used to
+     * convert between ticks on the rotary encoder and mm. units: ticks / mm
      */
     public float getPositionScale() {
         return this.position_scale;
     }
 
     /**
-     * ?
+     * Read messages from the position controller and update position
      *
-     * @param time ?
-     * @return ?
+     * @param time current time associated with this cycle of the event loop
+     * @return     the amount the animal has moved (mm)
      */
     protected float updatePosition(float time) {
         if (position_comm == null) {
@@ -1403,42 +1515,13 @@ public class TreadmillController extends PApplet {
 
             position_json = json_buffer.json.getJSONObject(position_comm.id);
 
+            // reset lap and process contexts before parsing the next position
+            // update
             if (!position_json.isNull("lap_reset")) {
-                display.setCurrentTag("", distance-track_length);
+                display.setCurrentTag("", distance - track_length);
                 if (position_reset) {
                     reset_lap = true;
                     break;
-                    //if (distance > 0.5*track_length) {
-                    /*
-                    if (position != -1) {
-                        float _lap_correction = track_length - distance;
-                        distance = 0;
-                        System.out.println(_lap_correction);
-
-                        float per_error = _lap_correction/track_length;
-                        System.out.println(per_error);
-                        position_scale = position_scale*per_error;
-                        System.out.println(position_scale);
-                        System.out.println("");
-                        display.setCurrentTag(""+position_scale);
-                    }
-                    if (lap_correction != -1) {
-                        System.out.println(lap_correction);
-                    } else {*/
-                        //position = track_length + lap_offset;
-                        //distance = track_length + lap_offset;
-                        //}
-                   /*     dy = 0;
-                        distance = 0;
-                        if (position > 0.5*track_length) {
-                            resetLap("", time);
-                        }
-                        position = 0;
-                    } else if (position == -1) {
-                        position = 0;
-                        distance = 0;
-                        dy = 0;
-                    }*/
                 }
             }
 
@@ -1459,12 +1542,12 @@ public class TreadmillController extends PApplet {
 
         distance += dy;
         offset_distance += dy;
-        if ((position != -1) && (!((zero_position_boundary) && (position + dy < 0)))) {
+        if ((position != -1) && (!((zero_position_boundary) &&
+            (position + dy < 0)))) {
             if ((position + dy) < 0) {
                 position += track_length;
             }
             position += dy;
-            //offset_position = position + lap_offset;
             offset_position += dy;
             if (offset_position >= track_length) {
                 offset_position -= track_length;
@@ -1477,16 +1560,12 @@ public class TreadmillController extends PApplet {
             }
         }
 
-        //if (distance > track_length) {
-            //distance = track_length*lap_tolerance;
-            //position = distance + lap_offset;
-        //}
-
         if (reset_lap) {
             if (position == -1) {
                 position = 0;
                 offset_position = lap_offset;
                 distance = 0;
+
             // check that this is a legitimate lap reset read
             } else if (distance > track_length/2) {
 
@@ -1495,7 +1574,8 @@ public class TreadmillController extends PApplet {
                 if (belt_calibration_mode) {
                     current_calibration = (
                         (current_calibration * n_calibrations) +
-                        position_scale*(1+(distance-track_length)/track_length)
+                        position_scale *
+                        (1 + (distance - track_length)/track_length)
                         )/(++n_calibrations);
                     position_scale = current_calibration;
                     display.setPositionScale(position_scale);
@@ -1527,9 +1607,9 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * ?
+     * Read and process any updates from the behavior controller.
      *
-     * @param time ?
+     * @param time timestamp for the current cycle of the event loop.
      */
     protected void updateBehavior(float time) {
         if (behavior_comm == null) {
@@ -1548,10 +1628,14 @@ public class TreadmillController extends PApplet {
                 json_buffer.json.getJSONObject(behavior_comm.id);
 
             if (!behavior_json.isNull("lick")) {
-                if (behavior_json.getJSONObject("lick")
-                        .getString("action", "stop").equals("start")) {
+                String action = behavior_json.getJSONObject("lick")
+                        .getString("action", "none");
+                if (action.equals("start")) {
                     display.addLick(started);
                     lick_count++;
+                } else if (
+                    (action.equals("stop") || (action.equals("created")))) {
+                    display.lickStop();
                 }
             }
 
@@ -1586,7 +1670,8 @@ public class TreadmillController extends PApplet {
                     String action = sensorJson.getString("action", "stop");
                     if (action.equals("start")) {
                         display.setSensorState(sensor_pin, 1);
-                        sensor_counts.put(sensor_pin, sensor_counts.get(sensor_pin) + 1);
+                        sensor_counts.put(sensor_pin,
+                                          sensor_counts.get(sensor_pin) + 1);
                     } else if (action.equals("stop")) {
                         display.setSensorState(sensor_pin, -1);
                     } else if (action.equals("created")) {
@@ -1611,23 +1696,32 @@ public class TreadmillController extends PApplet {
             if (!behavior_json.isNull("error")) {
                 if (started) {
                     trialListener.alert(
-                        "Behavior Controller: " + behavior_json.getString("error"));
+                        "Behavior Controller: " +
+                        behavior_json.getString("error"));
                 } else {
                     trialListener.exception(
-                        "Behavior Controller: " + behavior_json.getString("error"));
+                        "Behavior Controller: " +
+                        behavior_json.getString("error"));
                 }
             }
 
             if (!behavior_json.isNull("context")) {
-                JSONObject context_json = behavior_json.getJSONObject("context");
+                JSONObject context_json =
+                    behavior_json.getJSONObject("context");
+
                 if (!context_json.isNull("id")) {
                     String context_id = context_json.getString("id");
                     if (!context_json.isNull("action")) {
                         for (int j=0; j < contexts.size(); j++) {
                             if (contexts.get(j).getId().equals(context_id)) {
-                                if (context_json.getString("action").equals("start")) {
+                                if (context_json.getString("action").equals(
+                                        "start")) {
+
                                     contexts.get(j).setStatus("started");
-                                } else if (context_json.getString("action").equals("stop")) {
+                                } else if (
+                                    context_json.getString("action").equals(
+                                        "stop")) {
+
                                     contexts.get(j).setStatus("stopped");
                                 }
 
@@ -1660,7 +1754,10 @@ public class TreadmillController extends PApplet {
         }
 
         long _millis = millis();
-        if ((!started) && (_millis > (comms_check_time + comms_check_interval))) {
+        if ((!started) &&
+            (behavior_comm != null) &&
+            (_millis > (comms_check_time + comms_check_interval))) {
+
             testComms(false);
             comms_check_time = _millis;
         }
@@ -1678,12 +1775,10 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * Processing function called automatically 60 times per second. Main experiment logic is
-     * executed here.
+     * Processing function called automatically 60 times per second. Main
+     * experiment logic is executed here.
      */
-    // Todo: these variables should be declared with the other class attributes
-    int display_update = 0;
-    int display_rate = 50;
+
     public void draw() {
         float time = timer.checkTime();
         if ((trial_duration != -1) && (time > trial_duration)) {
@@ -1725,9 +1820,12 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * ?
+     * Reset the behavior controller
      *
-     * @param hardware_reset ?
+     * @param hardware_reset if <code>true</code> send message to separate
+     *                       reset controller to perform a hardware reset,
+     *                       otherwise send the message to trigger a software
+     *                       reset to the behavior controller
      */
     public void resetArduino(boolean hardware_reset) {
         JSONObject resetArduino = new JSONObject();
@@ -1735,7 +1833,8 @@ public class TreadmillController extends PApplet {
         resetArduino.getJSONObject("communicator").setString("action", "reset");
         for (int i=0; i < contexts.size(); i++) {
             UdpClient comm = contexts.get(i).getComm();
-            if ((comm != null) && (comm.getId().equals("behavior_controller"))) {
+            if ((comm != null) &&
+                (comm.getId().equals("behavior_controller"))) {
                 contexts.get(i).setStatus("resetting");
             }
         }
@@ -1748,14 +1847,14 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * ?
+     * Send arduino message to request a software reset.
      */
     public void resetArduino() {
         resetArduino(false);
     }
 
     /**
-     * ?
+     * Close all comms and attempt to reconnect.
      */
     public void resetComms() {
         delay(100);
@@ -1825,8 +1924,8 @@ public class TreadmillController extends PApplet {
     }
 
     /**
-     * Adds a function hook which will be run if the program terminates unexpectedly. This is meant
-     * to ensure log files are closed out.
+     * Adds a function hook which will be run if the program terminates
+     * unexpectedly. This is meant to ensure log files are closed out.
      */
     protected void prepareExitHandler () {
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {

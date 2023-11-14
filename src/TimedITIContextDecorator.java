@@ -1,5 +1,6 @@
 import java.util.Random;
 
+import java.util.ArrayList;
 import processing.data.JSONObject;
 import processing.data.JSONArray;
 
@@ -48,6 +49,10 @@ public class TimedITIContextDecorator extends SuspendableContextDecorator {
      */
     protected boolean random_iti;
 
+    protected ArrayList<Integer> long_delay_laps;
+
+    protected float long_delay;
+
     /**
      * ?
      *
@@ -59,7 +64,8 @@ public class TimedITIContextDecorator extends SuspendableContextDecorator {
      *                     is optional and will default to value if not provided and should be of type
      *                     datatype if provided.
      */
-    public TimedITIContextDecorator(TreadmillController tc, ContextList context_list,
+    public TimedITIContextDecorator(TreadmillController tc,
+                                    ContextList context_list,
                                     JSONObject context_info) {
         super(context_list);
 
@@ -75,6 +81,17 @@ public class TimedITIContextDecorator extends SuspendableContextDecorator {
 
         if (context_info.getBoolean("no_display", false)) {
             this.display_color_suspended = null;
+        }
+
+        this.long_delay_laps = new ArrayList<Integer>();
+        if (!context_info.isNull("long_delay_laps")) {
+            for (int i = 0;
+                 i < context_info.getJSONArray("long_delay_laps").size();
+                 i++) {
+                this.long_delay_laps.add(
+                    context_info.getJSONArray("long_delay_laps").getInt(i));
+            }
+            this.long_delay = context_info.getFloat("long_delay");
         }
 
         this.next_start = 0;
@@ -114,7 +131,9 @@ public class TimedITIContextDecorator extends SuspendableContextDecorator {
                 return false;
             }
         } else if (lap > this.start_lap) {
-            if (this.random_iti) {
+            if (this.long_delay_laps.contains(this.start_lap)) {
+                this.next_start = time + this.long_delay;
+            } else if (this.random_iti) {
                 this.next_start = time + random.nextInt(
                     (this.iti_time_max - this.iti_time_min + 1)) + this.iti_time_min;
             } else {

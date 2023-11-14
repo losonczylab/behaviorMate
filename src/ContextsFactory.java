@@ -74,6 +74,10 @@ public final class ContextsFactory {
                     cl = new RunningContextDecorator(cl, decorator, track_length);
                 } else if (decorator_class.equals("scheduled_context")) {
                     cl = new ScheduledContextDecorator(cl, decorator);
+                } else if (decorator_class.equals("traveling_context")) {
+                    cl = new TravelingContextDecorator(cl, decorator);
+                } else if (decorator_class.equals("moving_context")) {
+                    cl = new MovingContextDecorator(cl, decorator);
                 } else if (decorator_class.equals("timed_context")) {
                     timed_context = decorator;
                 } else if (decorator_class.equals("random_context")) {

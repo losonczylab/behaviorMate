@@ -1,0 +1,9 @@
+image: openjdk
+pages:
+  script:
+    - mkdir public
+    - cd ..
+    - javadoc -sourcepath BehaviorMate/src/* -classpath "BehaviorMate/lib/*" -d BehaviorMate/public -private -doctitle "BehaviorMate" -windowtitle "BehaviorMate" -author -bottom "© Copyright 2021, Losonczy Lab, Jack Bowler" || NO_CONTAINER=1
+  artifacts:
+    paths:
+      - public

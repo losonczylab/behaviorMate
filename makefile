@@ -1,3 +1,4 @@
+
 all:
 	printf "{\n" >version.json
 	printf "\t \"version\": \"" >> version.json
