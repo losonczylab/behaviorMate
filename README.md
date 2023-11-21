@@ -4,7 +4,7 @@
 behaviorMate is an Open Source package for collecting time-stamped behavior data during animal experiments. It provides:
 
 - A user interface for adjusting experimental parameters and viewing its current state
-- Asychronous communication with experimental actuators (reward valves, tone generators, etc.) and sensors (rotary encoders, capacitance sensors, etc.)
+- Asychronous communication with actuators (reward valves, tone generators, etc.) and sensors (rotary encoders, capacitance sensors, etc.)
 - Time-stamped logging to a TDML file
 
 ## Citing behaviorMate
@@ -21,17 +21,17 @@ Windows 10/11
 
 Option 1: Download prebuilt jar
   1) Download zip: [behaviorMate.zip](https://s3.amazonaws.com/losonczylab.behaviormate/Downloads/1.0.0/behaviorMate.zip)
-  2) Extract
-  3) Run <jar> (need to have Java 8 installed)
+  2) Extract the behaviorMate folder.
+  3) Run the BehaviorMate.jar (Java 8 needs to be installed).
 
 Option 2: Download and build from source <link> [Windows]
-  1) git clone <link>
+  1) Clone the repository: git clone git@github.com:losonczylab/behaviorMate.git
   2) Install Chocolatey package manager and make
      - Open PowerShell as administrator <br>
      - Run command: Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1')) <br>
      - Run command: choco install make
   4) Navigate to behaviorMate root project directory containing the "make" file
-  5) > make all
+  5) Run command: make all
  
 
 ## Starting BehaviorMate
@@ -121,15 +121,6 @@ Trigger - A Context is said to be triggered if it is 1) enabled and 2) one of it
 been triggered. A subcontext is triggered when both its spatial (mouse is in the right location) 496
 and temporal (the time is right) conditions have been met. A subcontext cannot be triggered if 497
 the Context it is a part of is not enabled.
-
-## Custom plugins 
-
-(Note: after writing the java file for your decorator you only need to compile that one file, not the entire project. Logic or runtime errors in your decorator may cause the application to behave unexpectedly)
-
-1) Download and extract <a href="https://google.com">source files
-2) Copy the <a href="https://google.com">Plugin template</a> to the src folder containing the other decorator java files
-3) Compile your java plugin file.
-4) Copy the generated class file to the plugins directory.
 
 ## Specifying your decorator in the settings file
 
