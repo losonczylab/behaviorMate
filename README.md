@@ -25,7 +25,10 @@ Option 1: Download prebuilt jar
   3) Run the BehaviorMate.jar (Java 8 needs to be installed).
 
 Option 2: Download and build from source <link> [Windows]
-  1) Clone the repository: git clone git@github.com:losonczylab/behaviorMate.git
+  1) Clone the repository:
+     ```
+     git clone git@github.com:losonczylab/behaviorMate.git
+     ```
   2) Install Chocolatey package manager and make
      - Open PowerShell as administrator and run the following commands:
        
