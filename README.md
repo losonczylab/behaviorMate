@@ -20,7 +20,7 @@ Windows 10/11
 ## Installation
 
 Option 1: Download prebuilt jar
-  1) Download zip at <link>
+  1) Download zip: [<behaviorMate.zip>](https://s3.amazonaws.com/losonczylab.behaviormate/Downloads/1.0.0/behaviorMate.zip)
   2) Extract
   3) Run <jar> (need to have Java 8 installed)
 
