@@ -4,7 +4,7 @@
 behaviorMate is an Open Source package for collecting time-stamped behavior data during animal experiments. It provides:
 
 - A user interface for adjusting experimental parameters and viewing its current state
-- Asychronous communication with actuators (reward valves, tone generators, etc.) and sensors (rotary encoders, capacitance sensors, etc.)
+- Asynchronous communication with actuators (reward valves, tone generators, etc.) and sensors (rotary encoders, capacitance sensors, etc.)
 - Time-stamped logging to a TDML file
 
 ## Citing behaviorMate
@@ -22,7 +22,6 @@ Windows 10/11
 Option 1: Download prebuilt jar
   1) Download zip: [behaviorMate.zip](https://s3.amazonaws.com/losonczylab.behaviormate/Downloads/1.0.0/behaviorMate.zip)
   2) Extract the behaviorMate folder.
-  3) Run the BehaviorMate.jar (Java 8 needs to be installed).
 
 Option 2: Download and build from source <link> [Windows]
   1) Clone the repository:
@@ -37,16 +36,16 @@ Option 2: Download and build from source <link> [Windows]
      ```
      choco install make
      ```
-  3) Navigate to behaviorMate root project directory containing the "make" file. Then run:
+  3) Navigate to the behaviorMate root project directory containing the "make" file. Then run:
      ```
      make all
      ```
 
 ## Starting BehaviorMate
 
-To start the application simply click the BehaviortMate shortcut created during installation or execute the run.bat batch file in the project's root directory.
+To start the application simply open the BehaviorMate.jar file using your Java 8 installation.
                 
-After launching BehaviorMate, a file selector will popup for choosing the desired settings file. If the settings file is invalid, the file selector will pop up again. If the selector is x'd out, the program will terminate.
+After launching BehaviorMate, a file selector will pop up for choosing the desired settings file. If the settings file is invalid, the file selector will pop up again. If the selector is x'd out, the program will terminate.
                 
 ## Setting Up Your Experiment
 
