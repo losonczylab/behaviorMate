@@ -29,8 +29,10 @@ Option 2: Download and build from source <link> [Windows]
   2) Install Chocolatey package manager and make
      - Open PowerShell as administrator <br>
      ```
-     > Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1')) <br>
-     > choco install make
+     Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+     ```
+     ```
+     choco install make
      ```
   4) Navigate to behaviorMate root project directory containing the "make" file
   5) Run command: make all
