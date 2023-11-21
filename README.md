@@ -19,9 +19,20 @@ Windows 10/11
 
 ## Installation
 
-Option 1: Download and extract zip <link>
+Option 1: Download prebuilt jar
+  1) Download zip at <link>
+  2) Extract
+  3) Run <jar> (need to have Java 8 installed)
 
-Option 2: Download and build from source <link>
+Option 2: Download and build from source <link> [Windows]
+  1) git clone <link>
+  2) Install Chocolatey package manager and make
+     a) Open PowerShell as administrator
+     b) > Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+     c) > choco install make
+  3) Navigate to behaviorMate root project directory containing the "make" file
+  4) > make all
+ 
 
 ## Starting BehaviorMate
 
