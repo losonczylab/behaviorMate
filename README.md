@@ -74,15 +74,11 @@ BlockedShuffleContextDecorator - Used to place the Context randomly along a cert
 DelayedContextDecorator - Delays the Context from being enabled until a certain amount of time has passed after the start of the trial.
                 
 JointContextDecorator - Allows a group of Contexts to be enabled and disabled together. Provides options to allow Contexts to be enabled a certain amount of time or certain distance after another Context (Ex: Enabling an odor Context 0.5 seconds after a lick Context has been enabled).
-                
-LickStartContextDecorator - ?
-                
+                                
 RandomContextDecorator - Used to enable the Context every random number of laps. It is disabled otherwise.
                 
 ScheduledContextDecorator - Used to disable the Context on certain laps and it is enabled otherwise.
-                
-TimedContextDecorator - ?
-                
+                                
 TimedITIContextDecorator - Used to disable the Context for random amounts of time before it is re-enabled.
 
 # For Developers:
