@@ -922,6 +922,9 @@ public class TreadmillController extends PApplet {
                 if (context.getString("id").equals(reward_context)) {
                     JSONArray valve_list = context.getJSONArray("valves");
                     reward_valve = valve_list.getInt(0);
+                    if (context.getString("type").equals("operant")) {
+                        lickport_pin = context.getInt("sensor");
+                    }
                     return;
                 }
             }
@@ -937,6 +940,10 @@ public class TreadmillController extends PApplet {
             JSONArray context_valves = new JSONArray();
             context_valves.append(reward_valve);
             reward_info.setJSONArray("valves", context_valves);
+        }
+
+        if (!reward_info.isNull("sensor")) {
+            lickport_pin = reward_info.getInt("sensor");
         }
 
         if (!reward_info.isNull("drop_size")) {
@@ -1670,10 +1677,19 @@ public class TreadmillController extends PApplet {
                     String action = sensorJson.getString("action", "stop");
                     if (action.equals("start")) {
                         display.setSensorState(sensor_pin, 1);
-                        sensor_counts.put(sensor_pin,
-                                          sensor_counts.get(sensor_pin) + 1);
+                        if (sensor_counts.containsKey(sensor_pin)) {
+                            sensor_counts.put(sensor_pin,
+                                              sensor_counts.get(sensor_pin) + 1);
+                        }
+                        if (sensor_pin == lickport_pin) {
+                            display.addLick(started);
+                            lick_count++;
+                        }
                     } else if (action.equals("stop")) {
                         display.setSensorState(sensor_pin, -1);
+                        if (sensor_pin == lickport_pin) {
+                            display.lickStop();
+                        }
                     } else if (action.equals("created")) {
                         sensor_counts.put(sensor_pin, 0);
                         display.setSensorState(sensor_pin, -1);
