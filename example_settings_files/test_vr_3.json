@@ -1,0 +1,253 @@
+// C++ style '//' comments are permitted to comment out the end of lines
+// but block style i.e. '/*' will not work
+{
+    "_rig_settings": {
+        "controllers": {
+            "behavior_controller": {
+                "ip": "192.168.1.101",
+                "send_port": 5000,
+                "receive_port": 5000
+            },
+            "position_controller": {
+                "ip": "192.168.1.102",
+                "send_port": 5005,
+                "receive_port": 5005
+            },
+            "display_1": {
+                "ip": "192.168.1.141",
+                "send_port": 4020,
+                "receive_port": 4021
+            },
+            "display_2": {
+                "ip": "192.168.1.142",
+                "send_port": 4020,
+                "receive_port": 4022
+            },
+            "display_3": {
+                "ip": "192.168.1.143",
+                "send_port": 4020,
+                "receive_port": 4023
+            }
+        },
+        "sync_pin": 23,
+        "position_scale": 1.7,
+        "track_length": 4000,
+        "lap_offset": 0,
+        "position_lap_reader": false
+    },
+    // simple vr setup with 3 screens
+    "vr_context": {
+        "uses": "_rig_settings",
+        "trial_length": 1200,
+        "zero_position_boundary": true,
+        "reward": {
+            "id": "reward"
+        },
+        "sensors": [
+            {
+                "type": "cap1188",
+                "pin": 3,
+                "sensor": 0,
+                "lights": false,
+                "sensitivity": 6,
+                "reset_pin": 5
+            }
+        ],
+        "contexts": [
+            {
+                "id": "4m_ctxA",
+                "class": "vr2",
+                "start_position": 0,
+                "display_controllers": [
+                    "display_1",
+                    "display_2",
+                    "display_3"
+                ],
+                "views": [
+                    {
+                        "top": 0.14,
+                        "bottom": -0.058,
+                        "left": -0.07,
+                        "right": 0.03,
+                        "near": 0.1,
+                        "rotation": -45
+                    },
+                    {
+                        "top": 0.15,
+                        "bottom": -0.065,
+                        "left": -0.05,
+                        "right": 0.05,
+                        "near": 0.1,
+                        "rotation": 0
+                    },
+                    {
+                        "top": 0.14,
+                        "bottom": -0.058,
+                        "left": -0.03,
+                        "right": 0.07,
+                        "near": 0.1,
+                        "rotation": 45
+                    }
+               ],
+               "vr_file": "vr_contexts/4m_ctxA.vr",
+               "decorators": [
+                    {
+                        "class": "timed_iti",
+                        "random_iti": false,
+                        "iti_time": 2
+                    }
+                ]
+            },
+            {
+                "id": "reward",
+                "type": "operant",
+                "max_duration": 1,
+                "valves": [52],
+                "durations": [30],
+                "operant_rate": 1,
+                "radius": 100,
+                "initial_open": true,
+                "sensor": 3,
+                "locations": [2100],
+                "display_color": [104, 204, 104],
+                "decorators": [
+                    {
+                        "class": "timed_iti",
+                        "random_iti": false,
+                        "iti_time": 2
+                   }
+                ]
+            }
+        ]
+    },
+    // context with increasing fog around the reward zone
+    "fog_context": {
+        "uses": "_rig_settings",
+        "trial_length": 1200,
+        "zero_position_boundary": true,
+        "reward": {
+            "id": "reward"
+        },
+        "sensors": [
+            {
+                "type": "cap1188",
+                "pin": 3,
+                "sensor": 0,
+                "lights": false,
+                "sensitivity": 6,
+                "reset_pin": 5
+            }
+        ],
+        "contexts": [
+            {
+                "id": "4m_ctxA",
+                "class": "vr2",
+                "start_position": 0,
+                "display_controllers": [
+                    "display_1",
+                    "display_2",
+                    "display_3"
+                ],
+                "views": [
+                    {
+                        "top": 0.14,
+                        "bottom": -0.058,
+                        "left": -0.07,
+                        "right": 0.03,
+                        "near": 0.1,
+                        "rotation": -45
+                    },
+                    {
+                        "top": 0.15,
+                        "bottom": -0.065,
+                        "left": -0.05,
+                        "right": 0.05,
+                        "near": 0.1,
+                        "rotation": 0
+                    },
+                    {
+                        "top": 0.14,
+                        "bottom": -0.058,
+                        "left": -0.03,
+                        "right": 0.07,
+                        "near": 0.1,
+                        "rotation": 45
+                    }
+               ],
+               "vr_file": "4m_ctxA.vr",
+               "decorators": [
+                    {
+                        "class": "timed_iti",
+                        "random_iti": false,
+                        "iti_time": 2
+                    }
+                ]
+            },
+            {
+                "id": "fog_light",
+                "class": "fog_context",
+                "fog_starts": [50, 0, 0, 50],
+                "fog_ends": [500, 25, 25, 200],
+                "fog_locations": [0, 500, 1250, 1500],
+                "display_controllers": [
+                    "display_1",
+                    "display_2",
+                    "display_3"
+                ],
+                "radius": 750,
+                "locations": [1750],
+                "display_color": [150, 150, 200],
+                "decorators": [
+                    {
+                         "class": "scheduled_context",
+                         "lap_list": [[2, 30]]
+                    }
+                ]
+            },
+            {
+                "id": "fog_heavy",
+                "class": "fog_context",
+                "fog_starts": [50, 0, 0, 50],
+                "fog_ends": [500, 8, 8, 200],
+                "fog_locations": [0, 500, 1250, 1500],
+                "display_controllers": [
+                    "display_1",
+                    "display_2",
+                    "display_3"
+                ],
+                "radius": 750,
+                "locations": [1750],
+                "display_color": [150, 150, 200],
+                "decorators": [
+                    {
+                         "class": "scheduled_context",
+                         "lap_list": [[35, 50], [55, 70]]
+                    }
+                ]
+            },
+            {
+                "id": "reward",
+                "type": "operant",
+                "max_duration": 1,
+                "valves": [52],
+                "durations": [30],
+                "operant_rate": 1,
+                "radius": 100,
+                "initial_open": true,
+                "sensor": 3,
+                "locations": [2100],
+                "display_color": [104, 204, 104],
+                "decorators": [
+                    {
+                        "class": "timed_iti",
+                        "random_iti": false,
+                        "iti_time": 2
+                   }
+                ]
+            }
+        ]
+    },
+    "_system": {
+        "data_directory":"behaviorData"
+    }
+}

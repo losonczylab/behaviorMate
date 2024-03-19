@@ -1,0 +1,758 @@
+{ 
+    "objects": [ 
+      { 
+        "type": "Arch", 
+        "id": "Arch", 
+        "Position": [ 
+          0, 
+          25, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          7, 
+          4, 
+          3
+          ], 
+        "material": "Colors/yellow"
+        }, 
+      { 
+        "type": "Arch", 
+        "id": "Arch (1)", 
+        "Position": [ 
+          0, 
+          125, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          7, 
+          4, 
+          3
+          ], 
+        "material": "Colors/purple2"
+        }, 
+      { 
+        "type": "Arch", 
+        "id": "Arch (2)", 
+        "Position": [ 
+          0, 
+          400, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          7, 
+          4, 
+          3
+          ], 
+        "material": "Colors/yellow"
+        }, 
+      { 
+        "type": "Cylinder", 
+        "id": "Cylinder", 
+        "Position": [ 
+          -40, 
+          300, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          7, 
+          7, 
+          2
+          ], 
+        "material": "Pillar_Materials/green_checkerboard_pillar"
+        }, 
+      { 
+        "type": "Cylinder", 
+        "id": "Cylinder (1)", 
+        "Position": [ 
+          -40, 
+          350, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          7, 
+          7, 
+          5
+          ], 
+        "material": "Pillar_Materials/white_stripe_pillar"
+        }, 
+      { 
+        "type": "Cylinder", 
+        "id": "Cylinder (2)", 
+        "Position": [ 
+          40, 
+          400, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          7, 
+          7, 
+          2
+          ], 
+        "material": "Pillar_Materials/blue_circles_pillar"
+        }, 
+      { 
+        "type": "EndTunnel", 
+        "id": "EndTunnel_start", 
+        "Position": [ 
+          0, 
+          -12, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          3.5, 
+          0.5, 
+          2
+          ], 
+        "material": "Colors/Black"
+        }, 
+      { 
+        "type": "EndTunnel", 
+        "id": "EndTunnel_stop", 
+        "Position": [ 
+          0, 
+          405, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          180
+          ], 
+        "Scale": [ 
+          3.5, 
+          0.5, 
+          2
+          ], 
+        "material": "Colors/Black"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall", 
+        "Position": [ 
+          75, 
+          100, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          1, 
+          7, 
+          7
+          ], 
+        "material": "Wall_Materials/black_circles_wall"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall (10)", 
+        "Position": [ 
+          20, 
+          375, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          1, 
+          1.43, 
+          0.75
+          ], 
+        "material": "blue_circles"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall (2)", 
+        "Position": [ 
+          -20, 
+          75.5, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          1, 
+          1.43, 
+          0.75
+          ], 
+        "material": "Wall_Materials/diamonds_wall"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall_1_left", 
+        "Position": [ 
+          -20, 
+          25.5, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          1, 
+          1.43, 
+          0.75
+          ], 
+        "material": "Wall_Materials/diamonds_wall"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall_1_right", 
+        "Position": [ 
+          20, 
+          25, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          1, 
+          1.43, 
+          0.75
+          ], 
+        "material": "Wall_Materials/diamonds_wall"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall_2_right", 
+        "Position": [ 
+          20, 
+          75, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          1, 
+          1.43, 
+          0.75
+          ], 
+        "material": "Wall_Materials/diamonds_wall"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall_3_left", 
+        "Position": [ 
+          -20, 
+          125, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          1, 
+          1.43, 
+          0.75
+          ], 
+        "material": "Wall_Materials/green_checkerboard_wall"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall_3_right", 
+        "Position": [ 
+          20, 
+          125, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          1, 
+          1.43, 
+          0.75
+          ], 
+        "material": "Wall_Materials/green_checkerboard_wall"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall_4_left", 
+        "Position": [ 
+          -20, 
+          175, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          1, 
+          1.43, 
+          0.75
+          ], 
+        "material": "Wall_Materials/green_checkerboard_wall"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall_4_right", 
+        "Position": [ 
+          20, 
+          175, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          1, 
+          1.43, 
+          0.75
+          ], 
+        "material": "blue_circles"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall_5_left", 
+        "Position": [ 
+          -20, 
+          225, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          1, 
+          1.43, 
+          0.75
+          ], 
+        "material": "Wall_Materials/blue_circles_wall"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall_5_right", 
+        "Position": [ 
+          20, 
+          225, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          1, 
+          1.43, 
+          0.75
+          ], 
+        "material": "Wall_Materials/blue_circles_wall"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall_6_left", 
+        "Position": [ 
+          -20, 
+          275, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          1, 
+          1.43, 
+          0.75
+          ], 
+        "material": "Wall_Materials/vertical_bar_orange_wall"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall_6_right", 
+        "Position": [ 
+          20, 
+          275, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          1, 
+          1.43, 
+          0.75
+          ], 
+        "material": "Wall_Materials/vertical_bar_orange_wall"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall_7_left", 
+        "Position": [ 
+          -20, 
+          325, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          1, 
+          1.43, 
+          0.75
+          ], 
+        "material": "Wall_Materials/vertical_bar_orange_wall"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall_7_right", 
+        "Position": [ 
+          20, 
+          325, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          1, 
+          1.43, 
+          0.75
+          ], 
+        "material": "Wall_Materials/vertical_bar_orange_wall"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall_8_left", 
+        "Position": [ 
+          -20, 
+          375, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          1, 
+          1.43, 
+          0.75
+          ], 
+        "material": "Wall_Materials/white_checkerboard_wall"
+        }, 
+      { 
+        "type": "Light", 
+        "id": "Light_Left", 
+        "Position": [ 
+          0, 
+          0, 
+          200
+          ], 
+        "Rotation": [ 
+          50, 
+          0, 
+          350
+          ], 
+        "Scale": [ 
+          1, 
+          1, 
+          1
+          ]
+        }, 
+      { 
+        "type": "Light", 
+        "id": "Light_Right", 
+        "Position": [ 
+          0, 
+          0, 
+          200
+          ], 
+        "Rotation": [ 
+          50, 
+          -1.992354E-06, 
+          9.999995
+          ], 
+        "Scale": [ 
+          1, 
+          0.9999996, 
+          0.9999998
+          ]
+        }, 
+      { 
+        "type": "Sphere", 
+        "id": "Sphere", 
+        "Position": [ 
+          -20, 
+          275, 
+          -9
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          4, 
+          1, 
+          4
+          ]
+        }, 
+      { 
+        "type": "Sphere", 
+        "id": "Sphere (1)", 
+        "Position": [ 
+          -20, 
+          285, 
+          -9
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          4, 
+          1, 
+          4
+          ]
+        }, 
+      { 
+        "type": "Sphere", 
+        "id": "Sphere (2)", 
+        "Position": [ 
+          20, 
+          300, 
+          -9
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          4, 
+          1, 
+          4
+          ]
+        }, 
+      { 
+        "type": "Sphere", 
+        "id": "Sphere (3)", 
+        "Position": [ 
+          -20, 
+          200, 
+          -9
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          4, 
+          1, 
+          4
+          ]
+        }, 
+      { 
+        "type": "Sphere", 
+        "id": "Sphere (4)", 
+        "Position": [ 
+          20, 
+          170, 
+          -9
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          4, 
+          1, 
+          4
+          ]
+        }, 
+      { 
+        "type": "PathSegment", 
+        "id": "path_1", 
+        "Position": [ 
+          0, 
+          49, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          4, 
+          10.2, 
+          1
+          ], 
+        "material": "Track_Materials/path_green_squares"
+        }, 
+      { 
+        "type": "PathSegment", 
+        "id": "path_2", 
+        "Position": [ 
+          0, 
+          150, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          4, 
+          10, 
+          1
+          ], 
+        "material": "Track_Materials/path_white_diamonds"
+        }, 
+      { 
+        "type": "PathSegment", 
+        "id": "path_3_yellow_lines", 
+        "Position": [ 
+          0, 
+          250, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          4, 
+          10, 
+          1
+          ], 
+        "material": "Track_Materials/path_white_diamonds"
+        }, 
+      { 
+        "type": "PathSegment", 
+        "id": "path_4", 
+        "Position": [ 
+          0, 
+          350, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          4, 
+          10, 
+          1
+          ], 
+        "material": "Track_Materials/blue_plus"
+        }, 
+      { 
+        "type": "PathSegment", 
+        "id": "path_end", 
+        "Position": [ 
+          0, 
+          410, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          4, 
+          2, 
+          1
+          ], 
+        "material": "Colors/Black"
+        }, 
+      { 
+        "type": "PathSegment", 
+        "id": "path_start", 
+        "Position": [ 
+          0, 
+          -10, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          4, 
+          2, 
+          1
+          ], 
+        "material": "Colors/Black"
+        }
+      ], 
+    "skybox": "black"
+    }

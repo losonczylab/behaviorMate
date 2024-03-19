@@ -1,0 +1,723 @@
+{ 
+    "objects": [ 
+      { 
+        "type": "Arch", 
+        "id": "Arch", 
+        "Position": [ 
+          0, 
+          50, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          3, 
+          10, 
+          3
+          ], 
+        "material": "Colors/yellow"
+        }, 
+      { 
+        "type": "Arch", 
+        "id": "Arch (1)", 
+        "Position": [ 
+          0, 
+          250, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          5, 
+          8, 
+          3
+          ], 
+        "material": "Colors/blue"
+        }, 
+      { 
+        "type": "Cylinder", 
+        "id": "Cylinder", 
+        "Position": [ 
+          50, 
+          100, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          7, 
+          7, 
+          7
+          ], 
+        "material": "Pillar_Materials/green_checkerboard_pillar"
+        }, 
+      { 
+        "type": "Cylinder", 
+        "id": "Cylinder (2)", 
+        "Position": [ 
+          -80, 
+          150, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          7, 
+          7, 
+          7
+          ], 
+        "material": "Pillar_Materials/green_checkerboard_pillar"
+        }, 
+      { 
+        "type": "Cylinder", 
+        "id": "Cylinder (3)", 
+        "Position": [ 
+          -80, 
+          175, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          7, 
+          7, 
+          7
+          ], 
+        "material": "Pillar_Materials/green_checkerboard_pillar"
+        }, 
+      { 
+        "type": "EndTunnel", 
+        "id": "EndTunnel_start", 
+        "Position": [ 
+          0, 
+          -12, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          3.5, 
+          0.5, 
+          2
+          ], 
+        "material": "Colors/Black"
+        }, 
+      { 
+        "type": "EndTunnel", 
+        "id": "EndTunnel_stop", 
+        "Position": [ 
+          0, 
+          405, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          180
+          ], 
+        "Scale": [ 
+          3.5, 
+          0.5, 
+          2
+          ], 
+        "material": "Colors/Black"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall (10)", 
+        "Position": [ 
+          20, 
+          375, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          1, 
+          1.43, 
+          0.75
+          ], 
+        "material": "Wall_Materials/white_circles_wall"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall (2)", 
+        "Position": [ 
+          -20, 
+          75.5, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          1, 
+          1.43, 
+          0.75
+          ], 
+        "material": "Wall_Materials/diamonds_wall"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall_1_left", 
+        "Position": [ 
+          -20, 
+          25.5, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          1, 
+          1.43, 
+          0.75
+          ], 
+        "material": "Wall_Materials/diamonds_wall"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall_1_right", 
+        "Position": [ 
+          20, 
+          25, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          1, 
+          1.43, 
+          0.75
+          ], 
+        "material": "Wall_Materials/diamonds_wall"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall_2_right", 
+        "Position": [ 
+          20, 
+          75, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          1, 
+          1.43, 
+          0.75
+          ], 
+        "material": "Wall_Materials/purple_circle_lines"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall_3_left", 
+        "Position": [ 
+          -20, 
+          125, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          1, 
+          1.43, 
+          0.75
+          ], 
+        "material": "Wall_Materials/purple_circle_lines"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall_3_right", 
+        "Position": [ 
+          20, 
+          125, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          1, 
+          1.43, 
+          0.75
+          ], 
+        "material": "Wall_Materials/purple_circle_lines"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall_4_left", 
+        "Position": [ 
+          -20, 
+          175, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          1, 
+          1.43, 
+          0.75
+          ], 
+        "material": "Wall_Materials/blue_circles_wall"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall_4_right", 
+        "Position": [ 
+          20, 
+          175, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          1, 
+          1.43, 
+          0.75
+          ], 
+        "material": "Wall_Materials/purple_circle_lines"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall_5_left", 
+        "Position": [ 
+          -20, 
+          225, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          1, 
+          1.43, 
+          0.75
+          ], 
+        "material": "Wall_Materials/blue_circles_wall"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall_5_right", 
+        "Position": [ 
+          20, 
+          225, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          1, 
+          1.43, 
+          0.75
+          ], 
+        "material": "Wall_Materials/blue_circles_wall"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall_6_left", 
+        "Position": [ 
+          -20, 
+          275, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          1, 
+          1.43, 
+          0.75
+          ], 
+        "material": "Wall_Materials/black_circles_wall"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall_6_right", 
+        "Position": [ 
+          20, 
+          275, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          1, 
+          1.43, 
+          0.75
+          ], 
+        "material": "Wall_Materials/black_circles_wall"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall_7_left", 
+        "Position": [ 
+          -20, 
+          325, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          1, 
+          1.43, 
+          0.75
+          ], 
+        "material": "Wall_Materials/black_circles_wall"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall_7_right", 
+        "Position": [ 
+          20, 
+          325, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          1, 
+          1.43, 
+          0.75
+          ], 
+        "material": "Wall_Materials/white_circles_wall"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall_8_left", 
+        "Position": [ 
+          -20, 
+          375, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          1, 
+          1.43, 
+          0.75
+          ], 
+        "material": "Wall_Materials/black_circles_wall"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall_big_1", 
+        "Position": [ 
+          85, 
+          40, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          1, 
+          5, 
+          15
+          ], 
+        "material": "Wall_Materials/vertical_bar_orange_wall"
+        }, 
+      { 
+        "type": "HighWall", 
+        "id": "HighWall_big_2", 
+        "Position": [ 
+          -125, 
+          400, 
+          15
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          90
+          ], 
+        "Scale": [ 
+          1, 
+          5.000004, 
+          5
+          ], 
+        "material": "Wall_Materials/diamonds_wall"
+        }, 
+      { 
+        "type": "Light", 
+        "id": "Light_Left", 
+        "Position": [ 
+          0, 
+          0, 
+          200
+          ], 
+        "Rotation": [ 
+          50, 
+          0, 
+          350
+          ], 
+        "Scale": [ 
+          1, 
+          1, 
+          1
+          ]
+        }, 
+      { 
+        "type": "Light", 
+        "id": "Light_Right", 
+        "Position": [ 
+          0, 
+          0, 
+          200
+          ], 
+        "Rotation": [ 
+          50, 
+          -5.312944E-06, 
+          9.999994
+          ], 
+        "Scale": [ 
+          0.9999995, 
+          0.9999996, 
+          0.9999998
+          ]
+        }, 
+      { 
+        "type": "Sphere", 
+        "id": "Sphere1", 
+        "Position": [ 
+          20, 
+          340, 
+          -7
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          3, 
+          3, 
+          3
+          ], 
+        "material": "Colors/yellow"
+        }, 
+      { 
+        "type": "Sphere", 
+        "id": "Sphere2", 
+        "Position": [ 
+          20, 
+          330, 
+          -1
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          3, 
+          3, 
+          3
+          ], 
+        "material": "Colors/yellow"
+        }, 
+      { 
+        "type": "Sphere", 
+        "id": "Sphere3", 
+        "Position": [ 
+          20, 
+          320, 
+          -5
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          3, 
+          3, 
+          3
+          ], 
+        "material": "Colors/yellow"
+        }, 
+      { 
+        "type": "PathSegment", 
+        "id": "path_1", 
+        "Position": [ 
+          0, 
+          49, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          180
+          ], 
+        "Scale": [ 
+          4, 
+          10.2, 
+          1
+          ], 
+        "material": "Track_Materials/blue_w_star"
+        }, 
+      { 
+        "type": "PathSegment", 
+        "id": "path_2", 
+        "Position": [ 
+          0, 
+          150, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          4, 
+          10, 
+          1
+          ], 
+        "material": "Track_Materials/bw_wobbles"
+        }, 
+      { 
+        "type": "PathSegment", 
+        "id": "path_3_yellow_lines", 
+        "Position": [ 
+          0, 
+          250, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          4, 
+          10, 
+          1
+          ], 
+        "material": "Track_Materials/blue_eggs"
+        }, 
+      { 
+        "type": "PathSegment", 
+        "id": "path_4", 
+        "Position": [ 
+          0, 
+          350, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          4, 
+          10, 
+          1
+          ], 
+        "material": "Track_Materials/purple_plus"
+        }, 
+      { 
+        "type": "PathSegment", 
+        "id": "path_end", 
+        "Position": [ 
+          0, 
+          410, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          4, 
+          2, 
+          1
+          ], 
+        "material": "Colors/Black"
+        }, 
+      { 
+        "type": "PathSegment", 
+        "id": "path_start", 
+        "Position": [ 
+          0, 
+          -10, 
+          0
+          ], 
+        "Rotation": [ 
+          0, 
+          0, 
+          0
+          ], 
+        "Scale": [ 
+          4, 
+          2, 
+          1
+          ], 
+        "material": "Colors/Black"
+        }
+      ], 
+    "skybox": "black"
+    }

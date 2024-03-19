@@ -1,0 +1,51 @@
+{
+    "two_fixed_rz": {
+        "controllers": {
+            "behavior_controller": {
+                "ip": "127.0.0.1",
+                "receive_port": 5000,
+                "send_port": 4096
+            },
+            "position_controller": {
+                "ip": "127.0.0.1",
+                "send_port": 5005,
+                "receive_port": 5005
+            }
+        },
+        "reward": {
+            "id": "reward"
+        },
+        "sensors": [
+            {
+                "type": "cap1188",
+                "pin": 3,
+                "lights": true,
+                "sensitivity": 6,
+                "reset_pin": 5
+            }
+        ],
+        "contexts": [
+            {
+                "id": "reward",
+                "type": "operant",
+                "max_duration": 5,
+                "valves": [52],
+                "durations": [60], 
+                "operant_rate": 1,
+                "locations": [500, 1500],
+                "radius": 50,
+                "initial_open": true,
+                "sensor": 3, 
+                "display_color": [104,204,104]
+            }
+        ],
+        "sync_pin": 23,
+        "trial_length": 300,
+        "position_scale": 2.18, 
+        "track_length": 2000,
+        "position_lap_reader": false
+    },
+    "_system": {
+        "data_directory":"behaviorData"
+    }
+}
