@@ -20,9 +20,10 @@
         },
         "sensors": [
             {
-                "pin": 2,
-                "report_pin": 20,
-                "type": "lickport"
+                "pin": 3,
+                "reset_pin": 5,
+                "type": "cap1188",
+                "sensitivity": 6
             }
         ],
         "contexts": [
@@ -33,18 +34,18 @@
                     {
                         "name": "light",
                         "address": "behavior_controller",
-                        "pin": 15,
+                        "pin": 29,
                         "duration": 100
                     },
                     {
                         "name": "water",
                         "address": "behavior_controller",
-                        "pin": 5,
+                        "pin": 52,
                         "duration": 30
                     },
                     {
                         "name": "odor",
-                        "pin": 17,
+                        "pin": 27,
                         "address": "behavior_controller",
                         "duration": 500
                     },
@@ -56,7 +57,7 @@
                     },
                     {
                         "name": "tone_2",
-                        "pin": 35,
+                        "pin": 37,
                         "address": "behavior_controller",
                         "duration": 500
                     }
