@@ -148,7 +148,7 @@ public class FileWriter extends PApplet {
          * Placeholder
          */
         public void run() {
-            messageBuffer = writeQueue.poll();
+            messageBuffer = writeQueue.peek();
             while (this.run || messageBuffer != null) {
                 if (messageBuffer != null) {
                     try {
@@ -173,11 +173,17 @@ public class FileWriter extends PApplet {
                                 alert += ("\n" + elements[i].toString());
                             }
                             if (tl != null) {
-                                tl.exception(alert);
+                                //tl.exception(alert);
+                                tl.alert("FileWriter: Error logging message:\n"
+                                         + messageBuffer);
+                                try {
+                                    Thread.sleep(25);
+                                } catch (InterruptedException ie) {}
                             }
                             break;
                         }
-                        messageBuffer = writeQueue.poll();
+                        writeQueue.poll();
+                        messageBuffer = writeQueue.peek();
                     }
 
                     try {
@@ -194,7 +200,7 @@ public class FileWriter extends PApplet {
                     Thread.sleep(25);
                 } catch (InterruptedException e) {}
 
-                messageBuffer = writeQueue.poll();
+                messageBuffer = writeQueue.peek();
             }
         }
 
