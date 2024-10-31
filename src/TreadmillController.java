@@ -94,6 +94,10 @@ public class TreadmillController extends PApplet {
      */
     ArrayList<UdpClient> comms;
 
+    // List to store behavior comms that haven't confirmed creation. Used to verify
+    // system is ready to start an experiment
+    ArrayList<String> unset_contexts;
+
     /**
      * Time (ms) of the last comms check
      */
@@ -501,6 +505,10 @@ public class TreadmillController extends PApplet {
         }
 
         testComms();
+
+        if (unset_contexts.size() > 0) {
+            trialListener.alert("Failed to create Contexts\n" + String.join(", ", unset_contexts));
+        }
 
         trialListener.started(fWriter.getFile());
 
@@ -1018,6 +1026,7 @@ public class TreadmillController extends PApplet {
      */
     void startComms() throws Exception {
         comms = new ArrayList<UdpClient>();
+        unset_contexts = new ArrayList<String>();
         position_comm = null;
         behavior_comm = null;
         reset_comm = null;
@@ -1185,10 +1194,11 @@ public class TreadmillController extends PApplet {
         }
 
         if (!settings_json.isNull("contexts")) {
+            unset_contexts.clear();
             delay(10);
-            VrContextList2 vr_context = null;
-            ArrayList<VrCueContextList3> cue_lists =
-                new ArrayList<VrCueContextList3>();
+            //VrContextList2 vr_context = null;
+            //ArrayList<VrCueContextList3> cue_lists =
+            //    new ArrayList<VrCueContextList3>();
 
             JSONArray contexts_array = settings_json.getJSONArray("contexts");
             for (int i = 0; i < contexts_array.size(); i++) {
@@ -1206,6 +1216,10 @@ public class TreadmillController extends PApplet {
                         " failed to connect to comm");
                 }
                 display.setContextLocations(context_list);
+
+                if ((behavior_comm != null) && (context_list.getComm() == behavior_comm)) {
+                    unset_contexts.add(context_list.getId());
+                }
             }
 
             for (ContextList context : this.contexts) {
@@ -1728,17 +1742,15 @@ public class TreadmillController extends PApplet {
                 if (!context_json.isNull("id")) {
                     String context_id = context_json.getString("id");
                     if (!context_json.isNull("action")) {
+                        String action = context_json.getString("action");
                         for (int j=0; j < contexts.size(); j++) {
                             if (contexts.get(j).getId().equals(context_id)) {
-                                if (context_json.getString("action").equals(
-                                        "start")) {
-
+                                if (action.equals("start")) {
                                     contexts.get(j).setStatus("started");
-                                } else if (
-                                    context_json.getString("action").equals(
-                                        "stop")) {
-
+                                } else if (action.equals("stop")) {
                                     contexts.get(j).setStatus("stopped");
+                                } else if (action.equals("created")) {
+                                    unset_contexts.remove(context_id);
                                 }
 
                                 break;
