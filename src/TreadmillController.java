@@ -755,6 +755,20 @@ public class TreadmillController extends PApplet {
         if (pin == getRewardPin()) {
             this.display.incrementFreeRewardCount();
         }
+
+        if ((started) && (fWriter != null)) {
+            JSONObject comment_json = new JSONObject();
+            comment_json.setJSONObject("behavior_mate", new JSONObject());
+            comment_json.getJSONObject("behavior_mate").setJSONObject(
+                    "test_valve", new JSONObject());
+            comment_json.getJSONObject("behavior_mate").getJSONObject(
+                "test_valve").setInt("pin", pin);
+            comment_json.getJSONObject("behavior_mate").getJSONObject(
+                "test_valve").setInt("duration", duration);
+            comment_json.setFloat("time", timer.getTime());
+            fWriter.write(comment_json.toString());
+
+        }
     }
 
     /**
