@@ -29,6 +29,8 @@ class UdpClient extends PApplet {
      */
     ReceiveThread rt;
 
+    SendThread st;
+
     /**
      * ?
      */
@@ -71,6 +73,7 @@ class UdpClient extends PApplet {
         mL = new FileWriter("logs/" + ip + "." + receivePort + ".log");
         rt = new ReceiveThread(udpSocket, receivePort, this.mL);
         rt.start();
+        this.st = new SendThread(udpSocket, arduinoAddress, this.mL);
     }
 
     /**
@@ -103,6 +106,7 @@ class UdpClient extends PApplet {
         mL = new FileWriter("logs/" + ip + "." + receivePort + ".log");
         rt = new ReceiveThread(udpSocket, receivePort, this.mL);
         rt.start();
+        this.st = new SendThread(udpSocket, arduinoAddress, this.mL);
     }
 
     /**
@@ -114,7 +118,7 @@ class UdpClient extends PApplet {
      * @throws IOException
      */
     public UdpClient(String ip, int arduinoPort, String id) throws IOException {
-        arduinoAddress = new InetSocketAddress(ip,arduinoPort);
+        arduinoAddress = new InetSocketAddress(ip, arduinoPort);
         this.address = ip;
         this.status = true;
 
@@ -125,6 +129,8 @@ class UdpClient extends PApplet {
             this.status = false;
             throw new IOException("error connecting to " + this.address);
         }
+
+        this.st = new SendThread(udpSocket, arduinoAddress, this.mL);
     }
 
     public String getId() {
@@ -145,18 +151,8 @@ class UdpClient extends PApplet {
      * @param message ?
      */
     void sendMessage(String message) {
-      message = message.replaceAll("[\r|\n|\\s]", "");
-
-      try {
-          this.mL.write("[SEND] " + message);
-          byte[] sendData = message.getBytes("UTF-8");
-          DatagramPacket sendPacket = new DatagramPacket(sendData, 0,
-            sendData.length, arduinoAddress);
-          udpSocket.send(sendPacket);
-      } catch (IOException e) {
-        println("error sending to " + this.address + ": " + message);
-        println(e);
-      }
+        message = message.replaceAll("[\r|\n|\\s]", "");
+        this.st.queue_message(message);
     }
 
     /**
@@ -181,6 +177,96 @@ class UdpClient extends PApplet {
 
         return false;
     }
+
+    /**
+     * ?
+     */
+    public class SendThread extends Thread {
+        private Thread t;
+        /**
+         * ?
+         */
+        private DatagramSocket sock;
+        /**
+         * ?
+         */
+        private ConcurrentLinkedQueue<String> sendQueue;
+        //private byte[] receiveData;
+        /**
+         * ?
+         */
+        private boolean run;
+        private boolean debug;
+        private SocketAddress sendAddr;
+        /**
+         * ?
+         */
+        private FileWriter mL;
+
+        /**
+         * ?
+         *
+         * @param sock ?
+         * @param receivePort ?
+         * @param mL ?
+         */
+        SendThread(DatagramSocket sock, SocketAddress address, FileWriter mL) {
+            this.run = false;
+            this.debug = false;
+            this.mL = mL;
+            this.sendAddr = address;
+            this.sock = sock;
+            this.sendQueue = new ConcurrentLinkedQueue<String>();
+        }
+
+        public void queue_message(String message) {
+            sendQueue.add(message);
+            if (!this.run) {
+                this.run = true;
+                start();
+            }
+        }
+
+        public void run() {
+            while (this.run) {
+            int count = 0;
+            String message = this.sendQueue.poll();
+            while (message != null) {
+                try {
+                    this.mL.write("[SEND] " + message);
+
+                    byte[] sendData = message.getBytes("UTF-8");
+                    DatagramPacket sendPacket = new DatagramPacket(sendData, 0,
+                        sendData.length, this.sendAddr);
+                    this.sock.send(sendPacket);
+                } catch (IOException e) {
+                    println("error sending to " + this.sendAddr + ": " + message);
+                    println(e);
+                }
+                count++;
+                if (count > 5) {
+                    try {
+                        Thread.sleep(4);
+                    } catch (InterruptedException e) {System.out.println("Exception"); }
+                }
+                message = sendQueue.poll();
+            }
+            }
+        }
+
+        public void start() {
+            if (t == null) {
+                t = new Thread (this, "name " + System.nanoTime());
+                t.start();
+            }
+        }
+
+        public void stop_thread() {
+            this.run = false;
+            this.t = null;
+        }
+    }
+
 
     /**
      * ?
@@ -281,6 +367,7 @@ class UdpClient extends PApplet {
     void closeSocket() {
         if (rt != null) {
             rt.stop_thread();
+            st.stop_thread();
         } else {
             udpSocket.close();
         }
