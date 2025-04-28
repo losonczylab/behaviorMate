@@ -27,12 +27,12 @@ public class TimedITIContextDecorator extends SuspendableContextDecorator {
     /**
      * ?
      */
-    protected int iti_time_min;
+    protected float iti_time_min;
 
     /**
      * ?
      */
-    protected int iti_time_max;
+    protected float iti_time_max;
 
     /**
      * ?
@@ -73,6 +73,7 @@ public class TimedITIContextDecorator extends SuspendableContextDecorator {
         this.random_iti = context_info.getBoolean("random_iti", false);
 
         if (this.random_iti) {
+            this.random = new Random();
             this.iti_time_min = context_info.getInt("iti_time_min");
             this.iti_time_max = context_info.getInt("iti_time_max");
         } else {
@@ -134,8 +135,8 @@ public class TimedITIContextDecorator extends SuspendableContextDecorator {
             if (this.long_delay_laps.contains(this.start_lap)) {
                 this.next_start = time + this.long_delay;
             } else if (this.random_iti) {
-                this.next_start = time + random.nextInt(
-                    (this.iti_time_max - this.iti_time_min + 1)) + this.iti_time_min;
+                this.next_start = time + this.random.nextFloat() *
+                    (this.iti_time_max - this.iti_time_min) + this.iti_time_min;
             } else {
                 this.next_start = time + this.iti_time;
             }
