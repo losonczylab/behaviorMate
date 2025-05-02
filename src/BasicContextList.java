@@ -224,7 +224,7 @@ public class BasicContextList extends PApplet implements ContextList {
      * ?
      */
     public void sendCreateMessages() {
-        // comm may be null for certian subclasses of ContextList which to not
+        // comm may be null for certain subclasses of ContextList which to not
         // need to talk to the behavior arduino
         if (comm != null) {
             context_info.setString("action", "create");
@@ -242,7 +242,7 @@ public class BasicContextList extends PApplet implements ContextList {
                 int valve_pin = valves.getInt(i);
                 JSONObject valve_json;
 
-                // frequency causes this singal to oscillate in order to play a
+                // frequency causes this signal to oscillate in order to play a
                 // tone
                 if (!context_info.isNull("frequency")) {
                     valve_json = TreadmillController.setup_valve_json(valve_pin,
