@@ -84,6 +84,8 @@ public final class ContextsFactory {
                     cl = new RandomContextDecorator(cl, decorator);
                 } else if (decorator_class.equals("lickstart_context")) {
                     cl = new LickStartContextDecorator(cl, decorator);
+                } else if (decorator_class.equals("delayedstart_context")) {
+                    cl = new DelayedStartDecorator(cl, decorator);
                 } else if (decorator_class.equals("blocked_shuffle")) {
                     cl = new BlockedShuffleDecorator(cl, decorator);
                 } else if (decorator_class.equals("timed_iti")){
